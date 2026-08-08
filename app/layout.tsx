@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { bannerAtivo } from "@/lib/banners";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
     template: "%s | Loja Oficial Vibra Vert",
   },
   description:
-    "Fábrica brasileira de bombas submersas vibratórias. Linhas Vibra Vert e Rymer para poço caipira, com assistência técnica própria e envio para todo o Brasil.",
+    "Bomba sapo Vibra Vert e Rymer, direto da fábrica. Bombas submersas vibratórias para poço, com assistência técnica própria e envio para todo o Brasil.",
   openGraph: {
     type: "website",
     locale: "pt_BR",
@@ -39,13 +40,25 @@ function Logotipo({ largura = 186 }: { largura?: number }) {
   );
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // A tarja do topo vem do banco, não do código: é o espaço mais visto da loja
+  // e quem decide o que vai nele é o time comercial, não o desenvolvedor.
+  const tarja = await bannerAtivo("TARJA_TOPO");
+
   return (
     <html lang="pt-BR">
       <body>
-        <p className="bg-marca-escuro px-4 py-1.5 text-center text-[11px] font-bold uppercase tracking-[0.1em] text-white">
-          Loja Oficial Vibra Vert · Frete grátis acima de R$ 399 · PIX com 5% de desconto
-        </p>
+        {tarja && (
+          <p className="bg-marca-escuro px-4 py-2 text-center text-[11.5px] font-bold text-white">
+            {tarja.link ? (
+              <Link href={tarja.link} className="underline decoration-white/40 underline-offset-2">
+                {tarja.titulo}
+              </Link>
+            ) : (
+              tarja.titulo
+            )}
+          </p>
+        )}
 
         <header className="border-b border-linha bg-superficie">
           <div className="mx-auto flex max-w-7xl items-center gap-6 px-5 py-4">

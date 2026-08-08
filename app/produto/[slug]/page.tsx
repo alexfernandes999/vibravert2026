@@ -109,6 +109,8 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
             </button>
           </div>
 
+          <Confianca especificacoes={p.especificacoes} />
+
           {p.curvaVazao.length > 0 && <Curva curva={p.curvaVazao} />}
         </div>
       </div>
@@ -174,6 +176,42 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
         }}
       />
     </article>
+  );
+}
+
+/**
+ * O prazo de garantia é o da embalagem do fabricante — 1 ano na maior parte da
+ * linha, 6 meses na Rymer 1500. O cadastro antigo anunciava 2 anos em todos, o
+ * que nenhum modelo tem: prazo anunciado obriga a ser honrado, e publicar mais
+ * do que a fábrica cobre transfere o prejuízo para a loja.
+ *
+ * Quando não há ficha oficial, nada é publicado. Omitir é melhor que inventar.
+ */
+function Confianca({ especificacoes }: { especificacoes: { nome: string; valor: string }[] }) {
+  const garantia = especificacoes.find((e) => e.nome === "Garantia")?.valor;
+  const acompanha = especificacoes.find((e) => e.nome === "Acompanha")?.valor;
+
+  const itens = [
+    garantia && { t: `Garantia de ${garantia}`, d: "de fábrica, contra defeito de fabricação" },
+    acompanha && { t: "Kit de instalação incluso", d: acompanha },
+    { t: "Assistência técnica própria", d: "rede de postos autorizados em todo o país" },
+  ].filter(Boolean) as { t: string; d: string }[];
+
+  return (
+    <ul className="mt-5 space-y-2.5">
+      {itens.map((i) => (
+        <li key={i.t} className="flex gap-2.5">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 h-4 w-4 shrink-0 text-marca">
+            <path d="M12 3l8 3v6c0 5-3.4 8.1-8 9-4.6-.9-8-4-8-9V6z" />
+            <path d="M9 12l2 2 4-4" />
+          </svg>
+          <span className="text-[13px] leading-snug">
+            <strong className="font-bold">{i.t}</strong>
+            <span className="block text-mudo">{i.d}</span>
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
 

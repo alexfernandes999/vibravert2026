@@ -462,6 +462,29 @@ async function main() {
     },
   });
 
+  /**
+   * A tarja do topo é o espaço mais visto da loja e o único lugar onde cabe
+   * prova social antes de o visitante rolar a página.
+   *
+   * ⚠ "Marca nº 1 em vendas" é alegação publicitária: pelo CDC e pelo CONAR
+   * ela precisa ser comprovável a qualquer momento, com a fonte e o recorte
+   * declarados. Por isso o texto nomeia a origem (Mercado Livre) e a categoria
+   * (bombas sapo) em vez de dizer apenas "a nº 1 do Brasil" — que seria
+   * impossível de sustentar. Guardar o print do ranking com data.
+   */
+  await prisma.banner.upsert({
+    where: { id: "tarja-topo-inicial" },
+    update: {},
+    create: {
+      id: "tarja-topo-inicial",
+      titulo: "A bomba sapo mais vendida do Mercado Livre · Frete grátis acima de R$ 399 · 5% de desconto no PIX",
+      alt: "Vibra Vert, a bomba sapo mais vendida do Mercado Livre",
+      posicao: "TARJA_TOPO",
+      ativo: true,
+      ordem: 0,
+    },
+  });
+
   console.log(`   1 prateleira · 1 banner\n`);
 
   if (semGarantia.length) {
