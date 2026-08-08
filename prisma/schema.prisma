@@ -38,12 +38,26 @@ model Produto {
   // Atributos de filtro, derivados das especificações no seed.
   // Ficam desnormalizados de propósito: a listagem filtra por faixa numérica
   // sem precisar varrer a tabela de especificações a cada consulta.
-  vazaoMaxima   Int?     // litros por hora
+  vazaoMaxima   Int?     // litros por hora, na altura zero
   alturaMaxima  Int?     // metros de coluna d'água
   potenciaWatts Int?
   voltagem      String?  // "220V" | "110/127V" | "Bivolt"
   acompanhaBoia Boolean  @default(false)
   acompanhaKit  Boolean  @default(false)
+
+  /// Diâmetro mínimo do poço, em polegadas. É o primeiro critério de escolha:
+  /// uma bomba de 8" simplesmente não entra num poço de 6", por mais vazão
+  /// que tenha. Não estava em nenhum produto do cadastro antigo.
+  pocoPolegadas Int?
+  /// Peça de borracha que envolve o corpo e permite trabalhar ajustada num
+  /// poço de 6 polegadas sem bater nas paredes. É o que diferencia a Rymer
+  /// 2500 da 2000 — a hidráulica das duas é idêntica.
+  saiaProtecao  Boolean  @default(false)
+
+  /// Vazão em litros/hora a 0, 10, 20, 30, 40, 50, 60 e 65 m.c.a.
+  /// Alimenta o seletor "qual bomba eu preciso" — a resposta deixa de ser
+  /// achismo e passa a ser o número da instalação do cliente.
+  curvaVazao    Int[]
 
   especificacoes Especificacao[]
   imagens        Imagem[]

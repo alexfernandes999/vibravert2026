@@ -56,17 +56,23 @@ const CANONICO: Record<string, string> = {
 
 /** Ordem em que a ficha técnica é exibida — do que decide a compra ao resto. */
 const ORDEM = [
+  "Poço",                        // primeiro critério de compra: a bomba errada não entra
+  "Saia de proteção lateral",
   "Vazão máxima",
+  "Curva de vazão",
   "Altura manométrica máxima",
   "Altura manométrica mínima",
   "Voltagem",
   "Potência",
   "Frequência",
+  "Fases",
   "Saída de recalque",
+  "Diâmetro do corpo",
   "Tipo de motor",
   "Modelo",
   "Fabricante",
   "Marca do motor",
+  "Acompanha",
   "Aplicação",
   "Garantia",
   "Peso",
@@ -75,7 +81,13 @@ const ORDEM = [
   "Comprimento",
 ];
 
-const FILTRAVEIS = new Set(["Vazão máxima", "Altura manométrica máxima", "Voltagem", "Potência"]);
+const FILTRAVEIS = new Set([
+  "Poço",
+  "Vazão máxima",
+  "Altura manométrica máxima",
+  "Voltagem",
+  "Potência",
+]);
 
 /**
  * O catálogo usa os dois separadores de milhar: "1.650" e "1,650" aparecem no
@@ -129,6 +141,37 @@ const FAMILIAS = ["vibra vert 900", "vibra vert 800", "rymer 2500", "rymer 2000"
 
 const familiaDe = (texto: string): string | null =>
   FAMILIAS.find((f) => texto.toLowerCase().includes(f)) ?? null;
+
+/**
+ * Fichas oficiais, lidas das embalagens do fabricante. Onde existirem, elas
+ * mandam — o cadastro da VTEX estava com a garantia errada em toda a linha e,
+ * na Rymer 1500, com a vazão de 30 metros no lugar da vazão máxima.
+ */
+type Ficha = {
+  nome: string;
+  potenciaWatts: number;
+  saidaRecalque: string;
+  vazaoPorAltura: number[];
+  pocoTubularMinimoPolegadas?: number;
+  pocoDiametroMaximoMm?: number;
+  diametroCorpoMm: number;
+  saiaProtecaoLateral?: boolean;
+  kitIncluso: string;
+  garantiaMeses: number;
+};
+
+const FICHAS: Record<string, Ficha> = JSON.parse(
+  readFileSync(join(process.cwd(), "data", "fichas-tecnicas.json"), "utf8"),
+).modelos;
+
+const ALTURAS = [0, 10, 20, 30, 40, 50, 60, 65];
+
+/** "rymer 2500" → chave "rymer-2500" do arquivo de fichas */
+const fichaDe = (fam: string | null): Ficha | null =>
+  fam ? (FICHAS[fam.replace(/ /g, "-")] ?? null) : null;
+
+const garantiaTexto = (meses: number) =>
+  meses === 12 ? "1 ano" : meses % 12 === 0 ? `${meses / 12} anos` : `${meses} meses`;
 
 async function main() {
   const brutos: ProdutoBruto[] = JSON.parse(
@@ -220,15 +263,39 @@ async function main() {
   for (const p of brutos) {
     const porNome = normalizar(p);
 
-    // combo sem ficha técnica herda do modelo base
-    if (!porNome.has("Vazão máxima")) {
-      const fam = familiaDe(p.nome) ?? familiaDe(p.modelo ?? "");
-      if (fam) {
-        for (const [nome, valor] of herdadas(fam)) {
-          if (!porNome.has(nome)) porNome.set(nome, { valor, original: `herdado de ${fam}` });
-        }
-        if (porNome.has("Vazão máxima")) conferir.push(p.nome);
+    const fam = familiaDe(p.nome) ?? familiaDe(p.modelo ?? "");
+    const ficha = fichaDe(fam);
+
+    if (ficha) {
+      // a embalagem manda: sobrescreve o que veio da VTEX
+      const vaz = ficha.vazaoPorAltura;
+      porNome.set("Vazão máxima", { valor: `${vaz[0].toLocaleString("pt-BR")} litros por hora`, original: "embalagem" });
+      porNome.set("Altura manométrica máxima", { valor: `65 m.c.a. · ${vaz.at(-1)!.toLocaleString("pt-BR")} L/h`, original: "embalagem" });
+      porNome.set("Potência", { valor: `${ficha.potenciaWatts} watts`, original: "embalagem" });
+      porNome.set("Saída de recalque", { valor: ficha.saidaRecalque, original: "embalagem" });
+      porNome.set("Garantia", { valor: garantiaTexto(ficha.garantiaMeses), original: "embalagem" });
+      porNome.set("Diâmetro do corpo", { valor: `${ficha.diametroCorpoMm} mm`, original: "embalagem" });
+      porNome.set("Acompanha", { valor: ficha.kitIncluso, original: "embalagem" });
+      porNome.set("Poço", {
+        valor: ficha.pocoDiametroMaximoMm
+          ? `Até ${ficha.pocoDiametroMaximoMm} mm — cabe em poço de 6 polegadas`
+          : `Tubular, no mínimo ${ficha.pocoTubularMinimoPolegadas} polegadas`,
+        original: "embalagem",
+      });
+      if (ficha.saiaProtecaoLateral) {
+        porNome.set("Saia de proteção lateral", { valor: "Sim", original: "embalagem" });
       }
+      // curva completa: é o que alimenta o seletor "qual bomba eu preciso"
+      porNome.set("Curva de vazão", {
+        valor: ALTURAS.map((a, i) => `${a} m: ${vaz[i]} L/h`).join(" · "),
+        original: "embalagem",
+      });
+    } else if (!porNome.has("Vazão máxima") && fam) {
+      // sem ficha oficial, o combo herda do modelo base do próprio catálogo
+      for (const [nome, valor] of herdadas(fam)) {
+        if (!porNome.has(nome)) porNome.set(nome, { valor, original: `herdado de ${fam}` });
+      }
+      if (porNome.has("Vazão máxima")) conferir.push(p.nome);
     }
 
     const especificacoes = [...porNome.entries()]
@@ -273,12 +340,15 @@ async function main() {
           `${p.nome}. ${vazao ? `Vazão de até ${vazao.toLocaleString("pt-BR")} litros por hora. ` : ""}Garantia de fábrica de 2 anos e envio em 24h úteis.`,
         preco: p.preco,
         precoDe: p.precoDe && p.precoDe > p.preco ? p.precoDe : null,
-        vazaoMaxima: vazao ? Math.round(vazao) : null,
-        alturaMaxima: altura ? Math.round(altura) : null,
-        potenciaWatts: potencia ? Math.round(potencia) : null,
+        vazaoMaxima: ficha ? ficha.vazaoPorAltura[0] : vazao ? Math.round(vazao) : null,
+        alturaMaxima: 65,
+        potenciaWatts: ficha ? ficha.potenciaWatts : potencia ? Math.round(potencia) : null,
         voltagem: volt,
         acompanhaBoia: nomeMin.includes("boia"),
         acompanhaKit: nomeMin.includes("kit"),
+        pocoPolegadas: ficha ? (ficha.pocoDiametroMaximoMm ? 6 : (ficha.pocoTubularMinimoPolegadas ?? null)) : null,
+        saiaProtecao: ficha?.saiaProtecaoLateral ?? false,
+        curvaVazao: ficha?.vazaoPorAltura ?? [],
         especificacoes: { create: especificacoes },
         imagens: {
           create: p.imagens.map((img, i) => ({
