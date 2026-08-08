@@ -35,6 +35,16 @@ model Produto {
   criadoEm      DateTime @default(now())
   atualizadoEm  DateTime @updatedAt
 
+  // Atributos de filtro, derivados das especificações no seed.
+  // Ficam desnormalizados de propósito: a listagem filtra por faixa numérica
+  // sem precisar varrer a tabela de especificações a cada consulta.
+  vazaoMaxima   Int?     // litros por hora
+  alturaMaxima  Int?     // metros de coluna d'água
+  potenciaWatts Int?
+  voltagem      String?  // "220V" | "110/127V" | "Bivolt"
+  acompanhaBoia Boolean  @default(false)
+  acompanhaKit  Boolean  @default(false)
+
   especificacoes Especificacao[]
   imagens        Imagem[]
   categorias     ProdutoCategoria[]
@@ -44,6 +54,7 @@ model Produto {
 
   @@index([marca])
   @@index([ativo, destaque])
+  @@index([voltagem, vazaoMaxima])
   @@map("produtos")
   @@schema("vibravert")
 }
@@ -51,12 +62,15 @@ model Produto {
 /// Vazão, altura manométrica, voltagem, potência… Alimenta ao mesmo tempo a
 /// ficha técnica, os filtros da listagem e os atributos do feed do Shopping.
 model Especificacao {
-  id        String  @id @default(cuid())
-  produtoId String
-  nome      String
-  valor     String
-  ordem     Int     @default(0)
-  filtravel Boolean @default(false)
+  id           String   @id @default(cuid())
+  produtoId    String
+  nome         String                  // nome canônico, já normalizado
+  nomeOriginal String?                 // como estava na VTEX — rastreabilidade da migração
+  valor        String
+  valorNumero  Decimal? @db.Decimal(10, 2)
+  unidade      String?
+  ordem        Int      @default(0)
+  filtravel    Boolean  @default(false)
 
   produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
 
