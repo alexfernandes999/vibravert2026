@@ -1,0 +1,66 @@
+{
+  "_fonte": "Embalagens e manual oficiais enviados pelo fabricante (Vibra Vert Bombas Submersas Vibratórias, CNPJ 21.276.576/0001-56). Substituem o cadastro da VTEX, que estava incompleto e com a garantia errada.",
+  "_alturasMca": [0, 10, 20, 30, 40, 50, 60, 65],
+
+  "modelos": {
+    "vibra-vert-900": {
+      "nome": "Vibra Vert 900",
+      "potenciaWatts": 450,
+      "saidaRecalque": "1\"",
+      "vazaoPorAltura": [2500, 2300, 1950, 1650, 1300, 1000, 800, 750],
+      "alturaManometricaMaxima": 65,
+      "pocoTubularMinimoPolegadas": 8,
+      "diametroCorpoMm": 175,
+      "kitIncluso": "3 abraçadeiras 1\" + 1 curva de instalação 1\"",
+      "tensoes": ["125V", "220V"],
+      "frequencia": "60 Hz",
+      "fases": "Monofásico",
+      "isolacaoBobinas": "Classe H",
+      "protecaoChoque": "Classe II — isolação dupla",
+      "liquido": "Água limpa",
+      "temperaturaMaximaLiquido": "35 °C",
+      "garantiaMeses": 12
+    },
+
+    "rymer-2000": {
+      "nome": "Rymer 2000",
+      "potenciaWatts": 300,
+      "saidaRecalque": "3/4\"",
+      "vazaoPorAltura": [1850, 1700, 1350, 1050, 800, 650, 400, 350],
+      "alturaManometricaMaxima": 65,
+      "pocoTubularMinimoPolegadas": 6,
+      "diametroCorpoMm": 138,
+      "kitIncluso": "3 abraçadeiras 3/4\" + 1 curva de instalação 3/4\"",
+      "tensoes": ["125V", "220V"],
+      "frequencia": "60 Hz",
+      "fases": "Monofásico",
+      "garantiaMeses": 12,
+      "_nota": "Versão padrão, para poço tubular de 6 polegadas ou mais."
+    },
+
+    "rymer-2500": {
+      "nome": "Rymer 2500",
+      "potenciaWatts": 300,
+      "saidaRecalque": "3/4\"",
+      "vazaoPorAltura": [1850, 1700, 1350, 1050, 800, 650, 400, 350],
+      "alturaManometricaMaxima": 65,
+      "pocoDiametroMaximoMm": 150,
+      "diametroCorpoMm": 138,
+      "anelBorracha": true,
+      "kitIncluso": "3 abraçadeiras 3/4\" + 1 curva de instalação 3/4\"",
+      "tensoes": ["125V", "220V"],
+      "frequencia": "60 Hz",
+      "fases": "Monofásico",
+      "garantiaMeses": 12,
+      "_nota": "Hidráulica idêntica à Rymer 2000. A diferença é física: traz anel de borracha e é indicada para POÇOS ATÉ 150 mm — poços estreitos, onde a 2000 não entra. Não é um modelo superior, é um modelo para outro diâmetro de poço. ⚠ Confirmar com a fábrica antes de publicar."
+    }
+  },
+
+  "_pendentes": ["rymer-1500", "vibrinha"],
+
+  "_avisos": [
+    "GARANTIA: a embalagem e o certificado dizem 1 ANO. O cadastro da VTEX diz '2 Anos'. Prevalece a embalagem — informar prazo maior que o real é problema de Código de Defesa do Consumidor.",
+    "A troca na loja não é permitida após 7 dias; a garantia cobre apenas defeito de fabricação e não cobre mau uso.",
+    "O certificado de garantia deve ser preenchido e guardado com a nota fiscal."
+  ]
+}
