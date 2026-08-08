@@ -1,6 +1,19 @@
 {
-  "_fonte": "Embalagens e manual oficiais enviados pelo fabricante (Vibra Vert Bombas Submersas Vibratórias, CNPJ 21.276.576/0001-56). Substituem o cadastro da VTEX, que estava incompleto e com a garantia errada.",
+  "_fonte": "Embalagens e manual oficiais do fabricante (Vibra Vert Bombas Submersas Vibratórias — CNPJ 21.276.576/0001-56). Prevalecem sobre o cadastro da VTEX, que estava incompleto e com a garantia errada em toda a linha.",
   "_alturasMca": [0, 10, 20, 30, 40, 50, 60, 65],
+  "_comuns": {
+    "frequencia": "60 Hz",
+    "fases": "Monofásico",
+    "tensoes": ["125V", "220V", "250V"],
+    "alturaManometricaMaxima": 65,
+    "liquido": "Água limpa",
+    "temperaturaMaximaLiquido": "35 °C",
+    "isolacaoBobinas": "Classe H",
+    "protecaoChoque": "Classe II — isolação dupla",
+    "trocaNaLoja": "Não permitida após 7 dias",
+    "garantiaCobre": "Somente defeito de fabricação. Não cobre mau uso.",
+    "certificado": "Deve ser preenchido e guardado junto com a nota fiscal."
+  },
 
   "modelos": {
     "vibra-vert-900": {
@@ -8,18 +21,25 @@
       "potenciaWatts": 450,
       "saidaRecalque": "1\"",
       "vazaoPorAltura": [2500, 2300, 1950, 1650, 1300, 1000, 800, 750],
-      "alturaManometricaMaxima": 65,
       "pocoTubularMinimoPolegadas": 8,
       "diametroCorpoMm": 175,
       "kitIncluso": "3 abraçadeiras 1\" + 1 curva de instalação 1\"",
-      "tensoes": ["125V", "220V"],
-      "frequencia": "60 Hz",
-      "fases": "Monofásico",
-      "isolacaoBobinas": "Classe H",
-      "protecaoChoque": "Classe II — isolação dupla",
-      "liquido": "Água limpa",
-      "temperaturaMaximaLiquido": "35 °C",
-      "garantiaMeses": 12
+      "garantiaMeses": 12,
+      "_nota": "Maior vazão da linha. Exige poço de 8 polegadas."
+    },
+
+    "vibrinha": {
+      "nome": "Vibrinha",
+      "linha": "5G",
+      "codigoFabricante": "VT nº 3/650",
+      "potenciaWatts": 340,
+      "saidaRecalque": "3/4\"",
+      "vazaoPorAltura": [2150, 2100, 1550, 1200, 850, 650, 500, 450],
+      "pocoTubularMinimoPolegadas": 8,
+      "diametroCorpoMm": 175,
+      "kitIncluso": "3 abraçadeiras 3/4\" + 1 curva de instalação 3/4\"",
+      "garantiaMeses": 12,
+      "_nota": "Tem mascote próprio na embalagem — ativo de marca disponível para a loja."
     },
 
     "rymer-2000": {
@@ -27,15 +47,11 @@
       "potenciaWatts": 300,
       "saidaRecalque": "3/4\"",
       "vazaoPorAltura": [1850, 1700, 1350, 1050, 800, 650, 400, 350],
-      "alturaManometricaMaxima": 65,
       "pocoTubularMinimoPolegadas": 6,
       "diametroCorpoMm": 138,
+      "saiaProtecaoLateral": false,
       "kitIncluso": "3 abraçadeiras 3/4\" + 1 curva de instalação 3/4\"",
-      "tensoes": ["125V", "220V"],
-      "frequencia": "60 Hz",
-      "fases": "Monofásico",
-      "garantiaMeses": 12,
-      "_nota": "Versão padrão, para poço tubular de 6 polegadas ou mais."
+      "garantiaMeses": 12
     },
 
     "rymer-2500": {
@@ -43,24 +59,46 @@
       "potenciaWatts": 300,
       "saidaRecalque": "3/4\"",
       "vazaoPorAltura": [1850, 1700, 1350, 1050, 800, 650, 400, 350],
-      "alturaManometricaMaxima": 65,
       "pocoDiametroMaximoMm": 150,
       "diametroCorpoMm": 138,
-      "anelBorracha": true,
+      "saiaProtecaoLateral": true,
       "kitIncluso": "3 abraçadeiras 3/4\" + 1 curva de instalação 3/4\"",
-      "tensoes": ["125V", "220V"],
-      "frequencia": "60 Hz",
-      "fases": "Monofásico",
       "garantiaMeses": 12,
-      "_nota": "Hidráulica idêntica à Rymer 2000. A diferença é física: traz anel de borracha e é indicada para POÇOS ATÉ 150 mm — poços estreitos, onde a 2000 não entra. Não é um modelo superior, é um modelo para outro diâmetro de poço. ⚠ Confirmar com a fábrica antes de publicar."
+      "_diferencial": "Confirmado pela fábrica: traz SAIA DE PROTEÇÃO LATERAL, uma peça de borracha que envolve o corpo da bomba e permite que ela trabalhe dentro de um poço de 6 polegadas sem bater nas paredes. A hidráulica é idêntica à da Rymer 2000 — o que se paga a mais é a saia, não mais vazão. Este é o argumento de venda do modelo, e não está em lugar nenhum do catálogo atual."
+    },
+
+    "rymer-1500": {
+      "nome": "Rymer 1500",
+      "potenciaWatts": 280,
+      "saidaRecalque": "3/4\"",
+      "vazaoPorAltura": [1650, 1500, 1150, 850, 700, 550, 300, 250],
+      "pocoTubularMinimoPolegadas": 6,
+      "diametroCorpoMm": 138,
+      "kitIncluso": "3 abraçadeiras 3/4\" + 1 curva de instalação 3/4\"",
+      "garantiaMeses": 6,
+      "_nota": "Única da linha com garantia de 6 meses. É a bomba de entrada."
     }
   },
 
-  "_pendentes": ["rymer-1500", "vibrinha"],
+  "_pendente": {
+    "vibra-vert-800": "Ficha não recebida. Consta no catálogo com 2.350 L/h. Pedir a embalagem ao fabricante."
+  },
 
-  "_avisos": [
-    "GARANTIA: a embalagem e o certificado dizem 1 ANO. O cadastro da VTEX diz '2 Anos'. Prevalece a embalagem — informar prazo maior que o real é problema de Código de Defesa do Consumidor.",
-    "A troca na loja não é permitida após 7 dias; a garantia cobre apenas defeito de fabricação e não cobre mau uso.",
-    "O certificado de garantia deve ser preenchido e guardado com a nota fiscal."
+  "_correcoes": [
+    {
+      "tema": "Garantia",
+      "achado": "O cadastro da VTEX diz '2 Anos' em toda a linha. A embalagem diz 1 ANO — e 6 MESES na Rymer 1500.",
+      "impacto": "Anunciar prazo maior que o real é infração ao Código de Defesa do Consumidor e gera obrigação de honrar o prazo anunciado. Corrigir antes de publicar."
+    },
+    {
+      "tema": "Vazão da Rymer 1500",
+      "achado": "Um produto estava cadastrado com 850 L/h como vazão máxima. Pela curva oficial, 850 L/h é a vazão a 30 metros de altura manométrica — não o máximo, que é 1.650 L/h.",
+      "impacto": "Quem cadastrou copiou o número da linha errada da tabela. Explica a contradição encontrada na extração."
+    },
+    {
+      "tema": "Diâmetro do poço",
+      "achado": "Nenhum produto informa o diâmetro mínimo do poço, que varia de 6 a 8 polegadas conforme o modelo.",
+      "impacto": "É o primeiro critério de escolha: a bomba errada simplesmente não entra no poço. Precisa virar filtro na listagem e primeira pergunta do seletor."
+    }
   ]
 }
