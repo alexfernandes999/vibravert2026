@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+build/
+.env
+.env*.local
+.DS_Store
+*.log
+
+# imagens originais da migração: vão para o Supabase Storage, não para o git
+data/imagens/

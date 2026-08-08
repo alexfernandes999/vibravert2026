@@ -1,0 +1,314 @@
+// Loja oficial Vibra Vert / Rymer
+// Convive com o projeto Multiplica no mesmo Postgres do Supabase, isolado
+// no schema "vibravert" para que as tabelas nunca colidam.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")      // pooler (6543) — usado pela aplicação
+  directUrl = env("DIRECT_URL")        // conexão direta (5432) — usada nas migrações
+  schemas   = ["vibravert"]
+}
+
+// ─────────────────────────── catálogo ───────────────────────────
+
+model Produto {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  slugAntigo    String?  @unique          // linkText da VTEX — base do redirecionamento 301
+  nome          String
+  marca         String
+  sku           String   @unique          // RefId do fabricante — vira o mpn no feed
+  ean           String?                   // ausente em quase todo o catálogo próprio
+  modelo        String?
+  descricao     String   @default("")
+  metaTitulo    String?
+  metaDescricao String?
+  preco         Decimal  @db.Decimal(10, 2)
+  precoDe       Decimal? @db.Decimal(10, 2)
+  ativo         Boolean  @default(true)
+  destaque      Boolean  @default(false)
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+
+  especificacoes Especificacao[]
+  imagens        Imagem[]
+  categorias     ProdutoCategoria[]
+  estoque        Estoque?
+  itensPedido    PedidoItem[]
+  prateleiras    PrateleiraProduto[]
+
+  @@index([marca])
+  @@index([ativo, destaque])
+  @@map("produtos")
+  @@schema("vibravert")
+}
+
+/// Vazão, altura manométrica, voltagem, potência… Alimenta ao mesmo tempo a
+/// ficha técnica, os filtros da listagem e os atributos do feed do Shopping.
+model Especificacao {
+  id        String  @id @default(cuid())
+  produtoId String
+  nome      String
+  valor     String
+  ordem     Int     @default(0)
+  filtravel Boolean @default(false)
+
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@unique([produtoId, nome])
+  @@index([nome, valor])
+  @@map("especificacoes")
+  @@schema("vibravert")
+}
+
+model Imagem {
+  id        String  @id @default(cuid())
+  produtoId String
+  url       String
+  alt       String
+  ordem     Int     @default(0)
+  principal Boolean @default(false)
+
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@index([produtoId, ordem])
+  @@map("imagens")
+  @@schema("vibravert")
+}
+
+model Categoria {
+  id            String  @id @default(cuid())
+  slug          String  @unique
+  nome          String
+  descricao     String?
+  metaTitulo    String?
+  metaDescricao String?
+  ordem         Int     @default(0)
+  ativa         Boolean @default(true)
+  paiId         String?
+
+  pai      Categoria?         @relation("Arvore", fields: [paiId], references: [id])
+  filhas   Categoria[]        @relation("Arvore")
+  produtos ProdutoCategoria[]
+
+  @@map("categorias")
+  @@schema("vibravert")
+}
+
+model ProdutoCategoria {
+  produtoId   String
+  categoriaId String
+
+  produto   Produto   @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  categoria Categoria @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+
+  @@id([produtoId, categoriaId])
+  @@map("produtos_categorias")
+  @@schema("vibravert")
+}
+
+model Estoque {
+  produtoId    String   @id
+  quantidade   Int      @default(0)
+  minimo       Int      @default(5)
+  atualizadoEm DateTime @updatedAt
+
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@map("estoques")
+  @@schema("vibravert")
+}
+
+// ─────────────────────────── vitrine editável ───────────────────────────
+
+enum BannerPosicao {
+  PRINCIPAL
+  FAIXA_DUPLA
+  TARJA_TOPO
+
+  @@schema("vibravert")
+}
+
+/// Trocar banner não pode exigir programador. Data de início/fim permite
+/// deixar a promoção agendada e ela sobe sozinha.
+model Banner {
+  id            String        @id @default(cuid())
+  titulo        String
+  posicao       BannerPosicao @default(PRINCIPAL)
+  imagemDesktop String?
+  imagemMobile  String?
+  alt           String                          // obrigatório na interface: acessibilidade e SEO
+  link          String?
+  ordem         Int           @default(0)
+  ativo         Boolean       @default(false)
+  inicioEm      DateTime?
+  fimEm         DateTime?
+  criadoEm      DateTime      @default(now())
+
+  @@index([posicao, ativo, ordem])
+  @@map("banners")
+  @@schema("vibravert")
+}
+
+model Prateleira {
+  id     String  @id @default(cuid())
+  slug   String  @unique
+  titulo String
+  ordem  Int     @default(0)
+  ativa  Boolean @default(true)
+
+  produtos PrateleiraProduto[]
+
+  @@map("prateleiras")
+  @@schema("vibravert")
+}
+
+model PrateleiraProduto {
+  prateleiraId String
+  produtoId    String
+  ordem        Int    @default(0)
+
+  prateleira Prateleira @relation(fields: [prateleiraId], references: [id], onDelete: Cascade)
+  produto    Produto    @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@id([prateleiraId, produtoId])
+  @@map("prateleiras_produtos")
+  @@schema("vibravert")
+}
+
+model Pagina {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  titulo        String
+  conteudo      String   @default("")
+  metaTitulo    String?
+  metaDescricao String?
+  publicada     Boolean  @default(false)
+  atualizadoEm  DateTime @updatedAt
+
+  @@map("paginas")
+  @@schema("vibravert")
+}
+
+/// Mapa de redirecionamento. Mesmo nascendo em endereço próprio, links antigos
+/// circulam em anúncios, catálogos impressos e no WhatsApp dos revendedores.
+model Redirecionamento {
+  id       String   @id @default(cuid())
+  de       String   @unique
+  para     String
+  tipo     Int      @default(301)
+  acessos  Int      @default(0)
+  criadoEm DateTime @default(now())
+
+  @@map("redirecionamentos")
+  @@schema("vibravert")
+}
+
+// ─────────────────────────── vendas ───────────────────────────
+
+enum PedidoStatus {
+  AGUARDANDO_PAGAMENTO
+  PAGO
+  SEPARANDO
+  ENVIADO
+  ENTREGUE
+  CANCELADO
+  REEMBOLSADO
+
+  @@schema("vibravert")
+}
+
+enum MetodoPagamento {
+  PIX
+  CARTAO_CREDITO
+  BOLETO
+
+  @@schema("vibravert")
+}
+
+model Cliente {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  nome      String
+  cpfCnpj   String?
+  telefone  String?
+  criadoEm  DateTime @default(now())
+
+  enderecos Endereco[]
+  pedidos   Pedido[]
+
+  @@map("clientes")
+  @@schema("vibravert")
+}
+
+model Endereco {
+  id          String  @id @default(cuid())
+  clienteId   String
+  cep         String
+  logradouro  String
+  numero      String
+  complemento String?
+  bairro      String
+  cidade      String
+  uf          String  @db.Char(2)
+  principal   Boolean @default(false)
+
+  cliente Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  pedidos Pedido[]
+
+  @@map("enderecos")
+  @@schema("vibravert")
+}
+
+model Pedido {
+  id         String          @id @default(cuid())
+  numero     Int             @unique @default(autoincrement())
+  clienteId  String
+  enderecoId String
+  status     PedidoStatus    @default(AGUARDANDO_PAGAMENTO)
+  metodo     MetodoPagamento
+  subtotal   Decimal         @db.Decimal(10, 2)
+  frete      Decimal         @db.Decimal(10, 2) @default(0)
+  desconto   Decimal         @db.Decimal(10, 2) @default(0)
+  total      Decimal         @db.Decimal(10, 2)
+  parcelas   Int             @default(1)
+
+  // Mercado Pago — o webhook é a fonte da verdade do pagamento, nunca o retorno do navegador
+  mpPagamentoId String?  @unique
+  mpStatus      String?
+  mpDetalhe     String?
+  pagoEm        DateTime?
+
+  rastreio     String?
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  cliente  Cliente      @relation(fields: [clienteId], references: [id])
+  endereco Endereco     @relation(fields: [enderecoId], references: [id])
+  itens    PedidoItem[]
+
+  @@index([status, criadoEm])
+  @@map("pedidos")
+  @@schema("vibravert")
+}
+
+model PedidoItem {
+  id            String  @id @default(cuid())
+  pedidoId      String
+  produtoId     String
+  quantidade    Int
+  precoUnitario Decimal @db.Decimal(10, 2)
+  nomeProduto   String                       // congelado: o preço e o nome do dia da compra
+  skuProduto    String
+
+  pedido  Pedido  @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  produto Produto @relation(fields: [produtoId], references: [id])
+
+  @@map("pedidos_itens")
+  @@schema("vibravert")
+}
