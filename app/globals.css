@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+/* A fonte é a mesma do site atual. Servida do próprio domínio: o tema antigo
+   a puxava do Google Fonts, o que custa uma conexão externa no caminho crítico
+   do LCP — e a performance é metade do argumento desta loja. */
+@font-face {
+  font-family: "Red Hat Display";
+  src: url("/fonts/red-hat-display.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  /* azul do logotipo oficial, medido do arquivo do fabricante */
+  --color-marca: #173883;
+  --color-marca-escuro: #0f2660;
+  --color-marca-claro: #1f6591;
+  --color-ciano: #00a0c6;
+  --color-marca-suave: #e8edf7;
+  --color-marca-linha: #c4cfe6;
+
+  --color-tinta: #25272b;
+  --color-tinta-2: #3a3a3a;
+  --color-mudo: #7c848f;
+  --color-tenue: #9aa3ae;
+  --color-linha: #e2e7ec;
+  --color-linha-2: #cfd7df;
+  --color-fundo: #f4f6f8;
+  --color-superficie: #ffffff;
+  --color-superficie-2: #f2f4f7;
+
+  --color-bom: #1a7a4f;
+  --color-bom-suave: #e2f1ea;
+  --color-atencao: #9a6a0e;
+  --color-critico: #a83a2c;
+
+  --font-sans: "Red Hat Display", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --radius-caixa: 0.75rem;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-fundo);
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Preços, vazões e alturas aparecem em coluna e precisam alinhar. */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ciano);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

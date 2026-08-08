@@ -13,6 +13,21 @@ import { join } from "node:path";
 
 const prisma = new PrismaClient();
 
+/**
+ * A slug vira a URL do produto, então acento tem de virar letra e não sumir.
+ * A primeira versão gerava "bomba-submersa-de-po-o", porque limpava o "ç"
+ * em vez de convertê-lo — uma URL que não diz nada a quem lê nem ao Google.
+ */
+const slugificar = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80)
+    .replace(/-+$/g, "");
+
 type ProdutoBruto = {
   slug: string;
   slugAntigo: string;
@@ -350,10 +365,10 @@ async function main() {
     const nomeMin = p.nome.toLowerCase();
 
     const produto = await prisma.produto.upsert({
-      where: { slug: p.slug },
+      where: { slug: slugificar(p.nome) },
       update: {},
       create: {
-        slug: p.slug,
+        slug: slugificar(p.nome),
         slugAntigo: p.slugAntigo,
         nome: p.nome,
         marca: p.marca,
@@ -407,8 +422,8 @@ async function main() {
     // links antigos seguem circulando em anúncios e no WhatsApp dos revendedores
     await prisma.redirecionamento.upsert({
       where: { de: `/${p.slugAntigo}/p` },
-      update: { para: `/produto/${p.slug}` },
-      create: { de: `/${p.slugAntigo}/p`, para: `/produto/${p.slug}` },
+      update: { para: `/produto/${slugificar(p.nome)}` },
+      create: { de: `/${p.slugAntigo}/p`, para: `/produto/${slugificar(p.nome)}` },
     });
   }
 

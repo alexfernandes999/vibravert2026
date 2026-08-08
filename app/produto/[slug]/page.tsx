@@ -1,0 +1,210 @@
+import Image from "next/image";
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { prisma } from "@/lib/prisma";
+import { brl, precoPix, parcela, PARCELAS_MAX, ALTURAS_MCA, litros } from "@/lib/formato";
+
+export const revalidate = 300;
+
+async function buscar(slug: string) {
+  return prisma.produto.findUnique({
+    where: { slug },
+    include: {
+      especificacoes: { orderBy: { ordem: "asc" } },
+      imagens: { orderBy: { ordem: "asc" } },
+      estoque: true,
+    },
+  });
+}
+
+export async function generateStaticParams() {
+  const todos = await prisma.produto.findMany({ where: { ativo: true }, select: { slug: true } });
+  return todos.map(({ slug }) => ({ slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const p = await buscar((await params).slug);
+  if (!p) return {};
+  return {
+    title: p.metaTitulo ?? p.nome,
+    description: p.metaDescricao ?? undefined,
+    alternates: { canonical: `/produto/${p.slug}` },
+    openGraph: {
+      title: p.nome,
+      description: p.metaDescricao ?? undefined,
+      images: p.imagens[0] ? [p.imagens[0].url] : undefined,
+    },
+  };
+}
+
+export default async function PaginaProduto({ params }: { params: Promise<{ slug: string }> }) {
+  const p = await buscar((await params).slug);
+  if (!p || !p.ativo) notFound();
+
+  const preco = Number(p.preco);
+  const capa = p.imagens[0];
+
+  return (
+    <article className="mx-auto max-w-7xl px-5 py-8">
+      <div className="grid gap-10 md:grid-cols-2">
+        <div>
+          <div className="flex items-center justify-center rounded-caixa border border-linha bg-superficie-2 p-8">
+            {capa && (
+              <Image
+                src={capa.url}
+                alt={capa.alt}
+                width={640}
+                height={640}
+                priority
+                className="h-80 w-auto object-contain"
+                sizes="(max-width: 768px) 100vw, 560px"
+              />
+            )}
+          </div>
+          {p.imagens.length > 1 && (
+            <ul className="mt-3 flex gap-2 overflow-x-auto">
+              {p.imagens.slice(0, 8).map((img) => (
+                <li key={img.url} className="shrink-0 rounded-lg border border-linha bg-superficie-2 p-1.5">
+                  <Image src={img.url} alt={img.alt} width={64} height={64} className="h-14 w-14 object-contain" />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div>
+          <p className="text-[10.5px] font-extrabold uppercase tracking-[0.16em] text-marca">{p.marca}</p>
+          <h1 className="mt-2 text-2xl font-extrabold leading-snug tracking-tight text-balance">{p.nome}</h1>
+          <p className="mt-2 flex flex-wrap gap-4 text-[11px] font-semibold tracking-wide text-mudo">
+            <span>SKU {p.sku}</span>
+            {p.modelo && <span>Modelo {p.modelo}</span>}
+          </p>
+
+          {/* O diâmetro do poço vem antes do preço: é o que decide se a bomba
+              serve. Errar isso é a principal causa de devolução. */}
+          {p.pocoPolegadas && (
+            <p className="mt-4 inline-flex items-center gap-2 rounded-lg bg-marca-suave px-3.5 py-2 text-[13px] font-bold text-marca">
+              Para poço de {p.pocoPolegadas} polegadas
+              {p.saiaProtecao && <span className="font-semibold">· com saia de proteção lateral</span>}
+            </p>
+          )}
+
+          <div className="mt-5 rounded-caixa border border-linha bg-superficie-2 p-5">
+            <p className="num text-3xl font-extrabold tracking-tight">{brl(preco)}</p>
+            <p className="num mt-2 text-[13px] font-extrabold text-bom">
+              {brl(precoPix(preco))} à vista no PIX · 5% de desconto
+            </p>
+            <p className="num mt-1 text-[13px] font-semibold text-tinta-2">
+              ou até {PARCELAS_MAX}× de {brl(parcela(preco))} sem juros
+            </p>
+            <button
+              type="button"
+              className="mt-4 w-full rounded-lg bg-marca py-3.5 text-sm font-bold text-white shadow-lg shadow-marca/25"
+            >
+              Comprar agora
+            </button>
+          </div>
+
+          {p.curvaVazao.length > 0 && <Curva curva={p.curvaVazao} />}
+        </div>
+      </div>
+
+      <section className="mt-10 border-t border-linha pt-7">
+        <h2 className="text-lg font-extrabold tracking-tight">Ficha técnica</h2>
+        <p className="mt-1 text-[13px] text-mudo">
+          Dados da embalagem do fabricante. Os mesmos alimentam os filtros da loja e o feed
+          do Google Shopping — cadastrados uma vez só.
+        </p>
+        <div className="mt-4 overflow-hidden rounded-caixa border border-linha">
+          <table className="w-full text-[13px]">
+            <tbody>
+              {p.especificacoes
+                .filter((e) => e.nome !== "Curva de vazão")
+                .map((e, i) => (
+                  <tr key={e.id} className={i % 2 ? "" : "bg-superficie-2"}>
+                    <th
+                      scope="row"
+                      className="w-2/5 px-4 py-2.5 text-left text-[10.2px] font-bold uppercase tracking-[0.12em] text-mudo"
+                    >
+                      {e.nome}
+                    </th>
+                    <td className="num px-4 py-2.5 font-bold">{e.valor}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {p.descricao && (
+        <section className="mt-8 max-w-3xl">
+          <h2 className="text-lg font-extrabold tracking-tight">Sobre este produto</h2>
+          <div className="mt-2 whitespace-pre-line text-[14.5px] leading-relaxed text-tinta-2">
+            {p.descricao}
+          </div>
+        </section>
+      )}
+
+      {/* O Merchant Center compara o feed com a landing page: preço e
+          disponibilidade precisam bater, ou o produto é reprovado. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: p.nome,
+            sku: p.sku,
+            ...(p.ean ? { gtin13: p.ean } : { mpn: p.sku }),
+            brand: { "@type": "Brand", name: p.marca },
+            description: p.metaDescricao ?? p.descricao?.slice(0, 300),
+            image: p.imagens.map((i) => i.url),
+            offers: {
+              "@type": "Offer",
+              price: preco.toFixed(2),
+              priceCurrency: "BRL",
+              availability: "https://schema.org/InStock",
+              itemCondition: "https://schema.org/NewCondition",
+            },
+          }),
+        }}
+      />
+    </article>
+  );
+}
+
+/**
+ * Bomba vibratória perde vazão conforme a altura que precisa vencer. Anunciar
+ * só a vazão máxima leva o cliente a comprar esperando 2.500 litros e receber
+ * 750 no poço dele. A curva inteira evita essa frustração — e é o dado que a
+ * concorrência não publica.
+ */
+function Curva({ curva }: { curva: number[] }) {
+  const max = curva[0];
+  return (
+    <section className="mt-5 rounded-caixa border border-linha bg-superficie p-5">
+      <h2 className="text-sm font-extrabold tracking-tight">Vazão por altura</h2>
+      <p className="mt-0.5 text-[12.5px] text-mudo">
+        Quanto esta bomba entrega conforme a altura que precisa vencer.
+      </p>
+      <ul className="mt-4 space-y-1.5">
+        {ALTURAS_MCA.map((a, i) => (
+          <li key={a} className="flex items-center gap-3">
+            <span className="num w-12 shrink-0 text-right text-[11.5px] font-bold text-mudo">{a} m</span>
+            <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-superficie-2">
+              <span
+                className="block h-full rounded-full bg-marca-claro"
+                style={{ width: `${Math.round((curva[i] / max) * 100)}%` }}
+              />
+            </span>
+            <span className="num w-20 shrink-0 text-right text-[11.5px] font-bold">{litros(curva[i])}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
