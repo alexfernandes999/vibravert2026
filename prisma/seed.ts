@@ -180,6 +180,19 @@ async function main() {
 
   console.log(`→ ${brutos.length} produtos a carregar\n`);
 
+  // Recarga limpa do catálogo. Só é permitida enquanto não houver pedido —
+  // depois disso, apagar produto levaria junto o histórico de vendas.
+  // Precisa vir antes das categorias: apagar depois deixaria os ids em memória
+  // apontando para linhas que já não existem.
+  const pedidos = await prisma.pedido.count();
+  if (pedidos === 0) {
+    await prisma.produto.deleteMany();
+    await prisma.categoria.deleteMany();
+    await prisma.redirecionamento.deleteMany();
+  } else {
+    console.log(`   ${pedidos} pedidos existentes — recarga completa bloqueada\n`);
+  }
+
   // ── categorias ──────────────────────────────────────────────
   const nomesCategoria = new Map<string, string>();
   for (const p of brutos) {
@@ -259,6 +272,7 @@ async function main() {
   // ── produtos ────────────────────────────────────────────────
   const semNumero: string[] = [];
   const conferir: string[] = [];
+  const semGarantia: string[] = [];
 
   for (const p of brutos) {
     const porNome = normalizar(p);
@@ -296,6 +310,19 @@ async function main() {
         if (!porNome.has(nome)) porNome.set(nome, { valor, original: `herdado de ${fam}` });
       }
       if (porNome.has("Vazão máxima")) conferir.push(p.nome);
+    }
+
+    if (ficha) {
+      // com a curva oficial em mãos, o campo antigo de altura mínima vira ruído
+      porNome.delete("Altura manométrica mínima");
+    } else if (porNome.has("Garantia")) {
+      // Sem ficha da fábrica não publicamos prazo de garantia. O cadastro
+      // antigo dizia "2 anos" em toda a linha e a embalagem desmente isso em
+      // todos os modelos conferidos — anunciar prazo que não se pode honrar é
+      // infração ao CDC. Melhor omitir e cobrar a ficha ao fabricante.
+      // Vai depois da herança: senão o combo reinjeta a garantia do irmão.
+      porNome.delete("Garantia");
+      semGarantia.push(p.nome);
     }
 
     const especificacoes = [...porNome.entries()]
@@ -422,6 +449,11 @@ async function main() {
 
   console.log(`   1 prateleira · 1 banner\n`);
 
+  if (semGarantia.length) {
+    console.log(`⚠  ${semGarantia.length} produtos ficaram SEM prazo de garantia publicado.`);
+    console.log(`   O cadastro antigo dizia "2 anos" e a embalagem desmente isso em todos`);
+    console.log(`   os modelos conferidos. Pedir a ficha da Vibra Vert 800 à fábrica.\n`);
+  }
   if (conferir.length) {
     console.log(`ℹ  ${conferir.length} combos herdaram a ficha técnica do modelo base.`);
     console.log(`   Confirmar com a fábrica antes de publicar o feed do Shopping.\n`);
