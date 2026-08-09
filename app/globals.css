@@ -20,6 +20,13 @@
   --color-marca-suave: #e8edf7;
   --color-marca-linha: #c4cfe6;
 
+  /* Dourado: o acento da comunicação da marca nos marketplaces, onde ela é
+     líder de vendas. Sobre o azul do logotipo funciona como prêmio; o texto
+     em cima dele nunca é branco nem preto puro, é o marrom-ouro abaixo. */
+  --color-ouro: #f5b921;
+  --color-ouro-escuro: #c9911a;
+  --color-ouro-txt: #6b4c00;
+
   --color-tinta: #25272b;
   --color-tinta-2: #3a3a3a;
   --color-mudo: #7c848f;

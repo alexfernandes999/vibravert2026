@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { CartaoProduto } from "@/components/cartao-produto";
+import { FaixaLider, FaixaConfianca } from "@/components/faixa-lider";
 
 export const revalidate = 300;
 
@@ -111,7 +112,11 @@ export default async function Home() {
         </div>
       </section>
 
+      <FaixaConfianca />
+
       <Prateleira titulo="Mais vendidas" produtos={maisVendidas} />
+
+      <FaixaLider nota="4,8" vendas="+3.000" />
 
       <section className="mx-auto max-w-7xl px-5">
         <div className="grid gap-4 md:grid-cols-2">
