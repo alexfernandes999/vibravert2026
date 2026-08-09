@@ -25,20 +25,19 @@ export function CartaoProduto({ p }: { p: ProdutoVitrine }) {
   const preco = Number(p.preco);
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-caixa border border-linha bg-superficie transition hover:border-marca-linha hover:shadow-lg hover:shadow-marca/5">
-      <Link href={`/produto/${p.slug}`} className="relative block bg-superficie-2 p-4">
+    <article className="group revelar flex flex-col overflow-hidden rounded-caixa border border-linha bg-superficie transition duration-300 hover:-translate-y-1 hover:border-marca-linha hover:shadow-xl hover:shadow-marca/10">
+      {/* A foto preenche o cartão inteiro. Com object-contain sobrava fundo
+          cinza em volta e a grade parecia um catálogo de peças soltas. */}
+      <Link href={`/produto/${p.slug}`} className="relative block aspect-square overflow-hidden bg-superficie-2">
         {capa ? (
           <Image
             src={capa.url}
             alt={capa.alt}
-            width={300}
-            height={300}
-            className="mx-auto h-44 w-auto object-contain"
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
             sizes="(max-width: 640px) 50vw, 300px"
           />
-        ) : (
-          <div className="h-44" />
-        )}
+        ) : null}
         {p.saiaProtecao && (
           <span className="absolute left-2.5 top-2.5 rounded bg-ciano px-1.5 py-0.5 text-[9.5px] font-extrabold uppercase tracking-wider text-white">
             Com saia

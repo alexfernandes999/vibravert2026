@@ -39,14 +39,20 @@ export default async function Home() {
 
   return (
     <>
+      {/* O banner abre a página, acima do herói: é a peça de campanha e quem
+          chega tem de vê-la antes de qualquer outra coisa. */}
+      <section className="mx-auto max-w-7xl px-5 pt-5 pb-8">
+        <EspacoBanner banner={principal} medida="2098 × 750 px · desktop" rotulo="Banner principal" />
+      </section>
+
       {/* O slogan é o oficial da marca, o mesmo da embalagem. */}
-      <section className="border-b border-linha bg-gradient-to-br from-marca-suave via-superficie to-superficie">
+      <section className="border-b border-linha bg-gradient-to-br from-marca-suave via-superficie-2 to-superficie">
         <div className="mx-auto grid max-w-7xl items-center gap-8 px-5 py-12 md:grid-cols-2">
           <div>
-            <p className="text-[10.5px] font-extrabold uppercase tracking-[0.16em] text-marca">
+            <p className="entrar text-[10.5px] font-extrabold uppercase tracking-[0.16em] text-marca">
               Loja Oficial · Fabricação própria
             </p>
-            <h1 className="mt-3 text-4xl font-extrabold leading-tight tracking-tight text-balance md:text-5xl">
+            <h1 className="entrar entrar-2 mt-3 text-4xl font-extrabold leading-tight tracking-tight text-balance md:text-5xl">
               Potência e qualidade para sua necessidade
             </h1>
             <p className="mt-3 max-w-lg text-[15px] text-tinta-2">
@@ -85,7 +91,7 @@ export default async function Home() {
 
           {/* Antes de vazão, o comprador precisa saber se a bomba entra no poço.
               É a dúvida que mais gera devolução, então vira o primeiro caminho. */}
-          <div className="rounded-caixa border border-marca-linha bg-superficie p-6 shadow-xl shadow-marca/5">
+          <div className="entrar entrar-3 rounded-caixa border border-marca-linha bg-superficie p-6 shadow-xl shadow-marca/5">
             <h2 className="text-lg font-extrabold tracking-tight">Comece pelo seu poço</h2>
             <p className="mt-1 text-[13px] text-mudo">
               O diâmetro do poço define quais modelos cabem. É o primeiro filtro.
@@ -115,12 +121,6 @@ export default async function Home() {
           </div>
         </div>
       </section>
-
-      <section className="mx-auto max-w-7xl px-5 pt-8">
-        <EspacoBanner banner={principal} medida="2098 × 750 px · desktop" rotulo="Banner principal" />
-      </section>
-
-      <div className="pt-10" />
 
       <FaixaConfianca />
 
@@ -185,7 +185,7 @@ function Prateleira({
 }) {
   if (!produtos.length) return null;
   return (
-    <section className="mx-auto max-w-7xl px-5 py-9">
+    <section className="revelar mx-auto max-w-7xl px-5 py-9">
       <div className="mb-5 flex items-baseline gap-3">
         <h2 className="text-xl font-extrabold tracking-tight">{titulo}</h2>
         <Link href={verTudo} className="ml-auto text-[13px] font-bold text-marca">

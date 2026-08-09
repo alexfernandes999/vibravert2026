@@ -12,13 +12,15 @@
 }
 
 @theme {
-  /* azul do logotipo oficial, medido do arquivo do fabricante */
-  --color-marca: #173883;
-  --color-marca-escuro: #0f2660;
+  /* Azul do logotipo, medido do arquivo do fabricante. A paleta ficou mais
+     saturada e mais escura: o azul de antes puxava para o acinzentado e a loja
+     lia como genérica. Este é o azul da marca, não uma versão diluída dele. */
+  --color-marca: #14307a;
+  --color-marca-escuro: #0a1b4d;
   --color-marca-claro: #1f6591;
   --color-ciano: #00a0c6;
-  --color-marca-suave: #e8edf7;
-  --color-marca-linha: #c4cfe6;
+  --color-marca-suave: #dee6f7;
+  --color-marca-linha: #a8bbe4;
 
   /* Dourado: o acento da comunicação da marca nos marketplaces, onde ela é
      líder de vendas. Sobre o azul do logotipo funciona como prêmio; o texto
@@ -27,15 +29,15 @@
   --color-ouro-escuro: #c9911a;
   --color-ouro-txt: #6b4c00;
 
-  --color-tinta: #25272b;
-  --color-tinta-2: #3a3a3a;
+  --color-tinta: #12172a;
+  --color-tinta-2: #333b4d;
   --color-mudo: #7c848f;
   --color-tenue: #9aa3ae;
-  --color-linha: #e2e7ec;
-  --color-linha-2: #cfd7df;
-  --color-fundo: #f4f6f8;
+  --color-linha: #dfe4ee;
+  --color-linha-2: #c7d0e0;
+  --color-fundo: #f2f5fa;
   --color-superficie: #ffffff;
-  --color-superficie-2: #f2f4f7;
+  --color-superficie-2: #eef2f9;
 
   --color-bom: #1a7a4f;
   --color-bom-suave: #e2f1ea;
@@ -76,4 +78,33 @@ body {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ── movimento ───────────────────────────────────────────────
+   Entrada curta e discreta: 12px de deslocamento e meio segundo.
+   Animação longa em loja atrasa quem já sabe o que quer comprar. */
+.revelar {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.revelar.revelado {
+  opacity: 1;
+  transform: none;
+}
+
+/* O herói não espera o observador: é o que aparece antes de qualquer rolagem,
+   e atrasá-lo seria atrasar o LCP em troca de nada. */
+@keyframes entrar {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+.entrar { animation: entrar 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.entrar-2 { animation-delay: 0.08s; }
+.entrar-3 { animation-delay: 0.16s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .revelar { opacity: 1; transform: none; transition: none; }
+  .entrar { animation: none; }
 }

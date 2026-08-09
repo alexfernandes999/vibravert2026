@@ -4,6 +4,7 @@ import Image from "next/image";
 import { bannerAtivo } from "@/lib/banners";
 import { RedeLojas } from "@/components/rede-lojas";
 import { quantidadeTotal } from "@/lib/carrinho";
+import { Revelar } from "@/components/revelar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -52,7 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="pt-BR">
       <body>
         {tarja && (
-          <p className="bg-marca-escuro px-4 py-2 text-center text-[11.5px] font-bold text-white">
+          <p className="bg-marca-escuro px-4 py-2.5 text-center text-[11.5px] font-bold tracking-wide text-white">
             {tarja.link ? (
               <Link href={tarja.link} className="underline decoration-white/40 underline-offset-2">
                 {tarja.titulo}
@@ -78,7 +79,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
         </div>
 
-        <header className="border-b border-linha bg-superficie">
+        <header className="border-b-2 border-marca bg-superficie">
           <div className="mx-auto flex max-w-7xl items-center gap-6 px-5 py-4">
             <Link href="/" aria-label="Página inicial">
               <Logotipo />
@@ -106,7 +107,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Link
                 key={d.href}
                 href={d.href}
-                className="whitespace-nowrap border-b-2 border-transparent py-3 font-semibold text-tinta-2 hover:border-marca hover:text-marca"
+                className="whitespace-nowrap border-b-[3px] border-transparent py-3 font-bold text-tinta-2 transition-colors hover:border-marca hover:text-marca"
               >
                 {d.rotulo}
               </Link>
@@ -115,6 +116,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </header>
 
         <main>{children}</main>
+
+        <Revelar />
 
         <div className="mt-16 border-t border-linha bg-superficie">
           <RedeLojas />
