@@ -5,11 +5,12 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { SeletorVersao } from "@/components/seletor-versao";
 import { CartaoProduto } from "@/components/cartao-produto";
+import { registrar } from "@/lib/analitica";
 import { Video } from "@/components/video";
 import { BotaoComprar } from "@/components/botao-comprar";
 import { brl, precoPix, parcela, PARCELAS_MAX, ALTURAS_MCA, litros } from "@/lib/formato";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 async function irmas(familia: string | null, slug: string) {
   if (!familia) return [];
@@ -28,11 +29,6 @@ async function buscar(slug: string) {
       estoque: true,
     },
   });
-}
-
-export async function generateStaticParams() {
-  const todos = await prisma.produto.findMany({ where: { ativo: true }, select: { slug: true } });
-  return todos.map(({ slug }) => ({ slug }));
 }
 
 export async function generateMetadata({
@@ -59,6 +55,7 @@ export async function generateMetadata({
 export default async function PaginaProduto({ params }: { params: Promise<{ slug: string }> }) {
   const p = await buscar((await params).slug);
   if (!p || !p.ativo) notFound();
+  await registrar("PRODUTO");
 
   const preco = Number(p.preco);
   const capa = p.imagens[0];

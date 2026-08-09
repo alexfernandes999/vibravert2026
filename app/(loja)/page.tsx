@@ -5,8 +5,10 @@ import { CartaoProduto } from "@/components/cartao-produto";
 import { FaixaLider, FaixaConfianca } from "@/components/faixa-lider";
 import { EspacoBanner } from "@/components/espaco-banner";
 import { bannerAtivo, bannersAtivos } from "@/lib/banners";
+import { registrar } from "@/lib/analitica";
 
-export const revalidate = 300;
+// A home registra a visita, então não pode ser estática.
+export const dynamic = "force-dynamic";
 
 const CAMPOS = {
   slug: true,
@@ -21,6 +23,8 @@ const CAMPOS = {
 } as const;
 
 export default async function Home() {
+  await registrar("VISITA");
+
   const [principal, duplos, meio, maisVendidas, precos, destaque] = await Promise.all([
     bannerAtivo("PRINCIPAL"),
     bannersAtivos("FAIXA_DUPLA"),

@@ -192,6 +192,38 @@ enum Versao {
 /// água") são a maior oportunidade de conteúdo da categoria e ainda precisam
 /// ser produzidos — quem conserta é a fábrica, então o técnico da bancada é
 /// quem tem o roteiro.
+/// Etapas do funil. Sem registrar cada passo não há como saber onde a venda
+/// se perde — e "o site não converte" vira opinião em vez de número.
+enum EtapaFunil {
+  VISITA
+  PRODUTO
+  CARRINHO
+  CHECKOUT
+  PEDIDO
+
+  @@schema("vibravert")
+}
+
+/// Um registro por passo, por sessão. A sessão é um identificador anônimo em
+/// cookie: não guarda nada que identifique a pessoa, e serve só para ligar o
+/// mesmo visitante entre as etapas.
+model Evento {
+  id       String     @id @default(cuid())
+  sessao   String
+  etapa    EtapaFunil
+  origem   String?    // "google / orgânico", "instagram / social", "direto"…
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  uf       String?    @db.Char(2)
+  criadoEm DateTime   @default(now())
+
+  @@index([etapa, criadoEm])
+  @@index([sessao])
+  @@map("eventos")
+  @@schema("vibravert")
+}
+
 enum TipoVideo {
   PRODUTO
   PROBLEMA
@@ -374,6 +406,13 @@ model Pedido {
   mpStatus      String?
   mpDetalhe     String?
   pagoEm        DateTime?
+
+  /// De onde veio a venda. Copiado da sessão no fechamento: sem isso não se
+  /// sabe quanto cada canal fatura, só quanto cada canal visita.
+  origem      String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
 
   rastreio     String?
   criadoEm     DateTime @default(now())

@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { DESCONTO_PIX, FRETE_GRATIS_ACIMA, FRETE_PADRAO, CONTROLA_ESTOQUE } from "@/lib/loja";
+import { registrar } from "@/lib/analitica";
 
 /**
  * Carrinho de visitante, guardado num cookie.
@@ -45,6 +46,7 @@ export async function adicionar(produtoId: string, qtd = 1) {
   if (existente) existente.qtd += qtd;
   else linhas.push({ id: produtoId, qtd });
   await gravar(linhas);
+  await registrar("CARRINHO");
   revalidatePath("/carrinho");
 }
 

@@ -46,10 +46,11 @@ export async function generateMetadata({
 export default async function Listagem({ searchParams }: { searchParams: Promise<Busca> }) {
   const s = await searchParams;
 
-  // Uma bomba por família. As quatro montagens na grade fazem o visitante
-  // escolher entre resultados quase idênticos; a versão se escolhe dentro do
-  // produto, onde a diferença está explicada.
-  const where: Prisma.ProdutoWhereInput = { ativo: true, principalDaFamilia: true };
+  // Sem filtro, aparece tudo. Reduzir a grade a uma bomba por família ajudava
+  // o Google, mas escondia do visitante metade do que está à venda — e quem
+  // chega quer ver o catálogo, não uma seleção. A canônica continua apontando
+  // para a versão principal, então o ganho de SEO se mantém sem esconder nada.
+  const where: Prisma.ProdutoWhereInput = { ativo: true };
   if (s.poco) where.pocoPolegadas = Number(s.poco);
   if (s.voltagem) where.voltagem = s.voltagem;
   if (s.acompanha === "boia") where.acompanhaBoia = true;

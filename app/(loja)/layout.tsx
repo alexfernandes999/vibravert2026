@@ -5,6 +5,8 @@ import { bannerAtivo } from "@/lib/banners";
 import { RedeLojas } from "@/components/rede-lojas";
 import { quantidadeTotal } from "@/lib/carrinho";
 import { Revelar } from "@/components/revelar";
+import { FaixaAvisos } from "@/components/faixa-avisos";
+import { BotaoWhatsapp } from "@/components/whatsapp";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -51,6 +53,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="pt-BR">
+      <head>
+        {/* Marca que há JavaScript antes da primeira pintura. Só então o CSS
+            esconde os blocos que a animação vai revelar. */}
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
+      </head>
       <body>
         {tarja && (
           <p className="bg-marca-escuro px-4 py-2.5 text-center text-[11.5px] font-bold tracking-wide text-white">
@@ -64,20 +71,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </p>
         )}
 
-        {/* Numa categoria em que o cliente está sem água, telefone converte
-            mais que carrinho — por isso é o primeiro elemento da página. */}
-        <div className="border-b border-linha bg-superficie-2">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-1 px-5 py-1.5 text-[12.5px] text-tinta-2">
-            <p className="font-medium">
-              <span className="font-extrabold text-marca">VIBRA PHONE</span>{" "}
-              <a href="tel:+551140002440" className="font-bold">11 4000-2440</a>
-              <span className="text-mudo"> · falamos de bomba, não é SAC</span>
-            </p>
-            <p className="text-mudo">
-              Fábrica e assistência técnica própria em São Paulo · Entregamos nos 27 estados
-            </p>
-          </div>
-        </div>
+        <FaixaAvisos />
 
         <header className="border-b-2 border-marca bg-superficie">
           <div className="mx-auto flex max-w-7xl items-center gap-6 px-5 py-4">
@@ -120,6 +114,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
         <main>{children}</main>
 
+        <BotaoWhatsapp />
         <Revelar />
 
         <div className="mt-16 border-t border-linha bg-superficie">

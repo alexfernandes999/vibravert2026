@@ -8,6 +8,7 @@ import { obterCarrinho } from "@/lib/carrinho";
 import { buscarCep, soDigitos } from "@/lib/cep";
 import { cobrar, configurado } from "@/lib/mercadopago";
 import { pedidoRecebido } from "@/lib/email";
+import { registrar, origemDaSessao } from "@/lib/analitica";
 import { DESCONTO_PIX } from "@/lib/loja";
 
 export async function consultarCep(cep: string) {
@@ -79,10 +80,13 @@ export async function finalizar(_estado: EstadoCheckout, dados: FormData): Promi
     },
   });
 
+  const origem = await origemDaSessao();
+
   const pedido = await prisma.pedido.create({
     data: {
       clienteId: cliente.id,
       enderecoId: endereco.id,
+      origem,
       metodo: d.metodo,
       parcelas: d.metodo === "CARTAO_CREDITO" ? d.parcelas : 1,
       subtotal: carrinho.subtotal,
@@ -137,6 +141,7 @@ export async function finalizar(_estado: EstadoCheckout, dados: FormData): Promi
   });
   if (completo) await pedidoRecebido(completo);
 
+  await registrar("PEDIDO");
   (await cookies()).delete("carrinho");
   redirect(`/pedido/${pedido.numero}`);
 }

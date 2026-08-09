@@ -3,6 +3,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { obterCarrinho } from "@/lib/carrinho";
 import { pagamentoDisponivel } from "./acoes";
+import { registrar } from "@/lib/analitica";
 import { FormularioCheckout } from "@/components/formulario-checkout";
 import { brl } from "@/lib/formato";
 
@@ -11,6 +12,7 @@ export const metadata: Metadata = { title: "Finalizar compra", robots: { index: 
 export default async function Checkout() {
   const c = await obterCarrinho();
   if (!c.itens.length) redirect("/carrinho");
+  await registrar("CHECKOUT");
 
   return (
     <div className="mx-auto grid max-w-7xl gap-9 px-5 py-8 lg:grid-cols-[1fr_330px]">

@@ -1,25 +1,30 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 /**
  * Revela os blocos conforme entram na tela.
  *
- * Um observador só, delegado por classe, em vez de um componente por bloco:
- * envolver cada cartão num wrapper de cliente arrastaria a árvore inteira para
- * o navegador e jogaria fora a renderização no servidor — caro demais para uma
- * animação.
+ * Duas travas de segurança, porque conteúdo escondido atrás de animação é o
+ * pior defeito possível numa loja — a página fica com um vão branco enorme e
+ * ninguém entende por quê:
  *
- * Quem pediu menos movimento no sistema não recebe nenhum: o conteúdo aparece
- * direto, sem esperar o observador.
+ * 1. O efeito depende do caminho. Na versão anterior ele rodava a cada
+ *    renderização e a limpeza desconectava o observador antes de ele disparar,
+ *    deixando meia página invisível.
+ * 2. Um tempo limite revela tudo de qualquer jeito. Se o observador falhar,
+ *    se a hidratação demorar ou se o navegador for antigo, o conteúdo aparece.
  */
 export function Revelar() {
-  useEffect(() => {
-    const alvos = document.querySelectorAll<HTMLElement>(".revelar:not(.revelado)");
-    const menos = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const caminho = usePathname();
 
-    if (menos) {
-      alvos.forEach((e) => e.classList.add("revelado"));
+  useEffect(() => {
+    const alvos = () => document.querySelectorAll<HTMLElement>(".revelar:not(.revelado)");
+    const mostrar = (e: Element) => e.classList.add("revelado");
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      alvos().forEach(mostrar);
       return;
     }
 
@@ -28,18 +33,24 @@ export function Revelar() {
         entradas.forEach((e, i) => {
           if (!e.isIntersecting) return;
           const el = e.target as HTMLElement;
-          // escalonamento curto: a grade entra em cascata, não de uma vez
           el.style.transitionDelay = `${Math.min(i, 6) * 55}ms`;
-          el.classList.add("revelado");
+          mostrar(el);
           obs.unobserve(el);
         });
       },
-      { rootMargin: "0px 0px -60px 0px", threshold: 0.08 },
+      { rootMargin: "0px 0px -40px 0px", threshold: 0.05 },
     );
 
-    alvos.forEach((e) => obs.observe(e));
-    return () => obs.disconnect();
-  });
+    alvos().forEach((e) => obs.observe(e));
+
+    // rede de segurança: nada fica invisível por mais de 1,2 s
+    const t = setTimeout(() => alvos().forEach(mostrar), 1200);
+
+    return () => {
+      clearTimeout(t);
+      obs.disconnect();
+    };
+  }, [caminho]);
 
   return null;
 }
