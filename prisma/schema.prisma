@@ -176,6 +176,35 @@ enum Versao {
   @@schema("vibravert")
 }
 
+/// Vídeo do canal oficial. O tipo separa o que já existe do que ainda não:
+/// os vídeos de produto estão gravados; os de defeito ("a bomba não puxa
+/// água") são a maior oportunidade de conteúdo da categoria e ainda precisam
+/// ser produzidos — quem conserta é a fábrica, então o técnico da bancada é
+/// quem tem o roteiro.
+enum TipoVideo {
+  PRODUTO
+  PROBLEMA
+
+  @@schema("vibravert")
+}
+
+model Video {
+  id        String    @id @default(cuid())
+  youtubeId String    @unique
+  titulo    String
+  resumo    String?
+  tipo      TipoVideo @default(PRODUTO)
+  /// Família de produto a que se refere, quando é vídeo de produto.
+  familia   String?
+  ordem     Int       @default(0)
+  ativo     Boolean   @default(true)
+
+  @@index([tipo, ativo, ordem])
+  @@index([familia])
+  @@map("videos")
+  @@schema("vibravert")
+}
+
 enum BannerPosicao {
   PRINCIPAL
   FAIXA_DUPLA

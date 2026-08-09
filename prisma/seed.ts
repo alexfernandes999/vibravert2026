@@ -530,7 +530,28 @@ async function main() {
     },
   });
 
-  console.log(`   1 prateleira · 1 banner\n`);
+  // ── vídeos ──────────────────────────────────────────────────
+  // Já existiam no tema antigo, escondidos numa vitrine da home com título
+  // "Vitrine Destaques". São vídeos de produto do canal oficial: entram na
+  // ficha do modelo a que se referem, onde ajudam a decidir a compra.
+  const VIDEOS = [
+    { youtubeId: "TsiuUbc5N5A", titulo: "Bomba Vibra Vert 900", familia: "vibra-vert-900" },
+    { youtubeId: "DIZJtewGi1w", titulo: "Bomba Submersa Rymer 1500", familia: "rymer-1500" },
+    { youtubeId: "_SB36kDC-vA", titulo: "Bomba Vibra Vert — modelo Vibrinha", familia: "vibrinha" },
+    // O 700 não tem produto correspondente no catálogo atual: fica cadastrado
+    // e inativo até a fábrica dizer se o modelo saiu de linha.
+    { youtubeId: "6HRuRVpXnh0", titulo: "Bomba Vibra Vert 700", familia: null, ativo: false },
+  ];
+
+  for (const [i, v] of VIDEOS.entries()) {
+    await prisma.video.upsert({
+      where: { youtubeId: v.youtubeId },
+      update: {},
+      create: { ...v, ordem: i, tipo: "PRODUTO", ativo: v.ativo ?? true },
+    });
+  }
+
+  console.log(`   1 prateleira · 2 banners · ${VIDEOS.length} vídeos\n`);
 
   if (semPrecoLista.length) {
     console.log(`⚠  ${semPrecoLista.length} produto(s) sem preço — desativados, não vão para a vitrine:`);

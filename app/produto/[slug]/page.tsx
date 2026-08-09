@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { SeletorVersao } from "@/components/seletor-versao";
+import { Video } from "@/components/video";
 import { brl, precoPix, parcela, PARCELAS_MAX, ALTURAS_MCA, litros } from "@/lib/formato";
 
 export const revalidate = 300;
@@ -59,6 +60,13 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
   const preco = Number(p.preco);
   const capa = p.imagens[0];
   const versoes = await irmas(p.familia, p.slug);
+  // O vídeo é da família de modelo, não da montagem: a bomba é a mesma com
+  // ou sem boia. A família guarda a tensão junto, então tira-se o sufixo.
+  const video = p.familia
+    ? await prisma.video.findFirst({
+        where: { ativo: true, familia: p.familia.replace(/-(110127v|220v)$/, "") },
+      })
+    : null;
 
   return (
     <article className="mx-auto max-w-7xl px-5 py-8">
@@ -155,6 +163,13 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
           </table>
         </div>
       </section>
+
+      {video && (
+        <section className="mt-9 max-w-2xl">
+          <h2 className="mb-3 text-lg font-extrabold tracking-tight">Veja a bomba funcionando</h2>
+          <Video youtubeId={video.youtubeId} titulo={video.titulo} resumo={video.resumo} />
+        </section>
+      )}
 
       {p.descricao && (
         <section className="mt-8 max-w-3xl">
