@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import { finalizar, consultarCep, type EstadoCheckout } from "@/app/checkout/acoes";
+import { finalizar, consultarCep, type EstadoCheckout } from "@/app/(loja)/checkout/acoes";
 import { PARCELAS_SEM_JUROS } from "@/lib/loja";
 import { brl } from "@/lib/formato";
 

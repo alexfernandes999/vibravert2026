@@ -5,7 +5,7 @@ import { bannerAtivo } from "@/lib/banners";
 import { RedeLojas } from "@/components/rede-lojas";
 import { quantidadeTotal } from "@/lib/carrinho";
 import { Revelar } from "@/components/revelar";
-import "./globals.css";
+import "../globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br"),
