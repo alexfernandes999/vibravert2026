@@ -13,3 +13,5 @@ data/imagens/
 # Imagens de produto: vão para o Supabase Storage, não para o git.
 # Ficam locais para desenvolvimento.
 public/produtos/
+.vercel
+.env*
