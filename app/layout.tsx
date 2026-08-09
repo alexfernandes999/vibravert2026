@@ -125,7 +125,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 Institucional
               </h2>
               <ul className="space-y-1.5 text-[13px] font-medium text-tinta-2">
-                <li><Link href="/quem-somos">Quem somos</Link></li>
+                <li><Link href="/sobre">Quem somos</Link></li>
                 <li><Link href="/politica-de-entrega">Política de entrega</Link></li>
                 <li><Link href="/politica-de-troca">Política de troca</Link></li>
                 <li><Link href="/politica-de-privacidade">Política de privacidade</Link></li>

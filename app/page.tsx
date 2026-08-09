@@ -144,6 +144,30 @@ export default async function Home() {
       </section>
 
       <Prateleira titulo="Preços imbatíveis" produtos={precos} verTudo="/bombas?ordem=preco" />
+
+      {/* A história por último e em banda estreita: quem quer comprar já passou
+          por dez blocos de venda antes de chegar aqui. A credencial de 1974 não
+          sai do lado do preço — é lá que mora o medo de "vai queimar em três
+          meses", não numa página institucional. */}
+      <section className="mt-4 border-y border-linha bg-superficie-2">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 px-5 py-7">
+          <div>
+            <h2 className="text-lg font-extrabold tracking-tight">
+              Fabricamos bomba submersa vibratória desde 1974
+            </h2>
+            <p className="mt-1 max-w-2xl text-[14px] text-mudo">
+              Fomos a primeira fábrica do país. A marca Rymer vem de 1958, quando o fundador
+              aprendeu o ofício na Rymer Bombas.
+            </p>
+          </div>
+          <Link
+            href="/sobre"
+            className="rounded-lg bg-marca-escuro px-5 py-2.5 text-[13.5px] font-bold text-white"
+          >
+            Conheça a nossa história →
+          </Link>
+        </div>
+      </section>
     </>
   );
 }
