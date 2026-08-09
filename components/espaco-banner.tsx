@@ -17,21 +17,30 @@ export function EspacoBanner({
   banner,
   medida,
   rotulo,
-  altura = "h-[280px]",
+  proporcao = "2098 / 750",
 }: {
   banner: Banner | null;
   medida: string;
   rotulo: string;
-  altura?: string;
+  /** A moldura segue a proporção da arte real, para que nada seja cortado. */
+  proporcao?: string;
 }) {
   const conteudo = (
     <div
-      className={`relative overflow-hidden rounded-caixa ${altura} ${
+      style={{ aspectRatio: proporcao }}
+      className={`relative w-full overflow-hidden rounded-caixa ${
         banner?.imagemDesktop ? "" : "border-2 border-dashed border-marca-linha bg-marca-suave"
       }`}
     >
       {banner?.imagemDesktop ? (
-        <Image src={banner.imagemDesktop} alt={banner.alt} fill className="object-cover" priority />
+        <Image
+          src={banner.imagemDesktop}
+          alt={banner.alt}
+          fill
+          sizes="(max-width: 1180px) 100vw, 1180px"
+          className="object-cover"
+          priority
+        />
       ) : (
         <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
           <span className="rounded-full bg-marca px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-white">

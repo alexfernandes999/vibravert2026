@@ -117,7 +117,7 @@ export default async function Home() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 pt-8">
-        <EspacoBanner banner={principal} medida="1920 × 520 px · desktop" rotulo="Banner principal" />
+        <EspacoBanner banner={principal} medida="2098 × 750 px · desktop" rotulo="Banner principal" />
       </section>
 
       <div className="pt-10" />
@@ -135,13 +135,13 @@ export default async function Home() {
           banner={duplos[0] ?? null}
           medida="940 × 300 px"
           rotulo="Faixa dupla · esquerda"
-          altura="h-[180px]"
+          proporcao="940 / 300"
         />
         <EspacoBanner
           banner={duplos[1] ?? null}
           medida="940 × 300 px"
           rotulo="Faixa dupla · direita"
-          altura="h-[180px]"
+          proporcao="940 / 300"
         />
       </section>
 
