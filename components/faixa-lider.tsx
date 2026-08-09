@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { Banner } from "@prisma/client";
+import { EspacoBanner } from "@/components/espaco-banner";
 
 /**
  * Coroa de louros desenhada por geometria, não por caminho copiado.
@@ -64,13 +66,6 @@ function Coroa() {
   );
 }
 
-const CREDENCIAIS = [
-  { t: "Líderes em vendas", d: "no maior marketplace do país" },
-  { t: "Fábrica desde 1974", d: "a primeira do Brasil" },
-  { t: "Assistência própria", d: "quem conserta é quem fabrica" },
-  { t: "27 estados", d: "entregamos em todo o país" },
-];
-
 /**
  * Prova social de liderança.
  *
@@ -83,10 +78,12 @@ export function FaixaLider({
   nota,
   vendas,
   selo = "MercadoLíder",
+  banner,
 }: {
   nota?: string;
   vendas?: string;
   selo?: string;
+  banner?: Banner | null;
 }) {
   const metricas = [
     nota && { v: nota, r: "média de avaliação" },
@@ -171,14 +168,18 @@ export function FaixaLider({
           </div>
         </div>
 
-        <ul className="mt-12 grid gap-x-8 gap-y-5 border-t border-white/10 pt-7 sm:grid-cols-2 lg:grid-cols-4">
-          {CREDENCIAIS.map((c) => (
-            <li key={c.t} className="border-l-2 border-ouro/70 pl-3.5">
-              <p className="text-[12.5px] font-extrabold uppercase tracking-wide">{c.t}</p>
-              <p className="mt-0.5 text-[11.5px] leading-snug text-white/50">{c.d}</p>
-            </li>
-          ))}
-        </ul>
+        {/* Aqui havia uma tira de credenciais que repetia, palavra por palavra,
+            a faixa de confiança logo acima. Repetir não reforça — cansa, e
+            ocupa o espaço mais visível da página com algo já lido. */}
+        <div className="mt-12 border-t border-white/10 pt-8">
+          <EspacoBanner
+            banner={banner ?? null}
+            medida="1880 × 320 px"
+            rotulo="Faixa promocional"
+            proporcao="1880 / 320"
+            escuro
+          />
+        </div>
       </div>
     </section>
   );

@@ -214,6 +214,43 @@ const familiaDeProduto = (nome: string, modelo: string | null, volt: string | nu
   return fam ? `${fam.replace(/ /g, "-")}-${(volt ?? "sv").replace(/[/]/g, "")}`.toLowerCase() : null;
 };
 
+/**
+ * Peso e medidas da caixa.
+ *
+ * Onde o cadastro traz o dado, ele manda. Onde falta, a caixa é estimada a
+ * partir do diâmetro do corpo da bomba mais folga de embalagem: 4 cm em cada
+ * dimensão lateral e 6 cm na altura, que é o que uma caixa de papelão com
+ * calço consome. É estimativa declarada, não medição — o frete cobrado a menos
+ * sai da margem, então isto precisa ser conferido com uma balança antes de
+ * ligar o cálculo dos Correios.
+ */
+function medidas(ficha: Ficha | null, specs: Map<string, { valor: string }>) {
+  const n = (nome: string) => {
+    const v = specs.get(nome)?.valor;
+    if (!v) return null;
+    const m = v.replace(",", ".").match(/([\d.]+)/);
+    const x = m ? Number(m[1]) : NaN;
+    return Number.isFinite(x) && x > 0 ? x : null;
+  };
+
+  const pesoKg = n("Peso");
+  const alt = n("Altura");
+  const lar = n("Largura");
+  const comp = n("Comprimento");
+
+  const corpoCm = ficha ? ficha.diametroCorpoMm / 10 : null;
+  const estimado = !pesoKg || !alt || !lar || !comp;
+
+  return {
+    // sem peso cadastrado, usa o do corpo: 138 mm é a linha de 4 kg, 175 mm a de 5 kg
+    pesoGramas: Math.round((pesoKg ?? (corpoCm && corpoCm > 15 ? 5 : 4)) * 1000),
+    alturaCm: Math.round(alt ?? (corpoCm ? corpoCm * 2 + 6 : 36)),
+    larguraCm: Math.round(lar ?? (corpoCm ? corpoCm + 4 : 18)),
+    comprimentoCm: Math.round(comp ?? (corpoCm ? corpoCm + 4 : 18)),
+    medidasEstimadas: estimado,
+  };
+}
+
 const garantiaTexto = (meses: number) =>
   meses === 12 ? "1 ano" : meses % 12 === 0 ? `${meses / 12} anos` : `${meses} meses`;
 
@@ -432,6 +469,7 @@ async function main() {
         familia: familiaDeProduto(p.nome, p.modelo, volt),
         versao: versaoDe(p.nome),
         pocoPolegadas: ficha ? (ficha.pocoDiametroMaximoMm ? 6 : (ficha.pocoTubularMinimoPolegadas ?? null)) : null,
+        ...medidas(ficha, porNome),
         saiaProtecao: ficha?.saiaProtecaoLateral ?? false,
         curvaVazao: ficha?.vazaoPorAltura ?? [],
         especificacoes: { create: especificacoes },
@@ -471,6 +509,21 @@ async function main() {
   }
 
   console.log(`   ${brutos.length} produtos`);
+
+  // Medida estimada é o último recurso. Se um irmão da mesma família já tem a
+  // caixa cadastrada, ela vale para todos: é a mesma bomba, na mesma caixa —
+  // e o dado medido ganha de qualquer fórmula.
+  for (const { familia } of await prisma.produto.groupBy({ by: ["familia"], where: { familia: { not: null } } })) {
+    const medido = await prisma.produto.findFirst({
+      where: { familia, medidasEstimadas: false, pesoGramas: { not: null } },
+      select: { pesoGramas: true, alturaCm: true, larguraCm: true, comprimentoCm: true },
+    });
+    if (!medido) continue;
+    await prisma.produto.updateMany({
+      where: { familia, medidasEstimadas: true },
+      data: { ...medido, medidasEstimadas: false },
+    });
+  }
 
   // A URL canônica de cada família é a da versão mais simples e barata: é a
   // que responde à busca genérica ("bomba rymer 2000 220v"), e é nela que os
@@ -574,7 +627,20 @@ async function main() {
     });
   }
 
-  console.log(`   1 prateleira · 4 banners · ${VIDEOS.length} vídeos\n`);
+  await prisma.banner.upsert({
+    where: { id: "faixa-meio-inicial" },
+    update: {},
+    create: {
+      id: "faixa-meio-inicial",
+      titulo: "Espaço para campanha — dia das mães, black friday, lançamento",
+      alt: "Faixa promocional",
+      posicao: "FAIXA_MEIO",
+      ativo: true,
+      ordem: 0,
+    },
+  });
+
+  console.log(`   1 prateleira · 5 banners · ${VIDEOS.length} vídeos\n`);
 
   if (semPrecoLista.length) {
     console.log(`⚠  ${semPrecoLista.length} produto(s) sem preço — desativados, não vão para a vitrine:`);

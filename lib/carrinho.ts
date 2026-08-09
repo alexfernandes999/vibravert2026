@@ -92,6 +92,7 @@ export async function obterCarrinho() {
     select: {
       id: true, slug: true, nome: true, sku: true, preco: true, voltagem: true,
       pocoPolegadas: true, estoque: { select: { quantidade: true } },
+      pesoGramas: true, alturaCm: true, larguraCm: true, comprimentoCm: true,
       imagens: { where: { principal: true }, select: { url: true, alt: true }, take: 1 },
     },
   });
@@ -112,6 +113,13 @@ export async function obterCarrinho() {
       qtd,
       limitado: qtd < qtdPedida,
       total: Number(p.preco) * qtd,
+      volume: {
+        pesoGramas: p.pesoGramas ?? 4000,
+        alturaCm: p.alturaCm ?? 30,
+        larguraCm: p.larguraCm ?? 17,
+        comprimentoCm: p.comprimentoCm ?? 17,
+        quantidade: qtd,
+      },
     };
   });
 

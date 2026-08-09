@@ -65,6 +65,17 @@ model Produto {
   /// 2500 da 2000 — a hidráulica das duas é idêntica.
   saiaProtecao  Boolean  @default(false)
 
+  /// Peso e medidas da CAIXA despachada, não da bomba nua: os Correios cobram
+  /// por peso cubado, e uma caixa maior que o produto muda o frete. Onde o
+  /// cadastro não tinha o dado, ele é estimado a partir do corpo da bomba mais
+  /// a folga da embalagem — e `medidasEstimadas` diz quando isso aconteceu,
+  /// para não passar por medição de verdade.
+  pesoGramas       Int?
+  alturaCm         Int?
+  larguraCm        Int?
+  comprimentoCm    Int?
+  medidasEstimadas Boolean @default(false)
+
   /// Vazão em litros/hora a 0, 10, 20, 30, 40, 50, 60 e 65 m.c.a.
   /// Alimenta o seletor "qual bomba eu preciso" — a resposta deixa de ser
   /// achismo e passa a ser o número da instalação do cliente.
@@ -208,6 +219,7 @@ model Video {
 enum BannerPosicao {
   PRINCIPAL
   FAIXA_DUPLA
+  FAIXA_MEIO
   TARJA_TOPO
 
   @@schema("vibravert")

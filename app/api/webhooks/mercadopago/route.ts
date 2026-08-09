@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { consultarPagamento, statusParaPedido } from "@/lib/mercadopago";
+import { pagamentoConfirmado } from "@/lib/email";
 
 /**
  * Webhook do Mercado Pago.
@@ -46,6 +47,12 @@ export async function POST(req: NextRequest) {
     // Baixa de estoque só quando o dinheiro entrou. Reservar no clique
     // deixaria o estoque preso em carrinho abandonado.
     if (status === "PAGO" && pedido.status !== "PAGO") {
+      const completo = await prisma.pedido.findUnique({
+        where: { id: pedido.id },
+        include: { itens: true, endereco: true, cliente: true },
+      });
+      if (completo) await pagamentoConfirmado(completo);
+
       const itens = await prisma.pedidoItem.findMany({ where: { pedidoId: pedido.id } });
       for (const i of itens) {
         await prisma.estoque.updateMany({

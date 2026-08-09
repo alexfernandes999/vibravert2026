@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { obterCarrinho } from "@/lib/carrinho";
 import { buscarCep, soDigitos } from "@/lib/cep";
 import { cobrar, configurado } from "@/lib/mercadopago";
+import { pedidoRecebido } from "@/lib/email";
 import { DESCONTO_PIX } from "@/lib/loja";
 
 export async function consultarCep(cep: string) {
@@ -127,6 +128,14 @@ export async function finalizar(_estado: EstadoCheckout, dados: FormData): Promi
       data: { mpDetalhe: cobranca.erro?.slice(0, 400) },
     });
   }
+
+  // O e-mail vai depois de tudo gravado e nunca bloqueia o pedido: se o envio
+  // falhar, o cliente ainda tem a página de acompanhamento.
+  const completo = await prisma.pedido.findUnique({
+    where: { id: pedido.id },
+    include: { itens: true, endereco: true, cliente: true },
+  });
+  if (completo) await pedidoRecebido(completo);
 
   (await cookies()).delete("carrinho");
   redirect(`/pedido/${pedido.numero}`);

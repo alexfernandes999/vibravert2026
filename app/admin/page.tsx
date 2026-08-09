@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { brl } from "@/lib/formato";
 import { configurado } from "@/lib/mercadopago";
 import { CONTROLA_ESTOQUE } from "@/lib/loja";
+import { configurado as emailOk } from "@/lib/email";
+import { configurado as freteOk } from "@/lib/correios";
 import { Selo } from "@/components/selo-pedido";
 import { GraficoVendas } from "@/components/grafico-vendas";
 import type { PedidoStatus } from "@prisma/client";
@@ -65,10 +67,12 @@ export default async function Painel() {
         <h2 className="text-[13px] font-extrabold text-atencao">Pendências que travam a operação</h2>
         <ul className="mt-2 space-y-1.5 text-[13px] text-atencao">
           {!configurado && <li>· Mercado Pago sem credencial — nenhum pedido pode ser cobrado.</li>}
+          {!emailOk && <li>· E-mail não configurado — o comprador não recebe confirmação nem rastreio.</li>}
+          {!freteOk && <li>· Correios sem contrato — o frete usa valor fixo em vez de calcular por CEP.</li>}
           {!CONTROLA_ESTOQUE && <li>· Controle de estoque desligado — a loja vende sem verificar quantidade.</li>}
           {semGarantia > 0 && <li>· {semGarantia} produto(s) sem prazo de garantia publicado.</li>}
           {semCurva > 0 && <li>· {semCurva} produto(s) sem curva de vazão — ficam fora da calculadora.</li>}
-          {configurado && CONTROLA_ESTOQUE && semGarantia === 0 && semCurva === 0 && <li>· Nenhuma. ✓</li>}
+          {configurado && emailOk && freteOk && CONTROLA_ESTOQUE && semGarantia === 0 && semCurva === 0 && <li>· Nenhuma. ✓</li>}
         </ul>
       </section>
 

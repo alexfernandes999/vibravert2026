@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { PedidoStatus } from "@prisma/client";
 import Link from "next/link";
 import { Selo } from "@/components/selo-pedido";
+import { pedidoEnviado } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,17 @@ const PROXIMO: Partial<Record<PedidoStatus, { para: PedidoStatus; r: string }>> 
 async function avancar(id: string, para: PedidoStatus) {
   "use server";
   await prisma.pedido.update({ where: { id }, data: { status: para } });
+
+  // Avisar que despachou é o e-mail que o cliente mais espera — e o que mais
+  // reduz "cadê meu pedido?" no telefone.
+  if (para === "ENVIADO") {
+    const p = await prisma.pedido.findUnique({
+      where: { id },
+      include: { itens: true, endereco: true, cliente: true },
+    });
+    if (p) await pedidoEnviado(p);
+  }
+
   revalidatePath("/admin/pedidos");
 }
 

@@ -20,9 +20,10 @@ const CAMPOS = {
 } as const;
 
 export default async function Home() {
-  const [principal, duplos, maisVendidas, precos] = await Promise.all([
+  const [principal, duplos, meio, maisVendidas, precos] = await Promise.all([
     bannerAtivo("PRINCIPAL"),
     bannersAtivos("FAIXA_DUPLA"),
+    bannerAtivo("FAIXA_MEIO"),
     prisma.produto.findMany({
       where: { ativo: true },
       orderBy: { preco: "desc" },
@@ -126,7 +127,7 @@ export default async function Home() {
 
       <Prateleira titulo="Mais vendidas" produtos={maisVendidas} />
 
-      <FaixaLider nota="4,8" vendas="+3.000" />
+      <FaixaLider nota="4,8" vendas="+3.000" banner={meio} />
 
       {/* As duas faixas ficam abaixo da prateleira e longe da faixa do Nº 1:
           dois blocos pesados colados se anulavam. */}
