@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
@@ -223,8 +224,12 @@ function Confianca({ especificacoes }: { especificacoes: { nome: string; valor: 
   const itens = [
     garantia && { t: `Garantia de ${garantia}`, d: "de fábrica, contra defeito de fabricação" },
     acompanha && { t: "Kit de instalação incluso", d: acompanha },
-    { t: "Assistência técnica própria", d: "rede de postos autorizados em todo o país" },
-  ].filter(Boolean) as { t: string; d: string }[];
+    {
+      t: "A assistência é nossa",
+      d: "quem conserta é a fábrica, não um posto terceirizado",
+      href: "/assistencia",
+    },
+  ].filter(Boolean) as { t: string; d: string; href?: string }[];
 
   return (
     <ul className="mt-5 space-y-2.5">
@@ -235,7 +240,13 @@ function Confianca({ especificacoes }: { especificacoes: { nome: string; valor: 
             <path d="M9 12l2 2 4-4" />
           </svg>
           <span className="text-[13px] leading-snug">
-            <strong className="font-bold">{i.t}</strong>
+            {i.href ? (
+              <Link href={i.href} className="font-bold underline decoration-marca/30 underline-offset-2">
+                {i.t}
+              </Link>
+            ) : (
+              <strong className="font-bold">{i.t}</strong>
+            )}
             <span className="block text-mudo">{i.d}</span>
           </span>
         </li>
