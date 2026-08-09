@@ -14,6 +14,7 @@ const MENU = [
   { href: "/admin/produtos", r: "Produtos", grupo: "" },
   { href: "/admin/estoque", r: "Estoque", grupo: "" },
   { href: "/admin/banners", r: "Banners e vitrine", grupo: "Loja" },
+  { href: "/admin/videos", r: "Vídeos", grupo: "Loja" },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

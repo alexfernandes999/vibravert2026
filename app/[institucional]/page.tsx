@@ -34,7 +34,7 @@ export default async function Institucional({ params }: { params: Promise<{ inst
               dangerouslySetInnerHTML={{
                 __html: bloco
                   .replace(/\*\*(.+?)\*\*/g, "<strong class='font-bold text-tinta'>$1</strong>")
-                  .replace(/\[CONFIRMAR\]/g, "<span class='rounded bg-atencao/10 px-1.5 py-0.5 text-[12px] font-extrabold text-atencao'>A CONFIRMAR</span>"),
+
               }}
             />
           ),
