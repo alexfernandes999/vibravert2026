@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { RedeLojas } from "@/components/rede-lojas";
 
 export const metadata: Metadata = {
   title: "Produto fora de linha",
@@ -42,7 +43,15 @@ export default function ForaDeLinha() {
         </Link>
       </div>
 
-      <p className="mt-8 text-[13px] text-mudo">
+      <div className="mt-12 border-t border-linha text-left">
+        <RedeLojas
+          origem="410"
+          titulo="Procurava uma bomba de outra marca?"
+          chamada="Schneider, Ebara, Thebe, Leão e as demais continuam à venda nas outras lojas do Grupo das Bombas ARF."
+        />
+      </div>
+
+      <p className="mt-2 text-[13px] text-mudo">
         Precisa de ajuda para escolher?{" "}
         <Link href="/fale-conosco" className="font-bold text-marca underline">
           Fale com a gente

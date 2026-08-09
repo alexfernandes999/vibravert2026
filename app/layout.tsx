@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { bannerAtivo } from "@/lib/banners";
+import { RedeLojas } from "@/components/rede-lojas";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -106,7 +107,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
         <main>{children}</main>
 
-        <footer className="mt-16 border-t border-linha bg-superficie-2">
+        <div className="mt-16 border-t border-linha bg-superficie">
+          <RedeLojas />
+        </div>
+
+        <footer className="border-t border-linha bg-superficie-2">
           <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <Logotipo largura={158} />
