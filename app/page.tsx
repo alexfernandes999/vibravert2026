@@ -51,9 +51,10 @@ export default async function Home() {
 
   return (
     <>
-      {/* O banner abre a página, acima do herói: é a peça de campanha e quem
-          chega tem de vê-la antes de qualquer outra coisa. */}
-      <section className="mx-auto max-w-7xl px-5 pt-5 pb-8">
+      {/* O banner abre a página de ponta a ponta. Com margem e cantos
+          arredondados ele virava um cartão flutuando acima do herói, e a
+          página passava a ter duas aberturas disputando a mesma atenção. */}
+      <section className="[&_.rounded-caixa]:rounded-none">
         <EspacoBanner banner={principal} medida="2098 × 750 px · desktop" rotulo="Banner principal" />
       </section>
 
@@ -101,23 +102,22 @@ export default async function Home() {
             </dl>
           </div>
 
-          {/* Antes de vazão, o comprador precisa saber se a bomba entra no poço.
-              É a dúvida que mais gera devolução, então vira o primeiro caminho.
-              A foto ao lado dá rosto ao produto: uma caixa de texto sozinha não
-              diz o que se está comprando. */}
-          <div className="entrar entrar-3 grid gap-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] sm:items-center">
+          {/* Uma coisa só de cada lado: texto à esquerda, produto à direita.
+              A foto e uma caixa de texto lado a lado partiam a coluna em dois
+              blocos pequenos, e nenhum dos dois liderava. */}
+          <div className="entrar entrar-3">
             {destaque?.imagens[0] && (
               <Link
                 href={`/produto/${destaque.slug}`}
-                className="group relative block overflow-hidden rounded-caixa border border-marca-linha bg-superficie"
+                className="group relative block overflow-hidden rounded-caixa border border-marca-linha bg-superficie shadow-xl shadow-marca/10"
               >
-                <span className="relative block aspect-[4/5]">
+                <span className="relative block aspect-[5/4]">
                   <Image
                     src={destaque.imagens[0].url}
                     alt={destaque.imagens[0].alt}
                     fill
                     priority
-                    sizes="(max-width: 640px) 100vw, 300px"
+                    sizes="(max-width: 768px) 100vw, 560px"
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 </span>
@@ -135,35 +135,38 @@ export default async function Home() {
               </Link>
             )}
 
-            <div className="rounded-caixa border border-marca-linha bg-superficie p-5 shadow-xl shadow-marca/5">
-            <h2 className="text-lg font-extrabold tracking-tight">Comece pelo seu poço</h2>
-            <p className="mt-1 text-[13px] text-mudo">
-              O diâmetro do poço define quais modelos cabem. É o primeiro filtro.
-            </p>
-            <div className="mt-4 grid gap-2.5">
-              <Link
-                href="/bombas?poco=6"
-                className="flex items-center gap-3 rounded-lg border border-linha px-4 py-3 hover:border-marca hover:bg-marca-suave"
-              >
-                <span className="num text-2xl font-extrabold text-marca">6&quot;</span>
-                <span className="text-[13px] font-semibold leading-tight">
-                  Poço de 6 polegadas
-                  <span className="block font-medium text-mudo">Linha Rymer · 150 mm</span>
-                </span>
-              </Link>
-              <Link
-                href="/bombas?poco=8"
-                className="flex items-center gap-3 rounded-lg border border-linha px-4 py-3 hover:border-marca hover:bg-marca-suave"
-              >
-                <span className="num text-2xl font-extrabold text-marca">8&quot;</span>
-                <span className="text-[13px] font-semibold leading-tight">
-                  Poço de 8 polegadas ou mais
-                  <span className="block font-medium text-mudo">Vibra Vert 900 e Vibrinha</span>
-                </span>
-              </Link>
-            </div>
-            </div>
           </div>
+        </div>
+      </section>
+
+
+      {/* O diâmetro do poço decide se a bomba serve — é a primeira pergunta da
+          compra e a maior causa de devolução. Vira faixa própria, larga e
+          clicável, em vez de uma caixinha espremida na lateral do herói. */}
+      <section className="border-b border-linha bg-superficie">
+        <div className="mx-auto grid max-w-7xl gap-3 px-5 py-5 md:grid-cols-[auto_1fr_1fr] md:items-center">
+          <p className="text-[13.5px] font-extrabold tracking-tight md:mr-2">
+            Comece pelo seu poço
+            <span className="mt-0.5 block text-[11.5px] font-medium text-mudo">
+              o diâmetro define quais modelos cabem
+            </span>
+          </p>
+          {[
+            { p: 6, t: "Poço de 6 polegadas", d: "Linha Rymer · até 150 mm" },
+            { p: 8, t: "Poço de 8 polegadas ou mais", d: "Vibra Vert 900 e Vibrinha" },
+          ].map((o) => (
+            <Link
+              key={o.p}
+              href={`/bombas?poco=${o.p}`}
+              className="flex items-center gap-3 rounded-caixa border border-linha px-4 py-3 transition hover:border-marca hover:bg-marca-suave"
+            >
+              <span className="num text-2xl font-extrabold text-marca">{o.p}&quot;</span>
+              <span className="text-[13px] font-bold leading-tight">
+                {o.t}
+                <span className="block font-medium text-mudo">{o.d}</span>
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 
