@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { CartaoProduto } from "@/components/cartao-produto";
 import { FaixaLider, FaixaConfianca } from "@/components/faixa-lider";
@@ -20,7 +21,7 @@ const CAMPOS = {
 } as const;
 
 export default async function Home() {
-  const [principal, duplos, meio, maisVendidas, precos] = await Promise.all([
+  const [principal, duplos, meio, maisVendidas, precos, destaque] = await Promise.all([
     bannerAtivo("PRINCIPAL"),
     bannersAtivos("FAIXA_DUPLA"),
     bannerAtivo("FAIXA_MEIO"),
@@ -35,6 +36,16 @@ export default async function Home() {
       orderBy: { preco: "asc" },
       take: 4,
       select: CAMPOS,
+    }),
+    // A bomba de maior vazão abre a página: é a imagem que diz, sem texto, o
+    // que a loja vende.
+    prisma.produto.findFirst({
+      where: { ativo: true, principalDaFamilia: true },
+      orderBy: { vazaoMaxima: "desc" },
+      select: {
+        slug: true, nome: true, vazaoMaxima: true, pocoPolegadas: true,
+        imagens: { where: { principal: true }, select: { url: true, alt: true }, take: 1 },
+      },
     }),
   ]);
 
@@ -91,8 +102,40 @@ export default async function Home() {
           </div>
 
           {/* Antes de vazão, o comprador precisa saber se a bomba entra no poço.
-              É a dúvida que mais gera devolução, então vira o primeiro caminho. */}
-          <div className="entrar entrar-3 rounded-caixa border border-marca-linha bg-superficie p-6 shadow-xl shadow-marca/5">
+              É a dúvida que mais gera devolução, então vira o primeiro caminho.
+              A foto ao lado dá rosto ao produto: uma caixa de texto sozinha não
+              diz o que se está comprando. */}
+          <div className="entrar entrar-3 grid gap-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] sm:items-center">
+            {destaque?.imagens[0] && (
+              <Link
+                href={`/produto/${destaque.slug}`}
+                className="group relative block overflow-hidden rounded-caixa border border-marca-linha bg-superficie"
+              >
+                <span className="relative block aspect-[4/5]">
+                  <Image
+                    src={destaque.imagens[0].url}
+                    alt={destaque.imagens[0].alt}
+                    fill
+                    priority
+                    sizes="(max-width: 640px) 100vw, 300px"
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                </span>
+                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-marca-escuro/90 to-transparent p-3.5 pt-10">
+                  <span className="block text-[10px] font-extrabold uppercase tracking-[0.14em] text-ouro">
+                    Maior vazão da linha
+                  </span>
+                  <span className="num mt-0.5 block text-[15px] font-extrabold text-white">
+                    {destaque.vazaoMaxima?.toLocaleString("pt-BR")} L/h
+                    {destaque.pocoPolegadas && (
+                      <span className="font-bold text-white/70"> · poço {destaque.pocoPolegadas}&quot;</span>
+                    )}
+                  </span>
+                </span>
+              </Link>
+            )}
+
+            <div className="rounded-caixa border border-marca-linha bg-superficie p-5 shadow-xl shadow-marca/5">
             <h2 className="text-lg font-extrabold tracking-tight">Comece pelo seu poço</h2>
             <p className="mt-1 text-[13px] text-mudo">
               O diâmetro do poço define quais modelos cabem. É o primeiro filtro.
@@ -118,6 +161,7 @@ export default async function Home() {
                   <span className="block font-medium text-mudo">Vibra Vert 900 e Vibrinha</span>
                 </span>
               </Link>
+            </div>
             </div>
           </div>
         </div>
