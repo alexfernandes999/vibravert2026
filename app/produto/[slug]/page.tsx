@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { SeletorVersao } from "@/components/seletor-versao";
 import { Video } from "@/components/video";
+import { BotaoComprar } from "@/components/botao-comprar";
 import { brl, precoPix, parcela, PARCELAS_MAX, ALTURAS_MCA, litros } from "@/lib/formato";
 
 export const revalidate = 300;
@@ -122,12 +123,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
             <p className="num mt-1 text-[13px] font-semibold text-tinta-2">
               ou até {PARCELAS_MAX}× de {brl(parcela(preco))} sem juros
             </p>
-            <button
-              type="button"
-              className="mt-4 w-full rounded-lg bg-marca py-3.5 text-sm font-bold text-white shadow-lg shadow-marca/25"
-            >
-              Comprar agora
-            </button>
+            <BotaoComprar produtoId={p.id} />
           </div>
 
           <SeletorVersao versoes={versoes} atual={p.versao} />

@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { bannerAtivo } from "@/lib/banners";
 import { RedeLojas } from "@/components/rede-lojas";
+import { quantidadeTotal } from "@/lib/carrinho";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -45,6 +46,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // A tarja do topo vem do banco, não do código: é o espaço mais visto da loja
   // e quem decide o que vai nele é o time comercial, não o desenvolvedor.
   const tarja = await bannerAtivo("TARJA_TOPO");
+  const itensCarrinho = await quantidadeTotal();
 
   return (
     <html lang="pt-BR">
@@ -89,7 +91,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </Link>
             <nav className="ml-auto flex items-center gap-5 text-sm font-semibold text-tinta-2">
               <Link href="/pedidos">Meus pedidos</Link>
-              <Link href="/carrinho">Carrinho</Link>
+              <Link href="/carrinho" className="flex items-center gap-1.5">
+                Carrinho
+                {itensCarrinho > 0 && (
+                  <span className="num grid h-5 min-w-5 place-items-center rounded-full bg-ouro px-1.5 text-[11px] font-extrabold text-ouro-txt">
+                    {itensCarrinho}
+                  </span>
+                )}
+              </Link>
             </nav>
           </div>
           <nav className="mx-auto flex max-w-7xl gap-7 overflow-x-auto px-5 text-sm">

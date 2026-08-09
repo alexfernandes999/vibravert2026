@@ -1,0 +1,134 @@
+"use server";
+
+import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/prisma";
+import { DESCONTO_PIX, FRETE_GRATIS_ACIMA, FRETE_PADRAO, CONTROLA_ESTOQUE } from "@/lib/loja";
+
+/**
+ * Carrinho de visitante, guardado num cookie.
+ *
+ * Sem cadastro e sem sessão no banco: o comprador desta loja chega pelo Google
+ * com a bomba parada em casa e não vai criar conta antes de ver o frete. O
+ * cookie guarda só id e quantidade — nome e preço são sempre lidos do banco na
+ * hora, para que uma alteração de preço não fique presa no navegador de
+ * ninguém.
+ */
+const COOKIE = "carrinho";
+const UM_MES = 60 * 60 * 24 * 30;
+
+type Linha = { id: string; qtd: number };
+
+async function ler(): Promise<Linha[]> {
+  const c = (await cookies()).get(COOKIE)?.value;
+  if (!c) return [];
+  try {
+    const v = JSON.parse(c);
+    return Array.isArray(v) ? v.filter((l) => l?.id && l.qtd > 0) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function gravar(linhas: Linha[]) {
+  (await cookies()).set(COOKIE, JSON.stringify(linhas), {
+    maxAge: UM_MES,
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+  });
+}
+
+export async function adicionar(produtoId: string, qtd = 1) {
+  const linhas = await ler();
+  const existente = linhas.find((l) => l.id === produtoId);
+  if (existente) existente.qtd += qtd;
+  else linhas.push({ id: produtoId, qtd });
+  await gravar(linhas);
+  revalidatePath("/carrinho");
+}
+
+export async function alterar(produtoId: string, qtd: number) {
+  const linhas = (await ler())
+    .map((l) => (l.id === produtoId ? { ...l, qtd } : l))
+    .filter((l) => l.qtd > 0);
+  await gravar(linhas);
+  revalidatePath("/carrinho");
+}
+
+export async function remover(produtoId: string) {
+  await gravar((await ler()).filter((l) => l.id !== produtoId));
+  revalidatePath("/carrinho");
+}
+
+export async function quantidadeTotal() {
+  return (await ler()).reduce((s, l) => s + l.qtd, 0);
+}
+
+/**
+ * Monta o carrinho lendo os produtos do banco.
+ *
+ * Um item que saiu do ar — desativado, sem preço — some do carrinho em vez de
+ * quebrar a página. É melhor o comprador perceber a falta na hora do que
+ * descobrir no checkout que aquilo não existe mais.
+ */
+export async function obterCarrinho() {
+  const linhas = await ler();
+  if (!linhas.length) {
+    return {
+      itens: [],
+      subtotal: 0,
+      frete: 0,
+      total: 0,
+      totalPix: 0,
+      economiaPix: 0,
+      freteGratis: false,
+      faltaParaFreteGratis: FRETE_GRATIS_ACIMA,
+    };
+  }
+
+  const produtos = await prisma.produto.findMany({
+    where: { id: { in: linhas.map((l) => l.id) }, ativo: true },
+    select: {
+      id: true, slug: true, nome: true, sku: true, preco: true, voltagem: true,
+      pocoPolegadas: true, estoque: { select: { quantidade: true } },
+      imagens: { where: { principal: true }, select: { url: true, alt: true }, take: 1 },
+    },
+  });
+
+  const itens = produtos.map((p) => {
+    const qtdPedida = linhas.find((l) => l.id === p.id)!.qtd;
+    const disponivel = CONTROLA_ESTOQUE ? (p.estoque?.quantidade ?? 0) : Infinity;
+    const qtd = Math.max(1, Math.min(qtdPedida, disponivel));
+    return {
+      id: p.id,
+      slug: p.slug,
+      nome: p.nome,
+      sku: p.sku,
+      voltagem: p.voltagem,
+      pocoPolegadas: p.pocoPolegadas,
+      imagem: p.imagens[0] ?? null,
+      preco: Number(p.preco),
+      qtd,
+      limitado: qtd < qtdPedida,
+      total: Number(p.preco) * qtd,
+    };
+  });
+
+  const subtotal = itens.reduce((s, i) => s + i.total, 0);
+  const freteGratis = subtotal >= FRETE_GRATIS_ACIMA;
+  const frete = freteGratis ? 0 : FRETE_PADRAO;
+  const total = subtotal + frete;
+  const totalPix = total * (1 - DESCONTO_PIX);
+
+  return {
+    itens,
+    subtotal,
+    frete,
+    total,
+    totalPix,
+    economiaPix: total - totalPix,
+    freteGratis,
+    faltaParaFreteGratis: freteGratis ? 0 : FRETE_GRATIS_ACIMA - subtotal,
+  };
+}
