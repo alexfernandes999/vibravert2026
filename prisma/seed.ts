@@ -181,6 +181,18 @@ const FICHAS: Record<string, Ficha> = JSON.parse(
 
 const ALTURAS = [0, 10, 20, 30, 40, 50, 60, 65];
 
+/**
+ * As fotos vivem no Storage do Supabase, não em public/.
+ *
+ * A primeira versão gravava o caminho local e dependia de um script separado
+ * reapontar tudo para o CDN depois — então toda recarga do catálogo derrubava
+ * as imagens da loja em produção, em silêncio. Agora a URL definitiva sai
+ * daqui, e recarregar o seed deixou de ser destrutivo.
+ */
+const CDN = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/produtos/`
+  : "/produtos/";
+
 /** "rymer 2500" → chave "rymer-2500" do arquivo de fichas */
 const fichaDe = (fam: string | null): Ficha | null =>
   fam ? (FICHAS[fam.replace(/ /g, "-")] ?? null) : null;
@@ -425,7 +437,7 @@ async function main() {
         especificacoes: { create: especificacoes },
         imagens: {
           create: p.imagens.map((img, i) => ({
-            url: `/produtos/${img.arquivo}`,
+            url: `${CDN}${img.arquivo}`,
             alt: img.alt,
             ordem: i,
             principal: img.principal,
@@ -551,7 +563,18 @@ async function main() {
     });
   }
 
-  console.log(`   1 prateleira · 2 banners · ${VIDEOS.length} vídeos\n`);
+  for (const [i, b] of [
+    { titulo: "Direto da fábrica, sem intermediário", alt: "Compre direto da fábrica Vibra Vert" },
+    { titulo: "Não sabe qual bomba serve no seu poço?", alt: "Calculadora: qual bomba o seu poço precisa", link: "/qual-bomba" },
+  ].entries()) {
+    await prisma.banner.upsert({
+      where: { id: `faixa-dupla-${i}` },
+      update: {},
+      create: { id: `faixa-dupla-${i}`, posicao: "FAIXA_DUPLA", ordem: i, ativo: true, ...b },
+    });
+  }
+
+  console.log(`   1 prateleira · 4 banners · ${VIDEOS.length} vídeos\n`);
 
   if (semPrecoLista.length) {
     console.log(`⚠  ${semPrecoLista.length} produto(s) sem preço — desativados, não vão para a vitrine:`);

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { CartaoProduto } from "@/components/cartao-produto";
 import { FaixaLider, FaixaConfianca } from "@/components/faixa-lider";
+import { EspacoBanner } from "@/components/espaco-banner";
+import { bannerAtivo, bannersAtivos } from "@/lib/banners";
 
 export const revalidate = 300;
 
@@ -18,7 +20,9 @@ const CAMPOS = {
 } as const;
 
 export default async function Home() {
-  const [maisVendidas, precos] = await Promise.all([
+  const [principal, duplos, maisVendidas, precos] = await Promise.all([
+    bannerAtivo("PRINCIPAL"),
+    bannersAtivos("FAIXA_DUPLA"),
     prisma.produto.findMany({
       where: { ativo: true },
       orderBy: { preco: "desc" },
@@ -112,35 +116,33 @@ export default async function Home() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-7xl px-5 pt-8">
+        <EspacoBanner banner={principal} medida="1920 × 520 px · desktop" rotulo="Banner principal" />
+      </section>
+
+      <div className="pt-10" />
+
       <FaixaConfianca />
 
       <Prateleira titulo="Mais vendidas" produtos={maisVendidas} />
 
       <FaixaLider nota="4,8" vendas="+3.000" />
 
-      <section className="mx-auto max-w-7xl px-5">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-caixa bg-gradient-to-br from-marca-escuro to-marca-claro p-7 text-white">
-            <p className="text-[9.5px] font-extrabold uppercase tracking-[0.18em] opacity-80">
-              Direto da fábrica
-            </p>
-            <h2 className="mt-2 text-xl font-extrabold tracking-tight">Sem intermediário</h2>
-            <p className="mt-1 text-[13px] opacity-90">
-              Quem fabrica vende pelo preço justo — e assiste depois da venda.
-            </p>
-          </div>
-          <div className="rounded-caixa bg-gradient-to-br from-marca-claro to-ciano p-7 text-white">
-            <p className="text-[9.5px] font-extrabold uppercase tracking-[0.18em] opacity-80">
-              Suporte técnico
-            </p>
-            <h2 className="mt-2 text-xl font-extrabold tracking-tight">
-              Não sabe qual bomba serve?
-            </h2>
-            <p className="mt-1 text-[13px] opacity-90">
-              Diga a profundidade e o diâmetro do poço. Indicamos o modelo certo.
-            </p>
-          </div>
-        </div>
+      {/* As duas faixas ficam abaixo da prateleira e longe da faixa do Nº 1:
+          dois blocos pesados colados se anulavam. */}
+      <section className="mx-auto grid max-w-7xl gap-4 px-5 md:grid-cols-2">
+        <EspacoBanner
+          banner={duplos[0] ?? null}
+          medida="940 × 300 px"
+          rotulo="Faixa dupla · esquerda"
+          altura="h-[180px]"
+        />
+        <EspacoBanner
+          banner={duplos[1] ?? null}
+          medida="940 × 300 px"
+          rotulo="Faixa dupla · direita"
+          altura="h-[180px]"
+        />
       </section>
 
       <Prateleira titulo="Preços imbatíveis" produtos={precos} verTudo="/bombas?ordem=preco" />

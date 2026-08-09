@@ -1,0 +1,6 @@
+node_modules
+.next
+# as fotos vivem no Storage do Supabase; subir 86 MB a cada deploy é desperdício
+data/imagens
+public/produtos
+*.log
