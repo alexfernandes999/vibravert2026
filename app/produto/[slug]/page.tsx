@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { SeletorVersao } from "@/components/seletor-versao";
+import { CartaoProduto } from "@/components/cartao-produto";
 import { Video } from "@/components/video";
 import { BotaoComprar } from "@/components/botao-comprar";
 import { brl, precoPix, parcela, PARCELAS_MAX, ALTURAS_MCA, litros } from "@/lib/formato";
@@ -64,6 +65,24 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
   const versoes = await irmas(p.familia, p.slug);
   // O vídeo é da família de modelo, não da montagem: a bomba é a mesma com
   // ou sem boia. A família guarda a tensão junto, então tira-se o sufixo.
+  // Quem descarta um modelo troca por outro que caiba no mesmo poço — não por
+  // um mais caro. Por isso o relacionado é por bitola, e nunca a mesma família.
+  const relacionados = await prisma.produto.findMany({
+    where: {
+      ativo: true,
+      principalDaFamilia: true,
+      pocoPolegadas: p.pocoPolegadas,
+      familia: { not: p.familia },
+    },
+    orderBy: { vazaoMaxima: "desc" },
+    take: 4,
+    select: {
+      slug: true, nome: true, marca: true, preco: true, vazaoMaxima: true,
+      voltagem: true, pocoPolegadas: true, saiaProtecao: true,
+      imagens: { where: { principal: true }, select: { url: true, alt: true }, take: 1 },
+    },
+  });
+
   const video = p.familia
     ? await prisma.video.findFirst({
         where: { ativo: true, familia: p.familia.replace(/-(110127v|220v)$/, "") },
@@ -72,6 +91,22 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
 
   return (
     <article className="mx-auto max-w-7xl px-5 py-8">
+      <nav aria-label="Você está em" className="mb-5 text-[11.5px] font-semibold text-mudo">
+        <Link href="/" className="hover:text-marca">Início</Link>
+        <span className="mx-1.5">›</span>
+        <Link href="/bombas" className="hover:text-marca">Bombas vibratórias</Link>
+        {p.pocoPolegadas && (
+          <>
+            <span className="mx-1.5">›</span>
+            <Link href={`/bombas?poco=${p.pocoPolegadas}`} className="hover:text-marca">
+              Poço {p.pocoPolegadas}&quot;
+            </Link>
+          </>
+        )}
+        <span className="mx-1.5">›</span>
+        <span className="text-tinta-2">{p.modelo ?? p.marca}</span>
+      </nav>
+
       <div className="grid gap-10 md:grid-cols-2">
         <div>
           <div className="flex items-center justify-center rounded-caixa border border-linha bg-superficie-2 p-8">
@@ -177,6 +212,22 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
         </section>
       )}
 
+      {relacionados.length > 0 && (
+        <section className="mt-12 border-t border-linha pt-8">
+          <h2 className="text-lg font-extrabold tracking-tight">
+            Outras que entram no mesmo poço
+          </h2>
+          <p className="mt-1 text-[13px] text-mudo">
+            Todas cabem em poço de {p.pocoPolegadas} polegadas.
+          </p>
+          <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {relacionados.map((r) => (
+              <CartaoProduto key={r.slug} p={r} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* O Merchant Center compara o feed com a landing page: preço e
           disponibilidade precisam bater, ou o produto é reprovado. */}
       <script
@@ -198,6 +249,20 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
               availability: "https://schema.org/InStock",
               itemCondition: "https://schema.org/NewCondition",
             },
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Início", item: "/" },
+              { "@type": "ListItem", position: 2, name: "Bombas vibratórias", item: "/bombas" },
+              { "@type": "ListItem", position: 3, name: p.nome },
+            ],
           }),
         }}
       />

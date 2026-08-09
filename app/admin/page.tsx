@@ -4,6 +4,7 @@ import { brl } from "@/lib/formato";
 import { configurado } from "@/lib/mercadopago";
 import { CONTROLA_ESTOQUE } from "@/lib/loja";
 import { Selo } from "@/components/selo-pedido";
+import { GraficoVendas } from "@/components/grafico-vendas";
 import type { PedidoStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +26,26 @@ export default async function Painel() {
   ]);
 
   const fat = Number(agg._sum.total ?? 0);
+
+  // Série diária montada em memória: com 30 pontos, agrupar no banco custaria
+  // mais linha de SQL do que economiza.
+  const pagosDoPeriodo = await prisma.pedido.findMany({
+    where: { ...pagos, criadoEm: { gte: desde } },
+    select: { criadoEm: true, total: true },
+  });
+  const porDia = new Map<string, number>();
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 864e5);
+    porDia.set(d.toISOString().slice(0, 10), 0);
+  }
+  for (const p of pagosDoPeriodo) {
+    const k = p.criadoEm.toISOString().slice(0, 10);
+    if (porDia.has(k)) porDia.set(k, porDia.get(k)! + Number(p.total));
+  }
+  const serie = [...porDia.entries()].map(([k, v]) => ({
+    dia: `${k.slice(8, 10)}/${k.slice(5, 7)}`,
+    total: v,
+  }));
 
   return (
     <div className="p-6">
@@ -51,7 +72,17 @@ export default async function Painel() {
         </ul>
       </section>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.6fr_1fr]">
+      <section className="mt-6 rounded-caixa border border-linha bg-superficie">
+        <h2 className="flex items-baseline gap-2 border-b border-linha px-4 py-3 text-[13.5px] font-extrabold">
+          Faturamento por dia
+          <span className="text-[11px] font-semibold text-mudo">últimos 30 dias · R$</span>
+        </h2>
+        <div className="p-3">
+          <GraficoVendas dias={serie} />
+        </div>
+      </section>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[1.6fr_1fr]">
         <section className="rounded-caixa border border-linha bg-superficie">
           <h2 className="border-b border-linha px-4 py-3 text-[13.5px] font-extrabold">Pedidos recentes</h2>
           {recentes.length === 0 ? (

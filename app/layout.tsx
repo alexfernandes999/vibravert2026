@@ -84,12 +84,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Link href="/" aria-label="Página inicial">
               <Logotipo />
             </Link>
-            <Link
-              href="/bombas"
-              className="hidden flex-1 rounded-lg border border-linha bg-superficie-2 px-3.5 py-2 text-sm font-medium text-mudo md:block"
-            >
-              Buscar por modelo, vazão ou voltagem…
-            </Link>
+            <form action="/busca" className="hidden flex-1 md:block">
+              <input
+                name="q"
+                type="search"
+                placeholder="bomba sapo, Rymer 1500, 220V, peça…"
+                aria-label="Buscar no catálogo"
+                className="w-full rounded-lg border border-linha bg-superficie-2 px-3.5 py-2 text-sm font-medium placeholder:text-mudo focus:border-marca focus:bg-superficie"
+              />
+            </form>
             <nav className="ml-auto flex items-center gap-5 text-sm font-semibold text-tinta-2">
               <Link href="/pedidos">Meus pedidos</Link>
               <Link href="/carrinho" className="flex items-center gap-1.5">

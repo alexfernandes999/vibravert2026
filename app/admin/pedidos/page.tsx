@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { brl } from "@/lib/formato";
 import { revalidatePath } from "next/cache";
 import type { PedidoStatus } from "@prisma/client";
+import Link from "next/link";
 import { Selo } from "@/components/selo-pedido";
 
 export const dynamic = "force-dynamic";
@@ -19,8 +20,18 @@ async function avancar(id: string, para: PedidoStatus) {
   revalidatePath("/admin/pedidos");
 }
 
-export default async function Pedidos() {
+const FILTROS: { v: string; r: string }[] = [
+  { v: "", r: "Todos" },
+  { v: "PAGO", r: "A separar" },
+  { v: "SEPARANDO", r: "Separando" },
+  { v: "ENVIADO", r: "Enviados" },
+  { v: "AGUARDANDO_PAGAMENTO", r: "Aguardando" },
+];
+
+export default async function Pedidos({ searchParams }: { searchParams: Promise<{ s?: string }> }) {
+  const { s } = await searchParams;
   const pedidos = await prisma.pedido.findMany({
+    where: s ? { status: s as PedidoStatus } : {},
     orderBy: { criadoEm: "desc" },
     take: 100,
     include: { cliente: { select: { nome: true, email: true } }, endereco: true, itens: true },
@@ -29,6 +40,22 @@ export default async function Pedidos() {
   return (
     <div className="p-6">
       <h1 className="text-xl font-extrabold tracking-tight">Pedidos</h1>
+
+      {/* Quem abre esta tela quer saber o que precisa sair hoje, não navegar
+          por tudo. O filtro segue a ordem do galpão. */}
+      <nav className="mt-3 flex flex-wrap gap-1.5">
+        {FILTROS.map((f) => (
+          <Link
+            key={f.v}
+            href={f.v ? `/admin/pedidos?s=${f.v}` : "/admin/pedidos"}
+            className={`rounded-lg px-3 py-1.5 text-[12.5px] font-bold ${
+              (s ?? "") === f.v ? "bg-marca text-white" : "border border-linha bg-superficie text-tinta-2"
+            }`}
+          >
+            {f.r}
+          </Link>
+        ))}
+      </nav>
 
       {pedidos.length === 0 ? (
         <p className="mt-5 rounded-caixa border border-linha bg-superficie p-6 text-[13.5px] text-mudo">
