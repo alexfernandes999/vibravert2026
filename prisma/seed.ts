@@ -185,6 +185,23 @@ const ALTURAS = [0, 10, 20, 30, 40, 50, 60, 65];
 const fichaDe = (fam: string | null): Ficha | null =>
   fam ? (FICHAS[fam.replace(/ /g, "-")] ?? null) : null;
 
+/**
+ * As quatro montagens da mesma bomba viram versões de um produto só.
+ * A família agrupa por modelo e tensão: 220V e 110V são bombas diferentes de
+ * verdade, não uma escolha de acessório como a boia ou o kit.
+ */
+function versaoDe(nome: string): "BOMBA" | "BOIA" | "KIT" | "BOIA_KIT" {
+  const n = nome.toLowerCase();
+  const boia = n.includes("boia");
+  const kit = n.includes("kit");
+  return boia && kit ? "BOIA_KIT" : boia ? "BOIA" : kit ? "KIT" : "BOMBA";
+}
+
+const familiaDeProduto = (nome: string, modelo: string | null, volt: string | null) => {
+  const fam = familiaDe(`${modelo ?? ""} ${nome}`);
+  return fam ? `${fam.replace(/ /g, "-")}-${(volt ?? "sv").replace(/[/]/g, "")}`.toLowerCase() : null;
+};
+
 const garantiaTexto = (meses: number) =>
   meses === 12 ? "1 ano" : meses % 12 === 0 ? `${meses / 12} anos` : `${meses} meses`;
 
@@ -288,6 +305,7 @@ async function main() {
   const semNumero: string[] = [];
   const conferir: string[] = [];
   const semGarantia: string[] = [];
+  const semPrecoLista: string[] = [];
 
   for (const p of brutos) {
     const porNome = normalizar(p);
@@ -356,13 +374,23 @@ async function main() {
     const vazao = valorDe("Vazão máxima")?.valorNumero ?? null;
     const altura = valorDe("Altura manométrica máxima")?.valorNumero ?? null;
     const potencia = valorDe("Potência")?.valorNumero ?? null;
-    // 14 produtos não têm o campo de tensão preenchido, mas trazem "220V" ou
-    // "110/127V" no próprio nome — que é, aliás, como o comprador procura.
-    const volt = valorDe("Voltagem")?.valor ?? voltagem(p.nome);
+    // O nome tem precedência sobre o campo de tensão, e não o contrário.
+    // O RYKIT-20A chama-se "em 110/127V" e traz "220V" na especificação; o
+    // sufixo A do código segue a convenção da linha (A=110V, B=220V), então
+    // são dois sinais contra um. E o nome é o que o comprador lê antes de
+    // clicar em comprar — divergir dele é entregar a bomba que não liga na
+    // tomada dele.
+    const volt = voltagem(p.nome) ?? valorDe("Voltagem")?.valor ?? null;
 
     if (!vazao || !altura) semNumero.push(p.nome);
 
     const nomeMin = p.nome.toLowerCase();
+
+    // Produto sem preço não vai para a loja. O RY-15B veio com R$ 0 e estoque
+    // zerado — descontinuado que ficou publicado. Um preço zero numa vitrine
+    // é um produto de graça, não uma pendência de cadastro.
+    const semPreco = !p.preco || p.preco <= 0;
+    if (semPreco) semPrecoLista.push(`${p.sku} · ${p.nome}`);
 
     const produto = await prisma.produto.upsert({
       where: { slug: slugificar(p.nome) },
@@ -382,12 +410,15 @@ async function main() {
           `${p.nome}. ${vazao ? `Vazão de até ${vazao.toLocaleString("pt-BR")} litros por hora. ` : ""}Garantia de fábrica de 2 anos e envio em 24h úteis.`,
         preco: p.preco,
         precoDe: p.precoDe && p.precoDe > p.preco ? p.precoDe : null,
+        ativo: !semPreco,
         vazaoMaxima: ficha ? ficha.vazaoPorAltura[0] : vazao ? Math.round(vazao) : null,
         alturaMaxima: 65,
         potenciaWatts: ficha ? ficha.potenciaWatts : potencia ? Math.round(potencia) : null,
         voltagem: volt,
         acompanhaBoia: nomeMin.includes("boia"),
         acompanhaKit: nomeMin.includes("kit"),
+        familia: familiaDeProduto(p.nome, p.modelo, volt),
+        versao: versaoDe(p.nome),
         pocoPolegadas: ficha ? (ficha.pocoDiametroMaximoMm ? 6 : (ficha.pocoTubularMinimoPolegadas ?? null)) : null,
         saiaProtecao: ficha?.saiaProtecaoLateral ?? false,
         curvaVazao: ficha?.vazaoPorAltura ?? [],
@@ -428,6 +459,20 @@ async function main() {
   }
 
   console.log(`   ${brutos.length} produtos`);
+
+  // A URL canônica de cada família é a da versão mais simples e barata: é a
+  // que responde à busca genérica ("bomba rymer 2000 220v"), e é nela que os
+  // links e as avaliações vão se concentrar.
+  const familias = await prisma.produto.groupBy({ by: ["familia"], where: { familia: { not: null } } });
+  for (const { familia } of familias) {
+    const base = await prisma.produto.findFirst({
+      where: { familia },
+      orderBy: [{ versao: "asc" }, { preco: "asc" }],
+      select: { id: true },
+    });
+    if (base) await prisma.produto.update({ where: { id: base.id }, data: { principalDaFamilia: true } });
+  }
+  console.log(`   ${familias.length} famílias de produto`);
 
   // ── vitrine inicial ─────────────────────────────────────────
   const destaques = await prisma.produto.findMany({
@@ -487,6 +532,11 @@ async function main() {
 
   console.log(`   1 prateleira · 1 banner\n`);
 
+  if (semPrecoLista.length) {
+    console.log(`⚠  ${semPrecoLista.length} produto(s) sem preço — desativados, não vão para a vitrine:`);
+    semPrecoLista.forEach((n) => console.log(`     · ${n.slice(0, 70)}`));
+    console.log();
+  }
   if (semGarantia.length) {
     console.log(`⚠  ${semGarantia.length} produtos ficaram SEM prazo de garantia publicado.`);
     console.log(`   O cadastro antigo dizia "2 anos" e a embalagem desmente isso em todos`);

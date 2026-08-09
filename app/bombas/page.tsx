@@ -46,7 +46,10 @@ export async function generateMetadata({
 export default async function Listagem({ searchParams }: { searchParams: Promise<Busca> }) {
   const s = await searchParams;
 
-  const where: Prisma.ProdutoWhereInput = { ativo: true };
+  // Uma bomba por família. As quatro montagens na grade fazem o visitante
+  // escolher entre resultados quase idênticos; a versão se escolhe dentro do
+  // produto, onde a diferença está explicada.
+  const where: Prisma.ProdutoWhereInput = { ativo: true, principalDaFamilia: true };
   if (s.poco) where.pocoPolegadas = Number(s.poco);
   if (s.voltagem) where.voltagem = s.voltagem;
   if (s.acompanha === "boia") where.acompanhaBoia = true;

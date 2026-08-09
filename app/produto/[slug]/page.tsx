@@ -2,9 +2,18 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
+import { SeletorVersao } from "@/components/seletor-versao";
 import { brl, precoPix, parcela, PARCELAS_MAX, ALTURAS_MCA, litros } from "@/lib/formato";
 
 export const revalidate = 300;
+
+async function irmas(familia: string | null, slug: string) {
+  if (!familia) return [];
+  return prisma.produto.findMany({
+    where: { familia, ativo: true },
+    select: { slug: true, versao: true, preco: true, principalDaFamilia: true },
+  });
+}
 
 async function buscar(slug: string) {
   return prisma.produto.findUnique({
@@ -32,7 +41,9 @@ export async function generateMetadata({
   return {
     title: p.metaTitulo ?? p.nome,
     description: p.metaDescricao ?? undefined,
-    alternates: { canonical: `/produto/${p.slug}` },
+    // A URL indexada é a da versão principal: quatro páginas quase idênticas
+    // disputando a mesma busca é o que diluía a força do produto.
+    alternates: { canonical: `/produto/${(await irmas(p.familia, p.slug)).find((i) => i.principalDaFamilia)?.slug ?? p.slug}` },
     openGraph: {
       title: p.nome,
       description: p.metaDescricao ?? undefined,
@@ -47,6 +58,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
 
   const preco = Number(p.preco);
   const capa = p.imagens[0];
+  const versoes = await irmas(p.familia, p.slug);
 
   return (
     <article className="mx-auto max-w-7xl px-5 py-8">
@@ -108,6 +120,8 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
               Comprar agora
             </button>
           </div>
+
+          <SeletorVersao versoes={versoes} atual={p.versao} />
 
           <Confianca especificacoes={p.especificacoes} />
 

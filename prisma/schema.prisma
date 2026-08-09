@@ -45,6 +45,17 @@ model Produto {
   acompanhaBoia Boolean  @default(false)
   acompanhaKit  Boolean  @default(false)
 
+  /// As quatro montagens da mesma bomba — só a bomba, + boia, + kit, + boia e
+  /// kit — eram quatro produtos separados disputando a mesma busca no Google,
+  /// cada um com uma fração das avaliações e dos links. Passam a ser versões
+  /// de um mesmo produto: uma página forte no lugar de quatro fracas.
+  /// A família agrupa por modelo e tensão, porque 220V e 110V são bombas
+  /// diferentes de verdade, não uma escolha de acessório.
+  familia       String?
+  versao        Versao   @default(BOMBA)
+  /// A versão canônica da família: é dela a URL que o Google indexa.
+  principalDaFamilia Boolean @default(false)
+
   /// Diâmetro mínimo do poço, em polegadas. É o primeiro critério de escolha:
   /// uma bomba de 8" simplesmente não entra num poço de 6", por mais vazão
   /// que tenha. Não estava em nenhum produto do cadastro antigo.
@@ -69,6 +80,7 @@ model Produto {
   @@index([marca])
   @@index([ativo, destaque])
   @@index([voltagem, vazaoMaxima])
+  @@index([familia, versao])
   @@map("produtos")
   @@schema("vibravert")
 }
@@ -153,6 +165,16 @@ model Estoque {
 }
 
 // ─────────────────────────── vitrine editável ───────────────────────────
+
+/// As quatro montagens em que a mesma bomba é vendida.
+enum Versao {
+  BOMBA      // só a bomba, para quem já tem a instalação e vai substituir
+  BOIA       // + boia de nível: liga e desliga sozinha, não roda seca
+  KIT        // + kit de manutenção: peças de desgaste para quem mora longe
+  BOIA_KIT   // instalação completa
+
+  @@schema("vibravert")
+}
 
 enum BannerPosicao {
   PRINCIPAL
