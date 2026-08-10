@@ -186,3 +186,33 @@ export function carrinhoAbandonado(
     }),
   );
 }
+
+/**
+ * 5. Troca de senha do painel.
+ *
+ * Não é e-mail de loja: vai para quem trabalha aqui. Por isso não leva produto,
+ * não leva botão de comprar e diz explicitamente o que fazer se o pedido não
+ * partiu de você — recuperação de senha é o alvo preferido de quem tenta
+ * entrar, e o aviso é o que transforma a tentativa em denúncia.
+ */
+export function recuperacaoDeSenha(email: string, nome: string, link: string) {
+  return enviar(
+    email,
+    "Trocar a senha do painel Vibra Vert",
+    montar({
+      etiqueta: "Painel administrativo",
+      titulo: `${nome.split(" ")[0]}, vamos trocar a sua senha`,
+      texto: [
+        "Você pediu para trocar a senha de acesso ao painel. O botão abaixo abre a tela onde você escolhe a nova.",
+        "O link vale por <strong>30 minutos</strong> e só funciona uma vez.",
+      ],
+      aviso: {
+        titulo: "Não foi você quem pediu?",
+        corpo: "Então ignore este e-mail: a sua senha continua a mesma. Mas avise quem cuida do sistema, porque alguém sabe o seu endereço e está tentando entrar.",
+        tom: "azul",
+      },
+      botao: { rotulo: "Escolher a nova senha", href: link },
+      assinatura: true,
+    }),
+  );
+}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
+import Link from "next/link";
 
 /**
  * Formulário de acesso ao painel.
@@ -105,30 +106,37 @@ export function FormLoginAdmin({
         <BotaoEntrar />
       </form>
 
-      <button
-        type="button"
-        onClick={() => setAjuda((a) => !a)}
-        aria-expanded={ajuda}
-        className="mt-4 text-[12.5px] font-semibold text-marca underline underline-offset-2"
-      >
-        Esqueci a senha
-      </button>
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+        <Link
+          href="/admin/recuperar"
+          className="text-[12.5px] font-semibold text-marca underline underline-offset-2"
+        >
+          Esqueci a senha
+        </Link>
+        <button
+          type="button"
+          onClick={() => setAjuda((a) => !a)}
+          aria-expanded={ajuda}
+          className="text-[12.5px] font-semibold text-mudo underline underline-offset-2"
+        >
+          Perdi o celular do autenticador
+        </button>
+      </div>
 
       {ajuda && (
         <div className="mt-3 rounded-lg border border-linha bg-superficie-2 p-4 text-[12.8px] leading-relaxed text-tinta-2">
           <p>
-            Cada pessoa tem a sua conta. Peça a quem cuida do sistema para redefinir a sua senha ·
-            é um comando, e sai uma senha nova na hora.
+            Trocar a senha por e-mail não resolve isso: o código do aplicativo continua sendo pedido,
+            de propósito · é ele que protege a conta se alguém tomar a sua caixa de e-mail.
           </p>
           <p className="mt-2.5">
-            Perdeu o celular do autenticador? A mesma pessoa desliga o segundo fator da sua conta, e
-            você cadastra de novo no próximo acesso.
-          </p>
-          <p className="mt-2.5 text-mudo">
-            Recuperação por e-mail entra quando o envio de e-mails estiver ligado.
+            Peça a quem cuida do sistema para <strong className="font-bold">desligar o segundo fator</strong>{" "}
+            da sua conta. No próximo acesso você entra só com a senha e cadastra o autenticador no
+            celular novo.
           </p>
         </div>
       )}
+
     </>
   );
 }

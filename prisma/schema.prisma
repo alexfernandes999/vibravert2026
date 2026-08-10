@@ -505,3 +505,20 @@ model Registro {
   @@index([criadoEm])
   @@schema("vibravert")
 }
+
+/// Pedido de troca de senha.
+///
+/// Guarda o hash do token, nunca o token. Assim um vazamento do banco não
+/// entrega o acesso: quem lê a tabela vê um resumo que não serve para montar
+/// o link de volta.
+model RecuperacaoSenha {
+  id        String    @id @default(cuid())
+  usuarioId String
+  tokenHash String    @unique
+  expiraEm  DateTime
+  usadoEm   DateTime?
+  criadoEm  DateTime  @default(now())
+
+  @@index([usuarioId, criadoEm])
+  @@schema("vibravert")
+}
