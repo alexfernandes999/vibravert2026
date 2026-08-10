@@ -61,9 +61,12 @@ export function Video({
               className="absolute inset-0 bg-gradient-to-t from-marca-escuro via-marca-escuro/25 to-transparent"
             />
 
+            {/* O botão do próprio YouTube: é a forma que todo mundo reconhece
+                sem pensar. Um círculo dourado com um triângulo dentro parecia
+                improviso, e ninguém sabia de onde era o vídeo. */}
             <span className="absolute inset-0 grid place-items-center">
-              <span className="grid h-16 w-16 place-items-center rounded-full bg-ouro shadow-xl transition duration-300 group-hover:scale-110">
-                <svg viewBox="0 0 24 24" className="ml-1 h-7 w-7 fill-marca-escuro">
+              <span className="grid h-[46px] w-[68px] place-items-center rounded-[14px] bg-[#212121]/80 shadow-lg backdrop-blur-[2px] transition duration-300 group-hover:bg-[#FF0000] group-hover:shadow-[0_8px_28px_-6px_rgba(255,0,0,.6)]">
+                <svg viewBox="0 0 24 24" className="ml-0.5 h-6 w-6 fill-white">
                   <path d="M8 5v14l11-7z" />
                 </svg>
               </span>
