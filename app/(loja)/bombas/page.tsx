@@ -6,7 +6,7 @@ import { CartaoProduto } from "@/components/cartao-produto";
 
 export const revalidate = 300;
 
-type Busca = { poco?: string; voltagem?: string; acompanha?: string; ordem?: string };
+type Busca = { poco?: string; voltagem?: string; acompanha?: string; ordem?: string; lider?: string };
 
 /**
  * Cada combinação com demanda de busca vira uma página própria, indexável.
@@ -46,6 +46,7 @@ function titulo(s: Busca) {
   if (s.voltagem) partes.push(s.voltagem);
   if (s.acompanha === "boia") partes.push("com boia de nível");
   if (s.acompanha === "kit") partes.push("com kit de manutenção");
+  if (s.lider) partes.unshift("Mais vendidas:");
   return partes.join(" ");
 }
 
@@ -78,11 +79,19 @@ export default async function Listagem({ searchParams }: { searchParams: Promise
   if (s.voltagem) where.voltagem = s.voltagem;
   if (s.acompanha === "boia") where.acompanhaBoia = true;
   if (s.acompanha === "kit") where.acompanhaKit = true;
+  if (s.lider) where.destaque = true;
 
   const [produtos, porPoco, porVoltagem] = await Promise.all([
     prisma.produto.findMany({
       where,
-      orderBy: s.ordem === "preco" ? { preco: "asc" } : { vazaoMaxima: "desc" },
+      // As mais vendidas primeiro por padrão: é a ordem que mais vende, e a
+      // que o comprador espera de uma vitrine.
+      orderBy:
+        s.ordem === "preco"
+          ? [{ preco: "asc" }]
+          : s.ordem === "vazao"
+            ? [{ vazaoMaxima: "desc" }]
+            : [{ destaque: "desc" }, { vazaoMaxima: "desc" }],
       select: {
         slug: true, nome: true, marca: true, preco: true, vazaoMaxima: true,
         voltagem: true, pocoPolegadas: true, saiaProtecao: true, destaque: true,
@@ -127,6 +136,14 @@ export default async function Listagem({ searchParams }: { searchParams: Promise
             ))}
         </Grupo>
 
+        <Grupo titulo="Destaques">
+          <Opcao
+            href={alternar(s, "lider", "1")}
+            ativo={Boolean(s.lider)}
+            rotulo="Mais vendidas"
+          />
+        </Grupo>
+
         <Grupo titulo="Acompanha">
           <Opcao href={alternar(s, "acompanha", "boia")} ativo={s.acompanha === "boia"} rotulo="Boia de nível" />
           <Opcao href={alternar(s, "acompanha", "kit")} ativo={s.acompanha === "kit"} rotulo="Kit de manutenção" />
@@ -139,6 +156,32 @@ export default async function Listagem({ searchParams }: { searchParams: Promise
           <span className="num text-[11.5px] font-semibold text-mudo">
             {produtos.length} {produtos.length === 1 ? "produto" : "produtos"}
           </span>
+
+          <nav className="ml-auto flex flex-wrap gap-1.5">
+            {[
+              { v: "", r: "Mais vendidas" },
+              { v: "vazao", r: "Maior vazão" },
+              { v: "preco", r: "Menor preço" },
+            ].map((o) => {
+              const q = new URLSearchParams(s as Record<string, string>);
+              if (o.v) q.set("ordem", o.v);
+              else q.delete("ordem");
+              const str = q.toString();
+              return (
+                <Link
+                  key={o.r}
+                  href={str ? `/bombas?${str}` : "/bombas"}
+                  className={`rounded-lg px-3 py-1.5 text-[12px] font-bold ${
+                    (s.ordem ?? "") === o.v
+                      ? "bg-marca text-white"
+                      : "border border-linha bg-superficie text-tinta-2 hover:border-marca hover:text-marca"
+                  }`}
+                >
+                  {o.r}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
         {produtos.length === 0 ? (

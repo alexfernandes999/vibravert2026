@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { CartaoProduto } from "@/components/cartao-produto";
 import { FaixaConfianca } from "@/components/faixa-lider";
 import { EspacoBanner } from "@/components/espaco-banner";
-import { bannerAtivo, bannersAtivos } from "@/lib/banners";
+import { bannerAtivo } from "@/lib/banners";
 import { Medir } from "@/components/medir";
 import { SecaoVideos } from "@/components/secao-videos";
 
@@ -25,9 +25,8 @@ const CAMPOS = {
 
 export default async function Home() {
 
-  const [principal, duplos, meio, maisVendidas, precos, videos, destaque] = await Promise.all([
+  const [principal, meio, maisVendidas, precos, videos, destaque] = await Promise.all([
     bannerAtivo("PRINCIPAL"),
-    bannersAtivos("FAIXA_DUPLA"),
     bannerAtivo("FAIXA_MEIO"),
     // Marcados como líder primeiro; o resto completa a prateleira.
     prisma.produto.findMany({
@@ -194,9 +193,9 @@ export default async function Home() {
       <section className="my-14 [&_.rounded-caixa]:rounded-none">
         <EspacoBanner
           banner={meio}
-          medida="1880 × 640 px"
+          medida="2219 × 709 px"
           rotulo="Faixa promocional"
-          proporcao="1880 / 640"
+          proporcao="2219 / 709"
         />
       </section>
 
@@ -237,22 +236,7 @@ export default async function Home() {
         }}
       />
 
-      {/* As duas faixas ficam abaixo da prateleira e longe da faixa do Nº 1:
-          dois blocos pesados colados se anulavam. */}
-      <section className="mx-auto grid max-w-7xl gap-4 px-5 md:grid-cols-2">
-        <EspacoBanner
-          banner={duplos[0] ?? null}
-          medida="940 × 300 px"
-          rotulo="Faixa dupla · esquerda"
-          proporcao="940 / 300"
-        />
-        <EspacoBanner
-          banner={duplos[1] ?? null}
-          medida="940 × 300 px"
-          rotulo="Faixa dupla · direita"
-          proporcao="940 / 300"
-        />
-      </section>
+
 
       <Prateleira titulo="Preços imbatíveis" produtos={precos} verTudo="/bombas?ordem=preco" />
 
@@ -279,15 +263,54 @@ export default async function Home() {
               aprendeu o ofício na Rymer Bombas, e voltou às nossas mãos em 2003.
             </p>
 
-            <dl className="mt-7 flex flex-wrap gap-x-10 gap-y-5">
+            <dl className="mt-8 grid gap-4 sm:grid-cols-3">
               {[
-                ["1958", "origem da marca Rymer"],
-                ["1974", "primeira fábrica do país"],
-                ["27", "estados atendidos"],
-              ].map(([v, r]) => (
-                <div key={r}>
-                  <dd className="num text-3xl font-extrabold leading-none tracking-tight text-ouro">{v}</dd>
-                  <dt className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-white/50">{r}</dt>
+                {
+                  v: "1958",
+                  r: "origem da marca Rymer",
+                  i: (
+                    <>
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3.2 2" strokeLinecap="round" />
+                    </>
+                  ),
+                },
+                {
+                  v: "1974",
+                  r: "primeira fábrica do país",
+                  i: (
+                    <>
+                      <path d="M3 21V10l6 3.5V10l6 3.5V10l6 3.5V21z" />
+                      <path d="M1 21h22M8 17h2M14 17h2" />
+                    </>
+                  ),
+                },
+                {
+                  v: "27",
+                  r: "estados atendidos",
+                  i: (
+                    <>
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M3 12h18M12 3a15 15 0 010 18a15 15 0 010-18" />
+                    </>
+                  ),
+                },
+              ].map((n) => (
+                <div
+                  key={n.r}
+                  className="rounded-caixa border border-white/10 bg-white/[.04] p-4 transition hover:border-ouro/40 hover:bg-white/[.07]"
+                >
+                  <span className="grid h-9 w-9 place-items-center rounded-lg bg-ouro/15 text-ouro">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
+                      {n.i}
+                    </svg>
+                  </span>
+                  <dd className="num mt-3 text-2xl font-extrabold leading-none tracking-tight text-ouro">
+                    {n.v}
+                  </dd>
+                  <dt className="mt-1.5 text-[10.5px] font-bold uppercase leading-snug tracking-[0.1em] text-white/50">
+                    {n.r}
+                  </dt>
                 </div>
               ))}
             </dl>
