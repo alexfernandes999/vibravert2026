@@ -1,90 +1,47 @@
 import type { Pedido, PedidoItem, Endereco, Cliente } from "@prisma/client";
+import { montar, brl, type Peca } from "@/lib/email-molde";
 
 /**
- * E-mails do pedido.
+ * E-mails da loja.
  *
  * Como o pagamento e o frete, esta camada declara quando não está configurada
- * em vez de estourar. Sem chave, o envio é registrado no log do servidor e a
- * compra segue — um erro de e-mail nunca pode derrubar um pedido que já foi
- * pago.
+ * em vez de estourar. Sem chave, o envio vai para o log e a compra segue: um
+ * erro de e-mail nunca pode derrubar um pedido já pago.
  *
  * O remetente precisa de SPF e DKIM no domínio. Atenção: o e-mail da Vibra
- * Vert está na Locaweb, então os registros novos entram ao lado dos que já
- * existem — trocar o SPF em vez de acrescentar derruba o e-mail da empresa.
+ * Vert está na Locaweb, então os registros novos entram AO LADO dos que já
+ * existem. Trocar o SPF em vez de acrescentar derruba o e-mail da empresa.
  */
 export const configurado = Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_REMETENTE);
 
 type PedidoCompleto = Pedido & { itens: PedidoItem[]; endereco: Endereco; cliente: Cliente };
 
-const brl = (v: unknown) =>
-  Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const base = () => process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br";
 
-const base = process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br";
+const pecas = (p: PedidoCompleto): Peca[] =>
+  p.itens.map((i) => ({
+    nome: i.nomeProduto,
+    sku: i.skuProduto,
+    qtd: i.quantidade,
+    total: Number(i.precoUnitario) * i.quantidade,
+  }));
 
-/** HTML de e-mail: tabela e estilo em linha, que é o que os clientes renderizam. */
-function molde(titulo: string, corpo: string, p: PedidoCompleto) {
-  const itens = p.itens
-    .map(
-      (i) => `<tr>
-        <td style="padding:9px 0;border-bottom:1px solid #e5e9f0;font:14px system-ui;color:#333b4d">
-          ${i.quantidade}× ${i.nomeProduto}<br>
-          <span style="color:#7c848f;font-size:12px">SKU ${i.skuProduto}</span>
-        </td>
-        <td align="right" style="padding:9px 0;border-bottom:1px solid #e5e9f0;font:600 14px system-ui;color:#12172a;white-space:nowrap">
-          ${brl(Number(i.precoUnitario) * i.quantidade)}
-        </td>
-      </tr>`,
-    )
-    .join("");
+const resumo = (p: PedidoCompleto) => [
+  { rotulo: "Subtotal", valor: brl(p.subtotal) },
+  { rotulo: "Frete", valor: Number(p.frete) === 0 ? "Grátis" : brl(p.frete) },
+  ...(Number(p.desconto) > 0 ? [{ rotulo: "Desconto", valor: `− ${brl(p.desconto)}` }] : []),
+  { rotulo: "Total", valor: brl(p.total), forte: true },
+];
 
-  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#f2f5fa;padding:28px 12px">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
-    <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:12px;overflow:hidden">
-      <tr><td style="background:#0a1b4d;padding:20px 26px">
-        <div style="font:800 19px system-ui;letter-spacing:-.4px;color:#fff">VIBRA VERT</div>
-        <div style="font:12px system-ui;color:rgba(255,255,255,.6);margin-top:2px">Bombas Submersas Vibratórias</div>
-      </td></tr>
-
-      <tr><td style="padding:26px">
-        <h1 style="margin:0 0 8px;font:800 21px system-ui;letter-spacing:-.4px;color:#12172a">${titulo}</h1>
-        <p style="margin:0 0 20px;font:15px/1.55 system-ui;color:#333b4d">${corpo}</p>
-
-        <div style="background:#eef2f9;border-radius:10px;padding:14px 16px;margin-bottom:20px">
-          <div style="font:700 11px system-ui;letter-spacing:1.2px;text-transform:uppercase;color:#14307a">Pedido nº ${p.numero}</div>
-        </div>
-
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${itens}
-          <tr><td style="padding:14px 0 0;font:15px system-ui;color:#333b4d">Frete</td>
-              <td align="right" style="padding:14px 0 0;font:600 15px system-ui;color:#12172a">${Number(p.frete) === 0 ? "Grátis" : brl(p.frete)}</td></tr>
-          <tr><td style="padding:6px 0 0;font:800 17px system-ui;color:#12172a">Total</td>
-              <td align="right" style="padding:6px 0 0;font:800 17px system-ui;color:#12172a">${brl(p.total)}</td></tr>
-        </table>
-
-        <div style="margin-top:22px;padding-top:18px;border-top:1px solid #e5e9f0">
-          <div style="font:700 11px system-ui;letter-spacing:1.2px;text-transform:uppercase;color:#14307a">Entrega</div>
-          <p style="margin:6px 0 0;font:14px/1.6 system-ui;color:#333b4d">
-            ${p.cliente.nome}<br>
-            ${p.endereco.logradouro}, ${p.endereco.numero}${p.endereco.complemento ? ` · ${p.endereco.complemento}` : ""}<br>
-            ${p.endereco.bairro} · ${p.endereco.cidade}/${p.endereco.uf} · CEP ${p.endereco.cep}
-          </p>
-        </div>
-
-        <a href="${base}/pedido/${p.numero}" style="display:inline-block;margin-top:22px;background:#F5B921;color:#6b4c00;font:800 14px system-ui;text-decoration:none;padding:12px 22px;border-radius:8px">
-          Acompanhar pedido
-        </a>
-      </td></tr>
-
-      <tr><td style="padding:18px 26px;background:#eef2f9;font:12px/1.6 system-ui;color:#7c848f">
-        Dúvidas? Ligue 11 4000-2440 — falamos de bomba, não é SAC.<br>
-        Vibra Vert Bombas Submersas Vibratórias · Rua Charles Darwin, 707 · São Paulo/SP
-      </td></tr>
-    </table>
-  </td></tr></table></body></html>`;
-}
+const entrega = (p: PedidoCompleto) => [
+  p.cliente.nome,
+  `${p.endereco.logradouro}, ${p.endereco.numero}${p.endereco.complemento ? ` · ${p.endereco.complemento}` : ""}`,
+  `${p.endereco.bairro} · ${p.endereco.cidade}/${p.endereco.uf} · CEP ${p.endereco.cep}`,
+];
 
 async function enviar(para: string, assunto: string, html: string) {
   if (!configurado) {
-    console.info(`[email] não enviado (sem RESEND_API_KEY) → ${para}: ${assunto}`);
+    console.info(`[email] não enviado, sem RESEND_API_KEY → ${para}: ${assunto}`);
     return { ok: false, motivo: "sem-credencial" as const };
   }
   try {
@@ -96,52 +53,136 @@ async function enviar(para: string, assunto: string, html: string) {
       },
       body: JSON.stringify({ from: process.env.EMAIL_REMETENTE, to: para, subject: assunto, html }),
     });
-    if (!r.ok) throw new Error(String(r.status));
+    if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
     return { ok: true as const };
   } catch (e) {
-    // Falha de e-mail nunca derruba um pedido já pago.
     console.error("[email] falhou:", e);
     return { ok: false, motivo: "falha" as const };
   }
 }
 
+/** 1. Pedido recebido, antes do pagamento cair. */
 export function pedidoRecebido(p: PedidoCompleto) {
   const comoPagar =
     p.metodo === "PIX"
-      ? "Assim que o PIX for confirmado — costuma ser em segundos — o pedido entra em separação."
+      ? {
+          titulo: "Pague com PIX para liberar na hora",
+          corpo: "Assim que o PIX for confirmado, o que costuma levar segundos, o pedido entra em separação.",
+          tom: "ouro" as const,
+        }
       : p.metodo === "BOLETO"
-        ? "O pedido entra em separação assim que o boleto for compensado, o que leva até dois dias úteis."
-        : "Estamos confirmando o pagamento com a operadora. Avisamos assim que for aprovado.";
+        ? {
+            titulo: "Aguardando o boleto",
+            corpo: "O pedido entra em separação assim que o boleto for compensado, o que leva até dois dias úteis.",
+            tom: "ouro" as const,
+          }
+        : {
+            titulo: "Confirmando com a operadora",
+            corpo: "Estamos aguardando a aprovação do cartão. Avisamos assim que sair.",
+            tom: "ouro" as const,
+          };
 
   return enviar(
     p.cliente.email,
     `Recebemos o seu pedido nº ${p.numero}`,
-    molde("Pedido recebido", comoPagar, p),
+    montar({
+      etiqueta: `Pedido ${p.numero}`,
+      titulo: `Obrigada, ${p.cliente.nome.split(" ")[0]}!`,
+      texto: ["Seu pedido chegou aqui na fábrica e já está registrado."],
+      aviso: comoPagar,
+      itens: pecas(p),
+      resumo: resumo(p),
+      botao: { rotulo: "Acompanhar meu pedido", href: `${base()}/pedido/${p.numero}` },
+      entrega: entrega(p),
+      assinatura: true,
+    }),
   );
 }
 
+/** 2. Pagamento confirmado. */
 export function pagamentoConfirmado(p: PedidoCompleto) {
   return enviar(
     p.cliente.email,
-    `Pagamento confirmado — pedido nº ${p.numero}`,
-    molde(
-      "Pagamento confirmado",
-      "Seu pedido entrou em separação e sai da nossa fábrica em até 24 horas úteis. Avisamos com o código de rastreio quando despachar.",
-      p,
-    ),
+    `Pagamento confirmado, pedido nº ${p.numero}`,
+    montar({
+      etiqueta: "Pagamento aprovado",
+      titulo: "Pagamento confirmado",
+      texto: [
+        `Tudo certo, ${p.cliente.nome.split(" ")[0]}. Seu pedido entrou em separação.`,
+        "Sai da nossa fábrica em até 24 horas úteis, e avisamos com o código de rastreio assim que despachar.",
+      ],
+      aviso: {
+        titulo: "Guarde a caixa fechada até conferir",
+        corpo: "A nota fiscal e o certificado de garantia vêm dentro. São eles que valem na hora de acionar a garantia.",
+        tom: "bom",
+      },
+      itens: pecas(p),
+      resumo: resumo(p),
+      botao: { rotulo: "Ver o pedido", href: `${base()}/pedido/${p.numero}` },
+      entrega: entrega(p),
+      assinatura: true,
+    }),
   );
 }
 
+/** 3. Despachado. */
 export function pedidoEnviado(p: PedidoCompleto) {
   return enviar(
     p.cliente.email,
-    `Seu pedido nº ${p.numero} foi enviado`,
-    molde(
-      "Pedido a caminho",
-      p.rastreio
-        ? `O código de rastreio é <strong>${p.rastreio}</strong>. Guarde a nota fiscal e o certificado que vêm na caixa: são eles que valem na garantia.`
-        : "Guarde a nota fiscal e o certificado que vêm na caixa: são eles que valem na garantia.",
-      p,
-    ),
+    `Seu pedido nº ${p.numero} saiu para entrega`,
+    montar({
+      etiqueta: "A caminho",
+      titulo: "Sua bomba saiu da fábrica",
+      texto: [
+        p.rastreio
+          ? `O código de rastreio é <strong>${p.rastreio}</strong>.`
+          : "O pedido foi despachado e está a caminho do seu endereço.",
+      ],
+      aviso: {
+        titulo: "Antes de instalar",
+        corpo: "Confira a bitola do cabo para a distância do poço. Cabo fino demais derruba a tensão e a bomba não parte, e isso não é defeito.",
+        tom: "ouro",
+      },
+      itens: pecas(p),
+      botao: { rotulo: "Acompanhar a entrega", href: `${base()}/pedido/${p.numero}` },
+      entrega: entrega(p),
+      assinatura: true,
+    }),
+  );
+}
+
+/**
+ * 4. Carrinho abandonado.
+ *
+ * Um só, e sem desconto. Mandar cupom para quem abandonou ensina o cliente a
+ * abandonar o carrinho para ganhar desconto, e o segundo lembrete é o que
+ * transforma a loja em remetente de spam.
+ */
+export function carrinhoAbandonado(
+  email: string,
+  nome: string | null,
+  itens: Peca[],
+  total: number,
+) {
+  return enviar(
+    email,
+    "Você deixou uma bomba no carrinho",
+    montar({
+      etiqueta: "Seu carrinho",
+      titulo: nome ? `${nome.split(" ")[0]}, ficou algo para trás` : "Ficou algo para trás",
+      texto: [
+        "Guardamos o seu carrinho. Se ainda faz sentido, é só continuar de onde parou.",
+        "Se ficou alguma dúvida sobre qual modelo serve no seu poço, me chama: eu respondo.",
+      ],
+      aviso: {
+        titulo: "Ainda em dúvida sobre o modelo?",
+        corpo: "A calculadora mostra quanto cada bomba entrega na altura da sua instalação, e não só a vazão máxima do catálogo.",
+        tom: "ouro",
+      },
+      itens,
+      resumo: [{ rotulo: "Total", valor: brl(total), forte: true }],
+      botao: { rotulo: "Voltar ao meu carrinho", href: `${base()}/carrinho` },
+      assinatura: true,
+    }),
   );
 }

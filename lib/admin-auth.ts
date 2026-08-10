@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { conferir, ativo as doisFatoresAtivo } from "@/lib/dois-fatores";
 
 /**
  * Porta do painel.
@@ -42,10 +43,17 @@ export async function autenticado() {
   return comparar(assinatura, assinar(`${emitidoEm}.${duracao}`));
 }
 
-export async function entrar(senha: string, manter = false) {
+export async function entrar(senha: string, manter = false, codigo = "") {
   const esperada = process.env.ADMIN_SENHA;
   if (!esperada) return { ok: false, erro: "ADMIN_SENHA não está definida no .env" };
   if (!comparar(senha, esperada)) return { ok: false, erro: "Senha incorreta" };
+
+  // O segundo fator só é exigido quando há segredo configurado. Assim ligar e
+  // desligar é trocar uma variável, sem alterar código nem trancar ninguém
+  // para fora por engano.
+  if (doisFatoresAtivo && !conferir(codigo)) {
+    return { ok: false, erro: codigo ? "Código inválido ou expirado" : "Informe o código do aplicativo" };
+  }
 
   const emitidoEm = String(Date.now());
   const duracao = String(manter ? UM_MES : OITO_HORAS);

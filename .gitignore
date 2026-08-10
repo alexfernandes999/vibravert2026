@@ -16,3 +16,5 @@ public/produtos/
 .vercel
 .env*
 ACESSO-PAINEL.txt
+public/.2fa-qr.png
+previa-emails/

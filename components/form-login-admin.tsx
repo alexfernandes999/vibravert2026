@@ -18,9 +18,11 @@ import { useFormStatus } from "react-dom";
 export function FormLoginAdmin({
   acao,
   erro,
+  doisFatores = false,
 }: {
   acao: (dados: FormData) => void;
   erro?: string;
+  doisFatores?: boolean;
 }) {
   const [visivel, setVisivel] = useState(false);
   const [ajuda, setAjuda] = useState(false);
@@ -65,6 +67,23 @@ export function FormLoginAdmin({
           <p role="alert" className="mt-2 text-[12.5px] font-semibold text-critico">
             {erro}
           </p>
+        )}
+
+        {doisFatores && (
+          <label className="mt-3.5 block">
+            <span className="mb-1.5 block text-[12.5px] font-bold">
+              Código do aplicativo
+              <span className="ml-1.5 font-medium text-mudo">(6 dígitos)</span>
+            </span>
+            <input
+              name="codigo"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              placeholder="000000"
+              className="num w-full rounded-lg border border-linha-2 bg-superficie px-3 py-2.5 text-center text-[20px] font-extrabold tracking-[0.35em]"
+            />
+          </label>
         )}
 
         <label className="mt-3.5 flex cursor-pointer items-center gap-2.5 text-[12.8px] font-semibold text-tinta-2">
