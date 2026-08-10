@@ -414,6 +414,12 @@ model Pedido {
   utmMedium   String?
   utmCampaign String?
 
+  /// Qual serviço o cliente escolheu e pagou. Sem isto a expedição não sabe
+  /// se posta em PAC ou SEDEX, e postar no errado é cobrar um e entregar
+  /// outro — prejuízo se for para cima, reclamação se for para baixo.
+  freteServico String?
+  fretePrazo   Int?
+
   rastreio     String?
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt

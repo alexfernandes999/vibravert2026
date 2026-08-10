@@ -6,6 +6,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { obterCarrinho } from "@/lib/carrinho";
 import { buscarCep, soDigitos } from "@/lib/cep";
+import { calcular, type Opcao } from "@/lib/correios";
 import { cobrar, configurado } from "@/lib/mercadopago";
 import { pedidoRecebido } from "@/lib/email";
 import { registrar, origemDaSessao } from "@/lib/analitica";
@@ -13,6 +14,18 @@ import { DESCONTO_PIX } from "@/lib/loja";
 
 export async function consultarCep(cep: string) {
   return buscarCep(cep);
+}
+
+/**
+ * Cotação de frete para o CEP digitado.
+ *
+ * Os volumes vêm do carrinho, e não do navegador: peso e medida decidem o
+ * preço, e quem os manda do lado do cliente escolhe o próprio frete.
+ */
+export async function cotarFrete(cep: string): Promise<Opcao[]> {
+  const c = await obterCarrinho();
+  if (!c.itens.length) return [];
+  return calcular(cep, c.itens.map((i) => i.volume), c.subtotal);
 }
 
 const Formulario = z.object({
@@ -30,6 +43,7 @@ const Formulario = z.object({
   metodo: z.enum(["PIX", "CARTAO_CREDITO", "BOLETO"]),
   parcelas: z.coerce.number().int().min(1).max(6).default(1),
   tokenCartao: z.string().optional(),
+  servicoFrete: z.string().optional(),
 });
 
 export type EstadoCheckout = { erro?: string; campos?: Record<string, string> };
@@ -56,9 +70,18 @@ export async function finalizar(_estado: EstadoCheckout, dados: FormData): Promi
   if (!carrinho.itens.length) return { erro: "Seu carrinho está vazio." };
 
   const d = v.data;
+
+  // O frete é recalculado aqui, no servidor. O valor que o navegador mostrou
+  // serve para o cliente decidir, nunca para cobrar: quem posta o formulário
+  // à mão escolheria o próprio frete, e zero é um número como outro qualquer.
+  const opcoes = await cotarFrete(d.cep);
+  const escolhida = opcoes.find((o) => o.servico === d.servicoFrete) ?? opcoes[0];
+  const frete = escolhida?.valor ?? carrinho.frete;
+  const aPagar = carrinho.subtotal + frete;
+
   // O desconto do PIX só existe no PIX. Cobrar o valor com desconto no cartão
   // seria vender abaixo do combinado sem ninguém perceber.
-  const total = d.metodo === "PIX" ? carrinho.total * (1 - DESCONTO_PIX) : carrinho.total;
+  const total = d.metodo === "PIX" ? aPagar * (1 - DESCONTO_PIX) : aPagar;
 
   const cliente = await prisma.cliente.upsert({
     where: { email: d.email },
@@ -90,8 +113,10 @@ export async function finalizar(_estado: EstadoCheckout, dados: FormData): Promi
       metodo: d.metodo,
       parcelas: d.metodo === "CARTAO_CREDITO" ? d.parcelas : 1,
       subtotal: carrinho.subtotal,
-      frete: carrinho.frete,
-      desconto: carrinho.total - total,
+      frete,
+      freteServico: escolhida && !escolhida.estimado ? escolhida.nome : null,
+      fretePrazo: escolhida?.prazoDias ?? null,
+      desconto: aPagar - total,
       total,
       itens: {
         create: carrinho.itens.map((i) => ({
