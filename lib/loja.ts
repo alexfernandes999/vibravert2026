@@ -26,4 +26,4 @@ export const PARCELAS_SEM_JUROS = 6;
  * Se um dia houver contagem real vinda do ERP, basta ligar aqui: o carrinho e
  * o checkout já respeitam esta chave.
  */
-export const CONTROLA_ESTOQUE = false;
+export const CONTROLA_ESTOQUE = true;

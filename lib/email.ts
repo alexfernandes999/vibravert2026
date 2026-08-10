@@ -68,18 +68,18 @@ export function pedidoRecebido(p: PedidoCompleto) {
       ? {
           titulo: "Pague com PIX para liberar na hora",
           corpo: "Assim que o PIX for confirmado, o que costuma levar segundos, o pedido entra em separação.",
-          tom: "ouro" as const,
+          tom: "azul" as const,
         }
       : p.metodo === "BOLETO"
         ? {
             titulo: "Aguardando o boleto",
             corpo: "O pedido entra em separação assim que o boleto for compensado, o que leva até dois dias úteis.",
-            tom: "ouro" as const,
+            tom: "azul" as const,
           }
         : {
             titulo: "Confirmando com a operadora",
             corpo: "Estamos aguardando a aprovação do cartão. Avisamos assim que sair.",
-            tom: "ouro" as const,
+            tom: "azul" as const,
           };
 
   return enviar(
@@ -141,7 +141,7 @@ export function pedidoEnviado(p: PedidoCompleto) {
       aviso: {
         titulo: "Antes de instalar",
         corpo: "Confira a bitola do cabo para a distância do poço. Cabo fino demais derruba a tensão e a bomba não parte, e isso não é defeito.",
-        tom: "ouro",
+        tom: "azul",
       },
       itens: pecas(p),
       botao: { rotulo: "Acompanhar a entrega", href: `${base()}/pedido/${p.numero}` },
@@ -177,7 +177,7 @@ export function carrinhoAbandonado(
       aviso: {
         titulo: "Ainda em dúvida sobre o modelo?",
         corpo: "A calculadora mostra quanto cada bomba entrega na altura da sua instalação, e não só a vazão máxima do catálogo.",
-        tom: "ouro",
+        tom: "azul",
       },
       itens,
       resumo: [{ rotulo: "Total", valor: brl(total), forte: true }],
