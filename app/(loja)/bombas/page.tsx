@@ -16,6 +16,30 @@ type Busca = { poco?: string; voltagem?: string; acompanha?: string; ordem?: str
  */
 const INDEXAVEIS = new Set(["poco", "voltagem"]);
 
+/**
+ * Descrição própria por combinação de filtro.
+ *
+ * Repetir a mesma meta em toda página de filtro faz o Google tratá-las como
+ * duplicadas e escolher uma só. Como só indexamos poço e voltagem, são poucas
+ * variações e cada uma pode ter texto próprio.
+ */
+function descricao(s: Busca) {
+  if (s.poco) {
+    return `Bombas sapo para poço de ${s.poco} polegadas, direto da fábrica Vibra Vert. Veja vazão, altura manométrica e preço de cada modelo, com garantia de fábrica e envio para todo o Brasil.`;
+  }
+  if (s.voltagem) {
+    return `Bombas submersas vibratórias em ${s.voltagem}, das linhas Vibra Vert e Rymer. Compre direto de quem fabrica, com assistência técnica própria.`;
+  }
+  return "Bomba sapo Vibra Vert e Rymer, direto da fábrica. Filtre por diâmetro do poço, vazão e voltagem, e veja quanto cada bomba entrega na sua instalação.";
+}
+
+/** A canônica ignora filtro não indexável, para não multiplicar a mesma página. */
+function canonica(s: Busca) {
+  if (s.poco) return `/bombas?poco=${s.poco}`;
+  if (s.voltagem) return `/bombas?voltagem=${encodeURIComponent(s.voltagem)}`;
+  return "/bombas";
+}
+
 function titulo(s: Busca) {
   const partes = ["Bombas submersas vibratórias"];
   if (s.poco) partes.push(`para poço de ${s.poco} polegadas`);
@@ -36,9 +60,8 @@ export async function generateMetadata({
 
   return {
     title: titulo(s),
-    description:
-      "Bombas submersas vibratórias Vibra Vert e Rymer, direto da fábrica. " +
-      "Filtre por diâmetro do poço, vazão e voltagem.",
+    description: descricao(s),
+    alternates: { canonical: canonica(s) },
     robots: indexavel ? { index: true, follow: true } : { index: false, follow: true },
   };
 }
@@ -62,7 +85,7 @@ export default async function Listagem({ searchParams }: { searchParams: Promise
       orderBy: s.ordem === "preco" ? { preco: "asc" } : { vazaoMaxima: "desc" },
       select: {
         slug: true, nome: true, marca: true, preco: true, vazaoMaxima: true,
-        voltagem: true, pocoPolegadas: true, saiaProtecao: true,
+        voltagem: true, pocoPolegadas: true, saiaProtecao: true, destaque: true,
         imagens: { where: { principal: true }, select: { url: true, alt: true }, take: 1 },
       },
     }),
@@ -132,6 +155,29 @@ export default async function Listagem({ searchParams }: { searchParams: Promise
             ))}
           </div>
         )}
+
+        {/* Texto de categoria: dá ao Google conteúdo próprio para indexar e ao
+            visitante o critério de escolha, em vez de uma grade sem contexto. */}
+        <section className="mt-10 max-w-3xl border-t border-linha pt-7 text-[14px] leading-relaxed text-tinta-2">
+          <h2 className="text-lg font-extrabold tracking-tight text-tinta">
+            Como escolher a bomba sapo certa
+          </h2>
+          <p className="mt-2.5">
+            A primeira medida é o diâmetro do poço, porque bomba que não cabe não desce. A linha
+            Rymer entra em poço de 6 polegadas, e a Vibra Vert 900 e a Vibrinha pedem 8 polegadas
+            ou mais.
+          </p>
+          <p className="mt-2.5">
+            Depois vem a altura. Toda bomba vibratória perde vazão conforme sobe: uma que entrega
+            2.500 litros por hora na saída pode entregar 750 a 65 metros. Por isso publicamos a
+            curva completa de cada modelo, e não só o número máximo.
+          </p>
+          <p className="mt-2.5">
+            Por último, a tensão da rede, 110/127V ou 220V. Ela não é escolha, é o que existe na
+            sua instalação. Se ficar em dúvida em qualquer um dos três pontos, a calculadora
+            resolve em quatro perguntas.
+          </p>
+        </section>
       </div>
     </div>
   );

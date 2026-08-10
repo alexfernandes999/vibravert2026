@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { ROTEIRO, INICIO, type Opcao } from "@/lib/roteiro-vibrinha";
 
 /**
  * Vibrinha, a atendente da loja.
@@ -19,86 +20,9 @@ import Image from "next/image";
  * casa, e não um robô genérico com nome de startup.
  */
 
-type Resposta = { texto: string[]; acao?: { rotulo: string; href: string } };
+type Msg = { de: "ela" | "eu"; texto: string; acao?: { rotulo: string; href: string } };
 
-const PERGUNTAS: { p: string; r: Resposta }[] = [
-  {
-    p: "Qual bomba serve no meu poço?",
-    r: {
-      texto: [
-        "A primeira coisa é o diâmetro do poço: bomba que não cabe não desce, por mais vazão que tenha.",
-        "Poço de 6 polegadas pede a linha Rymer. De 8 polegadas ou mais, a Vibra Vert 900 ou a Vibrinha.",
-        "Se você souber a altura até a caixa d'água e o comprimento da tubulação, a calculadora mostra quanto cada bomba entrega na sua instalação, não só a vazão máxima do catálogo.",
-      ],
-      acao: { rotulo: "Abrir a calculadora", href: "/qual-bomba" },
-    },
-  },
-  {
-    p: "Minha bomba não puxa água",
-    r: {
-      texto: [
-        "Na maioria das vezes não queimou. As causas mais comuns são o diafragma gasto ou entupimento na entrada.",
-        "Se ela liga e vibra mas nada sobe, costuma ser peça de desgaste. Se só faz barulho, também.",
-        "Quem conserta somos nós, na própria fábrica, sem posto terceirizado.",
-      ],
-      acao: { rotulo: "Ver a assistência técnica", href: "/assistencia" },
-    },
-  },
-  {
-    p: "Qual é a garantia?",
-    r: {
-      texto: [
-        "É garantia de fábrica contra defeito de fabricação, e o prazo aparece na ficha técnica de cada modelo.",
-        "O que ela não cobre é mau uso, principalmente deixar a bomba trabalhar sem água. É o que mais queima motor, e é justamente o que a boia de nível evita.",
-        "Guarde a nota fiscal e o certificado que vem na caixa: são eles que valem na hora de acionar.",
-      ],
-      acao: { rotulo: "Ver as bombas com boia", href: "/bombas?acompanha=boia" },
-    },
-  },
-  {
-    p: "Quanto custa o frete?",
-    r: {
-      texto: [
-        "O frete é calculado pelo seu CEP e aparece no carrinho antes de finalizar a compra.",
-        "Entregamos nos 27 estados. Acima de R$ 399 o frete sai de graça.",
-      ],
-      acao: { rotulo: "Ver a linha completa", href: "/bombas" },
-    },
-  },
-  {
-    p: "Como posso pagar?",
-    r: {
-      texto: [
-        "PIX com 5% de desconto e aprovação na hora, cartão de crédito parcelado sem juros, ou boleto.",
-        "O PIX é o mais rápido: assim que o pagamento cai, o pedido entra em separação.",
-      ],
-    },
-  },
-  {
-    p: "Qual a diferença entre a Rymer 2000 e a 2500?",
-    r: {
-      texto: [
-        "A hidráulica das duas é igual: mesma vazão, mesma potência, mesma altura.",
-        "A diferença é física. A 2500 tem saia de proteção lateral, uma peça de borracha que envolve o corpo e permite trabalhar dentro de um poço de 6 polegadas sem bater nas paredes.",
-        "Se o seu poço é justo, vale a 2500. Se é folgado, a 2000 resolve.",
-      ],
-      acao: { rotulo: "Comparar as duas", href: "/bombas?poco=6" },
-    },
-  },
-  {
-    p: "Vocês entregam na minha cidade?",
-    r: {
-      texto: [
-        "Entregamos nos 27 estados do Brasil.",
-        "O prazo depende da região e aparece no carrinho assim que você informa o CEP.",
-      ],
-    },
-  },
-];
-
-type Msg = { de: "ela" | "eu"; texto: string; acao?: Resposta["acao"] };
-
-const OI = "Oi! Eu sou a Vibrinha, da Vibra Vert. Como posso te chamar?";
+const OI = "Oi! Eu sou a Vibrinha, da Vibra Vert. Antes de mais nada, como posso te chamar?";
 
 export function Vibrinha() {
   const [aberto, setAberto] = useState(false);
@@ -106,6 +30,11 @@ export function Vibrinha() {
   const [rascunho, setRascunho] = useState("");
   const [msgs, setMsgs] = useState<Msg[]>([{ de: "ela", texto: OI }]);
   const [digitando, setDigitando] = useState(false);
+  const [opcoes, setOpcoes] = useState<Opcao[]>([]);
+  const [encaminhar, setEncaminhar] = useState(false);
+  // O que já foi apurado vai junto para o WhatsApp: o vendedor não recomeça
+  // do zero, e ninguém repete a mesma história duas vezes.
+  const [apurado, setApurado] = useState<string[]>([]);
   const fim = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -113,12 +42,34 @@ export function Vibrinha() {
   }, [msgs, digitando, aberto]);
 
   /** Pequeno atraso antes de responder: resposta instantânea denuncia robô. */
-  function responder(itens: Msg[]) {
+  function responder(itens: Msg[], seguintes?: Opcao[], encaminha = false) {
     setDigitando(true);
+    setOpcoes([]);
     setTimeout(() => {
       setDigitando(false);
       setMsgs((m) => [...m, ...itens]);
-    }, 650);
+      setOpcoes(seguintes ?? []);
+      setEncaminhar(encaminha);
+    }, 700);
+  }
+
+  /** Caminha um passo no roteiro. */
+  function ir(chave: string, rotulo?: string) {
+    const no = ROTEIRO[chave];
+    if (!no) return;
+    if (rotulo) {
+      setMsgs((m) => [...m, { de: "eu", texto: rotulo }]);
+      setApurado((a) => [...a, rotulo]);
+    }
+    responder(
+      no.fala.map((texto, i) => ({
+        de: "ela" as const,
+        texto,
+        acao: i === no.fala.length - 1 ? no.acao : undefined,
+      })),
+      no.opcoes,
+      Boolean(no.encaminha),
+    );
   }
 
   function enviarNome(valor: string) {
@@ -127,23 +78,31 @@ export function Vibrinha() {
     setNome(n);
     setRascunho("");
     setMsgs((m) => [...m, { de: "eu", texto: n }]);
-    responder([
-      {
-        de: "ela",
-        texto: `Prazer, ${n.split(" ")[0]}! Sou eu que atendo aqui. Me diz o que você precisa e eu resolvo, ou te passo para um vendedor no WhatsApp.`,
-      },
-    ]);
+    setDigitando(true);
+    setTimeout(() => {
+      setDigitando(false);
+      setMsgs((m) => [
+        ...m,
+        {
+          de: "ela",
+          texto: `Prazer, ${n.split(" ")[0]}! Trabalho aqui na Vibra Vert há um tempo. Antes de te dar qualquer palpite eu prefiro entender o caso direito, então vou fazer algumas perguntas.`,
+        },
+        ...ROTEIRO[INICIO].fala.map((texto) => ({ de: "ela" as const, texto })),
+      ]);
+      setOpcoes(ROTEIRO[INICIO].opcoes ?? []);
+    }, 700);
   }
 
-  function perguntar(p: string, r: Resposta) {
-    setMsgs((m) => [...m, { de: "eu", texto: p }]);
-    responder(r.texto.map((t, i) => ({ de: "ela" as const, texto: t, acao: i === r.texto.length - 1 ? r.acao : undefined })));
-  }
+
 
   const contexto = encodeURIComponent(
-    nome
-      ? `Olá! Meu nome é ${nome}. Vim pelo site e preciso falar com um vendedor.`
-      : "Olá! Vim pelo site e preciso falar com um vendedor.",
+    [
+      nome ? `Olá! Meu nome é ${nome}.` : "Olá!",
+      "Vim pelo site e conversei com a Vibrinha.",
+      apurado.length ? `Já informei: ${apurado.join(" · ")}.` : "",
+    ]
+      .filter(Boolean)
+      .join(" "),
   );
   const numero = (process.env.NEXT_PUBLIC_WHATSAPP || "1140002440").replace(/\D/g, "");
 
@@ -230,31 +189,33 @@ export function Vibrinha() {
               </form>
             ) : (
               <>
-                <p className="mb-2 text-[10.5px] font-bold uppercase tracking-[0.1em] text-mudo">
-                  Perguntas frequentes
-                </p>
-                <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">
-                  {PERGUNTAS.map((q) => (
-                    <button
-                      key={q.p}
-                      onClick={() => perguntar(q.p, q.r)}
-                      className="rounded-full border border-linha-2 px-2.5 py-1.5 text-left text-[11.5px] font-semibold text-tinta-2 hover:border-marca hover:text-marca"
-                    >
-                      {q.p}
-                    </button>
-                  ))}
-                </div>
-                <a
-                  href={`https://wa.me/55${numero}?text=${contexto}`}
-                  target="_blank"
-                  rel="noopener"
-                  className="mt-2.5 flex items-center justify-center gap-2 rounded-lg bg-[#25D366] py-2.5 text-[13px] font-extrabold text-white"
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-                    <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.87 9.87 0 004.79 1.22C17.5 21.84 21.96 17.38 21.96 11.9 21.96 6.45 17.5 2 12.04 2z" />
-                  </svg>
-                  Falar com um vendedor no WhatsApp
-                </a>
+                {opcoes.length > 0 && (
+                  <div className="flex flex-col gap-1.5">
+                    {opcoes.map((o) => (
+                      <button
+                        key={o.proximo + o.rotulo}
+                        onClick={() => ir(o.proximo, o.rotulo)}
+                        className="rounded-lg border border-linha-2 px-3 py-2 text-left text-[12.5px] font-semibold text-tinta-2 transition hover:border-marca hover:bg-marca-suave hover:text-marca"
+                      >
+                        {o.rotulo}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {encaminhar && (
+                  <a
+                    href={`https://wa.me/55${numero}?text=${contexto}`}
+                    target="_blank"
+                    rel="noopener"
+                    className="mt-2.5 flex items-center justify-center gap-2 rounded-lg bg-[#25D366] py-2.5 text-[13px] font-extrabold text-white"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                      <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.87 9.87 0 004.79 1.22C17.5 21.84 21.96 17.38 21.96 11.9 21.96 6.45 17.5 2 12.04 2z" />
+                    </svg>
+                    Falar com um técnico no WhatsApp
+                  </a>
+                )}
               </>
             )}
           </div>

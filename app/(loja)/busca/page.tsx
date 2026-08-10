@@ -50,7 +50,7 @@ export default async function Busca({ searchParams }: { searchParams: Promise<{ 
         take: 24,
         select: {
           slug: true, nome: true, marca: true, preco: true, vazaoMaxima: true,
-          voltagem: true, pocoPolegadas: true, saiaProtecao: true,
+          voltagem: true, pocoPolegadas: true, saiaProtecao: true, destaque: true,
           imagens: { where: { principal: true }, select: { url: true, alt: true }, take: 1 },
         },
       })

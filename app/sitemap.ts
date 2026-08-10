@@ -28,6 +28,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/assistencia`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/sobre`, changeFrequency: "yearly", priority: 0.5 },
     { url: `${base}/fale-conosco`, changeFrequency: "yearly", priority: 0.5 },
+    // As institucionais entram porque o Decreto 7.962 exige que estejam
+    // acessíveis, e porque o Google usa a presença delas como sinal de loja
+    // séria ao avaliar confiabilidade.
+    ...["politica-de-entrega", "politica-de-troca", "politica-de-privacidade", "termos-de-uso"].map(
+      (s) => ({ url: `${base}/${s}`, changeFrequency: "yearly" as const, priority: 0.3 }),
+    ),
   ];
 
   return [

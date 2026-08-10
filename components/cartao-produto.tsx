@@ -4,6 +4,7 @@ import { brl, precoPix, parcela, PARCELAS_MAX, litros } from "@/lib/formato";
 
 export type ProdutoVitrine = {
   slug: string;
+  destaque?: boolean;
   nome: string;
   marca: string;
   preco: unknown;
@@ -20,7 +21,11 @@ export type ProdutoVitrine = {
  * entra. Por isso os três aparecem já na prateleira, e não escondidos dentro
  * da página do produto.
  */
-export function CartaoProduto({ p, lider = false }: { p: ProdutoVitrine; lider?: boolean }) {
+export function CartaoProduto({ p }: { p: ProdutoVitrine }) {
+  // O selo vem do cadastro, não da posição na prateleira: quem decide o que é
+  // líder de vendas é o comercial, e é ele que usa isso para dar saída ao que
+  // está parado.
+  const lider = p.destaque === true;
   const capa = p.imagens[0];
   const preco = Number(p.preco);
 

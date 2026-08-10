@@ -80,7 +80,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
     take: 4,
     select: {
       slug: true, nome: true, marca: true, preco: true, vazaoMaxima: true,
-      voltagem: true, pocoPolegadas: true, saiaProtecao: true,
+      voltagem: true, pocoPolegadas: true, saiaProtecao: true, destaque: true,
       imagens: { where: { principal: true }, select: { url: true, alt: true }, take: 1 },
     },
   });

@@ -6,6 +6,7 @@ import { FaixaConfianca } from "@/components/faixa-lider";
 import { EspacoBanner } from "@/components/espaco-banner";
 import { bannerAtivo, bannersAtivos } from "@/lib/banners";
 import { Medir } from "@/components/medir";
+import { SecaoVideos } from "@/components/secao-videos";
 
 export const revalidate = 300;
 
@@ -18,18 +19,20 @@ const CAMPOS = {
   voltagem: true,
   pocoPolegadas: true,
   saiaProtecao: true,
+  destaque: true,
   imagens: { where: { principal: true }, select: { url: true, alt: true }, take: 1 },
 } as const;
 
 export default async function Home() {
 
-  const [principal, duplos, meio, maisVendidas, precos, destaque] = await Promise.all([
+  const [principal, duplos, meio, maisVendidas, precos, videos, destaque] = await Promise.all([
     bannerAtivo("PRINCIPAL"),
     bannersAtivos("FAIXA_DUPLA"),
     bannerAtivo("FAIXA_MEIO"),
+    // Marcados como líder primeiro; o resto completa a prateleira.
     prisma.produto.findMany({
       where: { ativo: true },
-      orderBy: { preco: "desc" },
+      orderBy: [{ destaque: "desc" }, { vazaoMaxima: "desc" }],
       take: 4,
       select: CAMPOS,
     }),
@@ -38,6 +41,12 @@ export default async function Home() {
       orderBy: { preco: "asc" },
       take: 4,
       select: CAMPOS,
+    }),
+    prisma.video.findMany({
+      where: { ativo: true },
+      orderBy: { ordem: "asc" },
+      take: 3,
+      select: { youtubeId: true, titulo: true, resumo: true },
     }),
     // A bomba de maior vazão abre a página: é a imagem que diz, sem texto, o
     // que a loja vende.
@@ -176,7 +185,7 @@ export default async function Home() {
 
       <FaixaConfianca />
 
-      <Prateleira titulo="Mais vendidas" produtos={maisVendidas} lider />
+      <Prateleira titulo="Mais vendidas" produtos={maisVendidas} />
 
       {/* Esta posição é um banner, e só. Antes havia uma composição de texto
           com coroa, número e métricas · e um espaço de banner embaixo dela, o
@@ -190,6 +199,43 @@ export default async function Home() {
           proporcao="1880 / 640"
         />
       </section>
+
+      <SecaoVideos videos={videos} />
+
+      {/* As mesmas perguntas que a Vibrinha responde, em dados estruturados.
+          É o que faz a loja aparecer com respostas expandidas na busca, em vez
+          de só um título e uma linha. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: [
+              [
+                "Qual bomba sapo serve no meu poço?",
+                "O primeiro critério é o diâmetro do poço. A linha Rymer entra em poço de 6 polegadas; a Vibra Vert 900 e a Vibrinha precisam de 8 polegadas ou mais. Depois vêm a altura até a caixa d'água e a tensão da rede.",
+              ],
+              [
+                "Quanto de água uma bomba sapo entrega?",
+                "Depende da altura. Uma Vibra Vert 900 entrega 2.500 litros por hora na saída e 750 litros por hora a 65 metros de altura manométrica. Por isso publicamos a curva completa de cada modelo.",
+              ],
+              [
+                "Qual a diferença entre a Rymer 2000 e a Rymer 2500?",
+                "A hidráulica é idêntica: mesma vazão, potência e altura. A 2500 traz saia de proteção lateral, uma peça de borracha que permite trabalhar dentro de um poço de 6 polegadas sem bater nas paredes.",
+              ],
+              [
+                "A garantia cobre bomba queimada?",
+                "A garantia de fábrica cobre defeito de fabricação, não mau uso. Deixar a bomba trabalhar sem água é o que mais queima motor, e é justamente o que a boia de nível evita.",
+              ],
+            ].map(([name, text]) => ({
+              "@type": "Question",
+              name,
+              acceptedAnswer: { "@type": "Answer", text },
+            })),
+          }),
+        }}
+      />
 
       {/* As duas faixas ficam abaixo da prateleira e longe da faixa do Nº 1:
           dois blocos pesados colados se anulavam. */}
@@ -283,12 +329,10 @@ function Prateleira({
   titulo,
   produtos,
   verTudo = "/bombas",
-  lider = false,
 }: {
   titulo: string;
   produtos: React.ComponentProps<typeof CartaoProduto>["p"][];
   verTudo?: string;
-  lider?: boolean;
 }) {
   if (!produtos.length) return null;
   return (
@@ -301,7 +345,7 @@ function Prateleira({
       </div>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {produtos.map((p) => (
-          <CartaoProduto key={p.slug} p={p} lider={lider} />
+          <CartaoProduto key={p.slug} p={p} />
         ))}
       </div>
     </section>

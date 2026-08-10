@@ -131,6 +131,30 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
         <main>{children}</main>
 
+        {/* Organization com logotipo e contato: é o que alimenta o painel de
+            conhecimento do Google e o cartão de marca na busca. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Vibra Vert Bombas Submersas Vibratórias",
+              url: process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br",
+              logo: `${process.env.NEXT_PUBLIC_URL ?? ""}/logo-vibravert.png`,
+              foundingDate: "1974",
+              contactPoint: {
+                "@type": "ContactPoint",
+                telephone: "+551140002440",
+                contactType: "vendas",
+                areaServed: "BR",
+                availableLanguage: "Portuguese",
+              },
+              sameAs: ["https://www.youtube.com/@vibravertbombassubmersasvi9020"],
+            }),
+          }}
+        />
+
         <Vibrinha />
         <Revelar />
 

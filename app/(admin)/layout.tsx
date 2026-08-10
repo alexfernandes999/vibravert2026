@@ -11,8 +11,11 @@ import "../globals.css";
  * dois grupos de rota, cada um com a sua raiz.
  */
 export const metadata: Metadata = {
-  title: { default: "Administração", template: "%s · Administração" },
+  title: { default: "Administração · Vibra Vert", template: "%s · Administração" },
   robots: { index: false, follow: false },
+  // O painel usa o mesmo ícone da loja: quem opera costuma ter as duas abas
+  // abertas, e reconhecer a aba pelo desenho vale mais do que diferenciá-las.
+  icons: { icon: "/icon.png", apple: "/apple-icon.png" },
 };
 
 export default function RaizAdmin({ children }: { children: React.ReactNode }) {
