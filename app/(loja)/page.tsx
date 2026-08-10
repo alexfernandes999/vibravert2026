@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
@@ -9,6 +10,15 @@ import { Medir } from "@/components/medir";
 import { SecaoVideos } from "@/components/secao-videos";
 
 export const revalidate = 300;
+
+/**
+ * A home é a URL que mais recebe link com sujeira no fim: utm de campanha,
+ * fbclid, gclid. Sem canônica declarada, cada variação é uma página nova aos
+ * olhos do Google, e a autoridade se divide entre elas.
+ */
+export const metadata: Metadata = { alternates: { canonical: "/" } };
+
+const SITE = process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br";
 
 const CAMPOS = {
   slug: true,
@@ -59,8 +69,22 @@ export default async function Home() {
     }),
   ]);
 
+  const site = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Loja Oficial Vibra Vert",
+    url: SITE,
+    inLanguage: "pt-BR",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: { "@type": "EntryPoint", urlTemplate: `${SITE}/busca?q={busca}` },
+      "query-input": "required name=busca",
+    },
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(site) }} />
       <Medir etapa="VISITA" />
 
       {/* O banner abre a página de ponta a ponta. Com margem e cantos

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
+import { CONTROLA_ESTOQUE, FRETE_GRATIS_ACIMA, FRETE_PADRAO } from "@/lib/loja";
 import { SeletorVersao } from "@/components/seletor-versao";
 import { CartaoProduto } from "@/components/cartao-produto";
 import { Medir } from "@/components/medir";
@@ -10,6 +11,8 @@ import { Galeria } from "@/components/galeria";
 import { Video } from "@/components/video";
 import { BotaoComprar } from "@/components/botao-comprar";
 import { brl, precoPix, parcela, PARCELAS_MAX, ALTURAS_MCA, litros } from "@/lib/formato";
+
+const SITE = process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br";
 
 export const revalidate = 300;
 
@@ -63,6 +66,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
   if (!p || !p.ativo) notFound();
 
   const preco = Number(p.preco);
+  const emEstoque = !CONTROLA_ESTOQUE || (p.estoque?.quantidade ?? 0) > 0;
   const capa = p.imagens[0];
   const versoes = await irmas(p.familia, p.slug);
   // O vídeo é da família de modelo, não da montagem: a bomba é a mesma com
@@ -224,10 +228,45 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
             image: p.imagens.map((i) => i.url),
             offers: {
               "@type": "Offer",
+              url: `${SITE}/produto/${p.slug}`,
               price: preco.toFixed(2),
               priceCurrency: "BRL",
-              availability: "https://schema.org/InStock",
+              // Sem prazo, o Google avisa que a oferta pode estar vencida e
+              // segura o rich result. Um ano à frente, renovado a cada revalidação.
+              priceValidUntil: new Date(Date.now() + 365 * 864e5).toISOString().slice(0, 10),
+              // Dizer InStock com a prateleira vazia é o que reprova a conta no
+              // Merchant Center: eles comparam o dado estruturado com a página.
+              availability: emEstoque
+                ? "https://schema.org/InStock"
+                : "https://schema.org/OutOfStock",
               itemCondition: "https://schema.org/NewCondition",
+              seller: { "@type": "Organization", name: "Vibra Vert" },
+              // Frete e devolução declarados aqui viram as linhas "Frete grátis"
+              // e "Devolução em 7 dias" abaixo do preço na busca do Google.
+              shippingDetails: {
+                "@type": "OfferShippingDetails",
+                shippingRate: {
+                  "@type": "MonetaryAmount",
+                  value: preco >= FRETE_GRATIS_ACIMA ? "0" : FRETE_PADRAO.toFixed(2),
+                  currency: "BRL",
+                },
+                shippingDestination: { "@type": "DefinedRegion", addressCountry: "BR" },
+                deliveryTime: {
+                  "@type": "ShippingDeliveryTime",
+                  handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
+                  transitTime: { "@type": "QuantitativeValue", minValue: 2, maxValue: 9, unitCode: "DAY" },
+                },
+              },
+              // Os 7 dias são o direito de arrependimento do artigo 49 do CDC:
+              // é lei, não cortesia, e declarar menos não vale.
+              hasMerchantReturnPolicy: {
+                "@type": "MerchantReturnPolicy",
+                applicableCountry: "BR",
+                returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+                merchantReturnDays: 7,
+                returnMethod: "https://schema.org/ReturnByMail",
+                returnFees: "https://schema.org/FreeReturn",
+              },
             },
           }),
         }}
@@ -239,8 +278,8 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Início", item: "/" },
-              { "@type": "ListItem", position: 2, name: "Bombas vibratórias", item: "/bombas" },
+              { "@type": "ListItem", position: 1, name: "Início", item: SITE },
+              { "@type": "ListItem", position: 2, name: "Bombas vibratórias", item: `${SITE}/bombas` },
               { "@type": "ListItem", position: 3, name: p.nome },
             ],
           }),
