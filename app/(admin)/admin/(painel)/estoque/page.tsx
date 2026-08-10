@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { CONTROLA_ESTOQUE } from "@/lib/loja";
@@ -21,7 +22,11 @@ export default async function Estoque() {
   const itens = await prisma.produto.findMany({
     where: { ativo: true },
     orderBy: [{ marca: "asc" }, { nome: "asc" }],
-    select: { id: true, nome: true, sku: true, marca: true, estoque: { select: { quantidade: true, minimo: true } } },
+    select: {
+      id: true, nome: true, sku: true, marca: true,
+      estoque: { select: { quantidade: true, minimo: true } },
+      imagens: { where: { principal: true }, select: { url: true, alt: true }, take: 1 },
+    },
   });
 
   return (
@@ -31,7 +36,7 @@ export default async function Estoque() {
       {!CONTROLA_ESTOQUE && (
         <p className="mt-3 rounded-caixa border border-atencao/30 bg-atencao/5 px-4 py-3 text-[13px] leading-snug text-atencao">
           <strong className="font-extrabold">A trava está desligada.</strong> A loja vende mesmo com
-          quantidade zero, porque o cadastro veio da VTEX com 99.999 em tudo — o mesmo que não
+          quantidade zero, porque o cadastro veio da VTEX com 99.999 em tudo · o mesmo que não
           controlar. Depois de lançar as quantidades reais aqui, ligar{" "}
           <code className="rounded bg-atencao/10 px-1">CONTROLA_ESTOQUE</code> em lib/loja.ts.
         </p>
@@ -40,7 +45,7 @@ export default async function Estoque() {
       <table className="mt-5 w-full overflow-hidden rounded-caixa border border-linha bg-superficie text-[13px]">
         <thead>
           <tr className="border-b border-linha text-left text-[10px] uppercase tracking-[0.12em] text-mudo">
-            <th className="px-4 py-2.5 font-bold">Produto</th>
+            <th className="px-4 py-2.5 font-bold" colSpan={2}>Produto</th>
             <th className="px-3 py-2.5 font-bold">SKU</th>
             <th className="px-3 py-2.5 text-right font-bold">Quantidade</th>
           </tr>
@@ -48,7 +53,20 @@ export default async function Estoque() {
         <tbody>
           {itens.map((p) => (
             <tr key={p.id} className="border-b border-linha last:border-0">
-              <td className="px-4 py-2 font-semibold">{p.nome}</td>
+              {/* A miniatura é o que permite conferir a quantidade olhando a
+                  prateleira, sem decorar código de produto. */}
+              <td className="w-14 py-1.5 pl-4">
+                {p.imagens[0] && (
+                  <Image
+                    src={p.imagens[0].url}
+                    alt=""
+                    width={44}
+                    height={44}
+                    className="h-11 w-11 rounded-lg border border-linha object-cover"
+                  />
+                )}
+              </td>
+              <td className="py-2 pl-2 font-semibold">{p.nome}</td>
               <td className="num px-3 py-2 text-mudo">{p.sku}</td>
               <td className="px-3 py-2">
                 <form action={gravar} className="flex items-center justify-end gap-2">

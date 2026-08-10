@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 const PAGOS: PedidoStatus[] = ["PAGO", "SEPARANDO", "ENVIADO", "ENTREGUE"];
 
 export default async function Painel({ searchParams }: { searchParams: Promise<{ d?: string }> }) {
-  const dias = Math.min(Math.max(Number((await searchParams).d) || 30, 7), 90);
+  const dias = Math.min(Math.max(Number((await searchParams).d) || 30, 1), 90);
   const desde = new Date(Date.now() - dias * 864e5);
   const pagos = { status: { in: PAGOS }, criadoEm: { gte: desde } };
 
@@ -61,12 +61,12 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
   const serie = [...porDia.entries()].map(([k, v]) => ({ dia: `${k.slice(8, 10)}/${k.slice(5, 7)}`, total: v }));
 
   const pendencias = [
-    !configurado && "Mercado Pago sem credencial — nenhum pedido pode ser cobrado.",
-    !emailOk && "E-mail não configurado — o comprador não recebe confirmação nem rastreio.",
-    !freteOk && "Correios sem contrato — o frete usa valor fixo em vez de calcular por CEP.",
-    !CONTROLA_ESTOQUE && "Controle de estoque desligado — a loja vende sem verificar quantidade.",
+    !configurado && "Mercado Pago sem credencial · nenhum pedido pode ser cobrado.",
+    !emailOk && "E-mail não configurado · o comprador não recebe confirmação nem rastreio.",
+    !freteOk && "Correios sem contrato · o frete usa valor fixo em vez de calcular por CEP.",
+    !CONTROLA_ESTOQUE && "Controle de estoque desligado · a loja vende sem verificar quantidade.",
     semGarantia > 0 && `${semGarantia} produto(s) sem prazo de garantia publicado.`,
-    semCurva > 0 && `${semCurva} produto(s) sem curva de vazão — ficam fora da calculadora.`,
+    semCurva > 0 && `${semCurva} produto(s) sem curva de vazão · ficam fora da calculadora.`,
   ].filter(Boolean) as string[];
 
   return (
@@ -74,7 +74,7 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
       <div className="flex flex-wrap items-baseline gap-3">
         <h1 className="text-xl font-extrabold tracking-tight">Visão comercial</h1>
         <nav className="ml-auto flex gap-1.5">
-          {[7, 30, 90].map((d) => (
+          {[1, 7, 30, 90].map((d) => (
             <Link
               key={d}
               href={`/admin?d=${d}`}
@@ -82,7 +82,7 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
                 dias === d ? "bg-marca text-white" : "border border-linha bg-superficie text-tinta-2"
               }`}
             >
-              {d} dias
+              {d === 1 ? "hoje" : `${d} dias`}
             </Link>
           ))}
         </nav>
@@ -91,10 +91,10 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
       <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi r="Faturamento" v={brl(fat)} />
         <Kpi r="Pedidos pagos" v={String(qtd)} />
-        <Kpi r="Ticket médio" v={qtd ? brl(Number(agg._avg.total ?? 0)) : "—"} />
+        <Kpi r="Ticket médio" v={qtd ? brl(Number(agg._avg.total ?? 0)) : " "} />
         <Kpi
           r="Conversão"
-          v={passo("VISITA") ? `${((passo("PEDIDO") / passo("VISITA")) * 100).toFixed(2)}%` : "—"}
+          v={passo("VISITA") ? `${((passo("PEDIDO") / passo("VISITA")) * 100).toFixed(2)}%` : " "}
           nota={passo("VISITA") ? `${passo("VISITA")} sessões` : "sem tráfego medido"}
         />
       </dl>
@@ -111,7 +111,7 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
       <section className="mt-5 rounded-caixa border border-linha bg-superficie">
         <h2 className="flex items-baseline gap-2 border-b border-linha px-4 py-3 text-[13.5px] font-extrabold">
           Faturamento por dia
-          <span className="num text-[11px] font-semibold text-mudo">últimos {dias} dias · R$</span>
+          <span className="num text-[11px] font-semibold text-mudo">{dias === 1 ? "hoje" : `últimos ${dias} dias`} · R$</span>
         </h2>
         <div className="p-3"><GraficoVendas dias={serie} /></div>
       </section>

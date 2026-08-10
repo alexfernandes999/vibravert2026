@@ -397,6 +397,10 @@ async function main() {
     if (ficha) {
       // com a curva oficial em mãos, o campo antigo de altura mínima vira ruído
       porNome.delete("Altura manométrica mínima");
+    } else if (fam && FAMILIAS.includes(fam)) {
+      // Sem ficha própria, vale o prazo do resto da linha: é a mesma fábrica,
+      // a mesma bomba e a mesma caixa. Decisão do cliente, registrada aqui.
+      porNome.set("Garantia", { valor: "1 ano", original: "prazo da linha" });
     } else if (porNome.has("Garantia")) {
       // Sem ficha da fábrica não publicamos prazo de garantia. O cadastro
       // antigo dizia "2 anos" em toda a linha e a embalagem desmente isso em

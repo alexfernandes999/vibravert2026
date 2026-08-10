@@ -53,7 +53,7 @@ function comUtm(dominio: string, origem: string) {
 export function RedeLojas({
   origem = "rodape",
   titulo = "Precisa de outro tipo de bomba?",
-  chamada = "A Vibra Vert é uma marca do Grupo das Bombas ARF — 28 anos de mercado, atendimento nos 27 estados do Brasil.",
+  chamada = "A Vibra Vert é uma marca do Grupo das Bombas ARF · 28 anos de mercado, atendimento nos 27 estados do Brasil.",
 }: {
   origem?: string;
   titulo?: string;

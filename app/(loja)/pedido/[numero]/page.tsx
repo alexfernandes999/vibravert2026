@@ -42,7 +42,7 @@ export default async function Pedido({ params }: { params: Promise<{ numero: str
       {!configurado && p.status === "AGUARDANDO_PAGAMENTO" && (
         <p className="mt-5 rounded-caixa border border-atencao/30 bg-atencao/5 px-4 py-3.5 text-[13px] leading-snug text-atencao">
           <strong className="font-extrabold">Ambiente de testes.</strong> O pedido foi registrado,
-          mas o meio de pagamento ainda não está conectado — nenhuma cobrança foi gerada.
+          mas o meio de pagamento ainda não está conectado · nenhuma cobrança foi gerada.
         </p>
       )}
 
@@ -88,7 +88,7 @@ export default async function Pedido({ params }: { params: Promise<{ numero: str
       <p className="mt-8 text-[13.5px] text-mudo">
         Dúvidas sobre o pedido?{" "}
         <Link href="/fale-conosco" className="font-bold text-marca underline">Fale com a gente</Link>
-        {" "}— ou ligue para 11 4000-2440.
+        {" "} ou ligue para 11 4000-2440.
       </p>
     </div>
   );

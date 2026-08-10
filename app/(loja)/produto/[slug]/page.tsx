@@ -5,12 +5,17 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { SeletorVersao } from "@/components/seletor-versao";
 import { CartaoProduto } from "@/components/cartao-produto";
-import { registrar } from "@/lib/analitica";
+import { Medir } from "@/components/medir";
 import { Video } from "@/components/video";
 import { BotaoComprar } from "@/components/botao-comprar";
 import { brl, precoPix, parcela, PARCELAS_MAX, ALTURAS_MCA, litros } from "@/lib/formato";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
+
+export async function generateStaticParams() {
+  const todos = await prisma.produto.findMany({ where: { ativo: true }, select: { slug: true } });
+  return todos.map(({ slug }) => ({ slug }));
+}
 
 async function irmas(familia: string | null, slug: string) {
   if (!familia) return [];
@@ -55,7 +60,6 @@ export async function generateMetadata({
 export default async function PaginaProduto({ params }: { params: Promise<{ slug: string }> }) {
   const p = await buscar((await params).slug);
   if (!p || !p.ativo) notFound();
-  await registrar("PRODUTO");
 
   const preco = Number(p.preco);
   const capa = p.imagens[0];
@@ -88,6 +92,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
 
   return (
     <article className="mx-auto max-w-7xl px-5 py-8">
+      <Medir etapa="PRODUTO" />
       <nav aria-label="Você está em" className="mb-5 text-[11.5px] font-semibold text-mudo">
         <Link href="/" className="hover:text-marca">Início</Link>
         <span className="mx-1.5">›</span>
@@ -170,7 +175,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
         <h2 className="text-lg font-extrabold tracking-tight">Ficha técnica</h2>
         <p className="mt-1 text-[13px] text-mudo">
           Dados da embalagem do fabricante. Os mesmos alimentam os filtros da loja e o feed
-          do Google Shopping — cadastrados uma vez só.
+          do Google Shopping · cadastrados uma vez só.
         </p>
         <div className="mt-4 overflow-hidden rounded-caixa border border-linha">
           <table className="w-full text-[13px]">

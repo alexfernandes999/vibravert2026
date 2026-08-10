@@ -8,7 +8,7 @@ export const revalidate = 300;
 export const metadata: Metadata = {
   title: "Qual bomba o seu poço precisa?",
   description:
-    "Informe a altura, o comprimento da tubulação e o diâmetro do poço, e veja qual bomba sapo atende — com a vazão real na sua instalação, não só a vazão máxima do catálogo.",
+    "Informe a altura, o comprimento da tubulação e o diâmetro do poço, e veja qual bomba sapo atende · com a vazão real na sua instalação, não só a vazão máxima do catálogo.",
   alternates: { canonical: "/qual-bomba" },
 };
 
@@ -70,7 +70,7 @@ export default async function QualBomba() {
           <p className="mt-6 max-w-3xl text-[12.5px] leading-relaxed text-mudo">
             Os dados de vazão vêm da curva de cada modelo, medida pelo fabricante e impressa na
             embalagem. A perda de carga da tubulação é estimada em 4% do comprimento, regra usada
-            para PVC nesta faixa de vazão — para instalações com muitas curvas, registros ou
+            para PVC nesta faixa de vazão · para instalações com muitas curvas, registros ou
             desnível acentuado, confirme com o técnico da fábrica.
           </p>
         </div>

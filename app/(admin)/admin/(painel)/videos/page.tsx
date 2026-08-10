@@ -125,7 +125,7 @@ export default async function Videos() {
                     <option value="PROBLEMA">Vídeo de defeito</option>
                   </select>
                   <select name="familia" defaultValue={v.familia ?? ""} className="rounded-lg border border-linha-2 px-2.5 py-1.5 text-[12.5px] font-semibold">
-                    <option value="">— sem modelo —</option>
+                    <option value=""> sem modelo </option>
                     {modelos.map((m) => (
                       <option key={m} value={m}>{m.replace(/-/g, " ")}</option>
                     ))}
@@ -165,7 +165,7 @@ export default async function Videos() {
                 <option value="PROBLEMA">Vídeo de defeito</option>
               </select>
               <select name="familia" className="rounded-lg border border-linha-2 px-2.5 py-1.5 text-[12.5px] font-semibold">
-                <option value="">— sem modelo —</option>
+                <option value=""> sem modelo </option>
                 {modelos.map((m) => (
                   <option key={m} value={m}>{m.replace(/-/g, " ")}</option>
                 ))}

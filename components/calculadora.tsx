@@ -127,7 +127,7 @@ export function Calculadora({ modelos }: { modelos: ModeloCalc[] }) {
         {semSaida ? (
           <Aviso
             titulo="Nenhuma bomba vibratória atende essa altura"
-            texto={`${hTotal} metros passa do limite de 65 m.c.a. de toda a linha. Para essa instalação o caminho é uma bomba multiestágio ou submersa tipo caneta — fale com o técnico da fábrica antes de comprar.`}
+            texto={`${hTotal} metros passa do limite de 65 m.c.a. de toda a linha. Para essa instalação o caminho é uma bomba multiestágio ou submersa tipo caneta · fale com o técnico da fábrica antes de comprar.`}
           />
         ) : !indicada ? (
           <Aviso
@@ -250,7 +250,7 @@ function Ficha({ item, hTotal }: { item: { m: ModeloCalc; vazao: number }; hTota
             cód. {m.sku} · {m.voltagem} · fabricação própria Vibra Vert
           </p>
 
-          {/* O número que importa não é a vazão máxima do catálogo — é quanto
+          {/* O número que importa não é a vazão máxima do catálogo · é quanto
               esta bomba entrega no poço deste cliente. */}
           <div className="mt-4 rounded-lg border border-ouro/40 bg-ouro/10 px-4 py-3">
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-ouro-txt">

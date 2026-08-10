@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FaixaConfianca } from "@/components/faixa-lider";
 
 export const metadata: Metadata = {
-  title: "Assistência técnica — quem conserta a sua bomba somos nós",
+  title: "Assistência técnica · quem conserta a sua bomba somos nós",
   description:
     "Assistência técnica própria na fábrica, em São Paulo. Sem posto terceirizado e sem frete de ida e volta por conta do cliente. Abra um chamado.",
   alternates: { canonical: "/assistencia" },
@@ -34,16 +34,24 @@ const HORARIOS = [
 export default function Assistencia() {
   return (
     <>
-      <section className="bg-ouro">
-        <div className="mx-auto grid max-w-7xl items-center gap-8 px-5 py-12 lg:grid-cols-[1.35fr_1fr]">
+      {/* O fundo amarelo inteiro gritava e empurrava a leitura para longe.
+          O azul da marca sustenta o bloco, e o ouro fica só onde precisa
+          chamar: o rótulo e o botão. */}
+      <section className="relative overflow-hidden bg-marca-escuro text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "radial-gradient(760px 380px at 15% 40%, rgba(245,185,33,.16), transparent 62%)" }}
+        />
+        <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-5 py-14 lg:grid-cols-[1.35fr_1fr]">
           <div>
-            <p className="text-[10.5px] font-extrabold uppercase tracking-[0.16em] text-ouro-txt/80">
+            <p className="text-[10.5px] font-extrabold uppercase tracking-[0.18em] text-ouro">
               Assistência técnica própria
             </p>
-            <h1 className="mt-2.5 max-w-2xl text-3xl font-extrabold leading-tight tracking-tight text-ouro-txt text-balance md:text-4xl">
+            <h1 className="mt-3 max-w-2xl text-3xl font-extrabold leading-tight tracking-tight text-balance md:text-4xl">
               Quem conserta a sua bomba somos nós
             </h1>
-            <p className="mt-3 max-w-xl text-[15.5px] leading-relaxed text-ouro-txt/90">
+            <p className="mt-3 max-w-xl text-[15.5px] leading-relaxed text-white/70">
               Na nossa fábrica em São Paulo. Sem posto terceirizado, sem frete de ida e volta
               para o cliente resolver sozinho, e sem fila de espera de intermediário.
             </p>
@@ -51,20 +59,20 @@ export default function Assistencia() {
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/fale-conosco"
-                className="rounded-lg bg-marca-escuro px-5 py-3 text-sm font-extrabold text-white"
+                className="rounded-lg bg-ouro px-6 py-3.5 text-sm font-extrabold text-ouro-txt transition hover:brightness-110"
               >
                 Abrir chamado técnico
               </Link>
               <a
                 href={`tel:${FABRICA.telefoneLink}`}
-                className="rounded-lg border-[1.5px] border-ouro-txt/40 px-5 py-3 text-sm font-extrabold text-ouro-txt"
+                className="rounded-lg border-[1.5px] border-white/30 px-6 py-3.5 text-sm font-extrabold text-white transition hover:border-white/60"
               >
                 Ligar: {FABRICA.telefone}
               </a>
             </div>
           </div>
 
-          <address className="rounded-caixa bg-marca-escuro p-6 not-italic text-white">
+          <address className="rounded-caixa border border-white/10 bg-white/[.06] p-6 not-italic text-white backdrop-blur-sm">
             <p className="text-[10.5px] font-extrabold uppercase tracking-[0.14em] text-ouro">
               Fábrica e assistência presencial
             </p>
@@ -93,7 +101,7 @@ export default function Assistencia() {
           Antes de comprar outra, veja se é isso
         </h2>
         <p className="mt-2 max-w-2xl text-[15px] text-tinta-2">
-          A maior parte das bombas que chegam na nossa bancada não queimou — parou por um
+          A maior parte das bombas que chegam na nossa bancada não queimou · parou por um
           motivo que se resolve. Vale conferir antes de gastar com uma nova.
         </p>
 

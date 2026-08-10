@@ -11,7 +11,7 @@ export default async function Entrar({ searchParams }: { searchParams: Promise<{
 
   async function acao(dados: FormData) {
     "use server";
-    const r = await entrar(String(dados.get("senha") ?? ""));
+    const r = await entrar(String(dados.get("senha") ?? ""), dados.get("manter") === "on");
     redirect(r.ok ? "/admin" : `/admin/entrar?erro=${encodeURIComponent(r.erro ?? "Erro")}`);
   }
 

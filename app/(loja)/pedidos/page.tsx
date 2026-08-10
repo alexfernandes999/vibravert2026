@@ -59,7 +59,7 @@ export default async function Pedidos({ searchParams }: { searchParams: Promise<
 
         {erro && (
           <p role="alert" className="text-[13px] font-semibold text-critico">
-            Não encontramos esse pedido. Confira o número e o e-mail — ou ligue para 11 4000-2440.
+            Não encontramos esse pedido. Confira o número e o e-mail · ou ligue para 11 4000-2440.
           </p>
         )}
 

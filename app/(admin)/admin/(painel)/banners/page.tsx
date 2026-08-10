@@ -53,7 +53,7 @@ export default async function Banners() {
       <h1 className="text-xl font-extrabold tracking-tight">Banners e vitrine</h1>
       <p className="mt-1 max-w-2xl text-[13px] text-mudo">
         Trocar banner não exige programador. Com data de início e fim, a promoção sobe sozinha na
-        data marcada — dá para deixar tudo pronto antes e não depender de alguém lembrar de ligar.
+        data marcada · dá para deixar tudo pronto antes e não depender de alguém lembrar de ligar.
       </p>
 
       {POSICOES.map((pos) => {
@@ -93,7 +93,7 @@ export default async function Banners() {
                       </div>
 
                       <Campo nome="titulo" rotulo="Texto" valor={b.titulo} />
-                      <Campo nome="alt" rotulo="Texto alternativo" valor={b.alt} dica="obrigatório — acessibilidade e SEO" />
+                      <Campo nome="alt" rotulo="Texto alternativo" valor={b.alt} dica="obrigatório · acessibilidade e SEO" />
                       <Campo nome="link" rotulo="Link de destino" valor={b.link ?? ""} dica="opcional" />
 
                       <div className="grid gap-3 sm:grid-cols-2">

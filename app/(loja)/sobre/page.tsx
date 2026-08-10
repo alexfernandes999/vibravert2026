@@ -3,7 +3,7 @@ import Link from "next/link";
 import { RedeLojas } from "@/components/rede-lojas";
 
 export const metadata: Metadata = {
-  title: "Nossa história — fábrica de bombas desde 1974",
+  title: "Nossa história · fábrica de bombas desde 1974",
   description:
     "A primeira fábrica de bombas submersas vibratórias do Brasil. A marca Rymer vem de 1958; a Vibra Vert, de 1974. Hoje, Grupo das Bombas ARF.",
   alternates: { canonical: "/sobre" },
@@ -40,7 +40,7 @@ const LINHA_DO_TEMPO = [
     ano: "2003",
     titulo: "A retomada",
     texto:
-      "A família retoma a fabricação da Vibra Vert e traz de volta a marca Rymer — que segue sendo o nome que o cliente reconhece na hora de comprar.",
+      "A família retoma a fabricação da Vibra Vert e traz de volta a marca Rymer · que segue sendo o nome que o cliente reconhece na hora de comprar.",
   },
   {
     ano: "Hoje",
@@ -89,7 +89,7 @@ export default function Sobre() {
           <h2 className="text-lg font-extrabold tracking-tight">Duas marcas, uma fábrica</h2>
           <p className="mt-2 text-[14.5px] leading-relaxed text-tinta-2">
             <strong>Vibra Vert</strong> é o nome da fábrica. <strong>Rymer</strong> é o nome que o
-            cliente conhece e procura — herdado da empresa onde o fundador aprendeu o ofício. As
+            cliente conhece e procura · herdado da empresa onde o fundador aprendeu o ofício. As
             duas saem da mesma linha de produção, em São Paulo, com a mesma assistência técnica
             atrás.
           </p>

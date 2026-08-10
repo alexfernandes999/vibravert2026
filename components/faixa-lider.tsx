@@ -144,7 +144,7 @@ export function FaixaLider({
 
             <p className="mx-auto mt-4 max-w-xl text-[14px] leading-relaxed text-white/65 lg:mx-0">
               Na categoria de bombas sapo, segundo o ranking do Mercado Livre. É a mesma bomba
-              que sai da nossa fábrica — aqui, sem intermediário.
+              que sai da nossa fábrica · aqui, sem intermediário.
             </p>
 
             <div className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 lg:justify-start">
@@ -169,7 +169,7 @@ export function FaixaLider({
         </div>
 
         {/* Aqui havia uma tira de credenciais que repetia, palavra por palavra,
-            a faixa de confiança logo acima. Repetir não reforça — cansa, e
+            a faixa de confiança logo acima. Repetir não reforça · cansa, e
             ocupa o espaço mais visível da página com algo já lido. */}
         <div className="mt-12 border-t border-white/10 pt-8">
           <EspacoBanner

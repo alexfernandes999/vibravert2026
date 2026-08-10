@@ -2,13 +2,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { CartaoProduto } from "@/components/cartao-produto";
-import { FaixaLider, FaixaConfianca } from "@/components/faixa-lider";
+import { FaixaConfianca } from "@/components/faixa-lider";
 import { EspacoBanner } from "@/components/espaco-banner";
 import { bannerAtivo, bannersAtivos } from "@/lib/banners";
-import { registrar } from "@/lib/analitica";
+import { Medir } from "@/components/medir";
 
-// A home registra a visita, então não pode ser estática.
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 const CAMPOS = {
   slug: true,
@@ -23,7 +22,6 @@ const CAMPOS = {
 } as const;
 
 export default async function Home() {
-  await registrar("VISITA");
 
   const [principal, duplos, meio, maisVendidas, precos, destaque] = await Promise.all([
     bannerAtivo("PRINCIPAL"),
@@ -55,6 +53,8 @@ export default async function Home() {
 
   return (
     <>
+      <Medir etapa="VISITA" />
+
       {/* O banner abre a página de ponta a ponta. Com margem e cantos
           arredondados ele virava um cartão flutuando acima do herói, e a
           página passava a ter duas aberturas disputando a mesma atenção. */}
@@ -144,7 +144,7 @@ export default async function Home() {
       </section>
 
 
-      {/* O diâmetro do poço decide se a bomba serve — é a primeira pergunta da
+      {/* O diâmetro do poço decide se a bomba serve · é a primeira pergunta da
           compra e a maior causa de devolução. Vira faixa própria, larga e
           clicável, em vez de uma caixinha espremida na lateral do herói. */}
       <section className="border-b border-linha bg-superficie">
@@ -178,7 +178,18 @@ export default async function Home() {
 
       <Prateleira titulo="Mais vendidas" produtos={maisVendidas} />
 
-      <FaixaLider nota="4,8" vendas="+3.000" banner={meio} />
+      {/* Esta posição é um banner, e só. Antes havia uma composição de texto
+          com coroa, número e métricas · e um espaço de banner embaixo dela, o
+          que somava duas peças dizendo a mesma coisa. A arte da campanha já diz
+          tudo isso, melhor e no formato que o cliente aprova. */}
+      <section className="my-14 [&_.rounded-caixa]:rounded-none">
+        <EspacoBanner
+          banner={meio}
+          medida="1880 × 640 px"
+          rotulo="Faixa promocional"
+          proporcao="1880 / 640"
+        />
+      </section>
 
       {/* As duas faixas ficam abaixo da prateleira e longe da faixa do Nº 1:
           dois blocos pesados colados se anulavam. */}
@@ -201,7 +212,7 @@ export default async function Home() {
 
       {/* A história por último e em banda estreita: quem quer comprar já passou
           por dez blocos de venda antes de chegar aqui. A credencial de 1974 não
-          sai do lado do preço — é lá que mora o medo de "vai queimar em três
+          sai do lado do preço · é lá que mora o medo de "vai queimar em três
           meses", não numa página institucional. */}
       <section className="mt-4 border-y border-linha bg-superficie-2">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 px-5 py-7">

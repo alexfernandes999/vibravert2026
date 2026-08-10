@@ -1,6 +1,6 @@
 import { brl } from "@/lib/formato";
 
-const pct = (n: number, de: number) => (de ? `${((n / de) * 100).toFixed(1)}%` : "—");
+const pct = (n: number, de: number) => (de ? `${((n / de) * 100).toFixed(1)}%` : " ");
 
 function Caixa({ titulo, nota, children }: { titulo: string; nota?: string; children: React.ReactNode }) {
   return (
@@ -123,7 +123,7 @@ export function PorCanal({
             <div className="flex items-baseline gap-2 text-[12.8px]">
               <span className="font-semibold">{l.nome}</span>
               <span className="num ml-auto text-mudo">{l.sessoes} sessões</span>
-              <span className="num w-24 text-right font-extrabold">{l.v ? brl(l.v) : "—"}</span>
+              <span className="num w-24 text-right font-extrabold">{l.v ? brl(l.v) : " "}</span>
             </div>
             <div className="mt-1 h-2 overflow-hidden rounded-full bg-superficie-2">
               <div className="h-full rounded-full bg-marca-claro" style={{ width: `${(l.sessoes / maxS) * 100}%` }} />
@@ -226,7 +226,7 @@ export function PorPagamento({
             </div>
             {m === "CARTAO_CREDITO" && (
               <p className="num mt-1 text-[11px] text-mudo">
-                parcelamento médio de {(d.parcelas / d.n).toFixed(1)}× — cada parcela a mais tem custo
+                parcelamento médio de {(d.parcelas / d.n).toFixed(1)}× · cada parcela a mais tem custo
               </p>
             )}
           </li>

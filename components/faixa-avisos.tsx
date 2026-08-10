@@ -28,7 +28,7 @@ const AVISOS = [
         <path d="M4 4h4l2 5-2.5 1.5a12 12 0 006 6L15 14l5 2v4a1 1 0 01-1.1 1A17 17 0 013 5.1 1 1 0 014 4z" />
       </svg>
     ),
-    texto: "Vibra Phone 11 4000-2440 — falamos de bomba, não é SAC",
+    texto: "Vibra Phone 11 4000-2440 · falamos de bomba, não é SAC",
   },
   {
     icone: (

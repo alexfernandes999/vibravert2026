@@ -68,6 +68,31 @@ export async function quantidadeTotal() {
 }
 
 /**
+ * Resumo para o cabeçalho: quantidade e valor.
+ *
+ * Mostrar o valor ao lado do ícone é o que o comprador procura para conferir
+ * se o carrinho está certo antes de ir ao checkout — e evita a ida e volta só
+ * para olhar o total.
+ */
+export async function resumoCarrinho() {
+  const linhas = await ler();
+  if (!linhas.length) return { qtd: 0, total: 0 };
+
+  const produtos = await prisma.produto.findMany({
+    where: { id: { in: linhas.map((l) => l.id) }, ativo: true },
+    select: { id: true, preco: true },
+  });
+
+  let qtd = 0, total = 0;
+  for (const p of produtos) {
+    const n = linhas.find((l) => l.id === p.id)?.qtd ?? 0;
+    qtd += n;
+    total += Number(p.preco) * n;
+  }
+  return { qtd, total };
+}
+
+/**
  * Monta o carrinho lendo os produtos do banco.
  *
  * Um item que saiu do ar — desativado, sem preço — some do carrinho em vez de

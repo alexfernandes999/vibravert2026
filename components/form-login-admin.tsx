@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useFormStatus } from "react-dom";
 
 /**
  * Formulário de acesso ao painel.
@@ -66,9 +67,17 @@ export function FormLoginAdmin({
           </p>
         )}
 
-        <button className="mt-4 w-full rounded-lg bg-marca py-3 text-sm font-bold text-white">
-          Entrar
-        </button>
+        <label className="mt-3.5 flex cursor-pointer items-center gap-2.5 text-[12.8px] font-semibold text-tinta-2">
+          <input
+            type="checkbox"
+            name="manter"
+            defaultChecked
+            className="h-4 w-4 accent-marca"
+          />
+          Manter conectado por 30 dias
+        </label>
+
+        <BotaoEntrar />
       </form>
 
       <button
@@ -84,7 +93,7 @@ export function FormLoginAdmin({
         <div className="mt-3 rounded-lg border border-linha bg-superficie-2 p-4 text-[12.8px] leading-relaxed text-tinta-2">
           <p>
             O painel usa <strong className="font-bold">uma senha só</strong>, compartilhada pela
-            equipe — ainda não há conta por pessoa, então não há como enviar um link de
+            equipe · ainda não há conta por pessoa, então não há como enviar um link de
             recuperação por e-mail.
           </p>
           <p className="mt-2.5">
@@ -99,5 +108,34 @@ export function FormLoginAdmin({
         </div>
       )}
     </>
+  );
+}
+
+/**
+ * O botão precisa reagir ao toque.
+ *
+ * Sem estado de pressionado e sem estado de espera, quem clica não sabe se o
+ * clique pegou — e clica de novo. Aqui isso significa duas tentativas de
+ * login, o que ainda parece que não funcionou.
+ */
+function BotaoEntrar() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      disabled={pending}
+      className="mt-4 w-full rounded-lg bg-marca py-3 text-sm font-bold text-white shadow-lg shadow-marca/25 transition-all duration-100 hover:brightness-110 active:scale-[0.98] active:brightness-95 active:shadow-sm disabled:opacity-70"
+    >
+      {pending ? (
+        <span className="inline-flex items-center gap-2">
+          <svg viewBox="0 0 24 24" className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M12 3a9 9 0 100 18 9 9 0 000-18" strokeOpacity=".25" />
+            <path d="M12 3a9 9 0 019 9" strokeLinecap="round" />
+          </svg>
+          Entrando…
+        </span>
+      ) : (
+        "Entrar"
+      )}
+    </button>
   );
 }

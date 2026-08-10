@@ -24,7 +24,7 @@ export default function FaleConosco() {
       </h1>
       <p className="mt-2.5 max-w-xl text-[15px] text-tinta-2">
         Não é call center: quem atende conhece a bomba. Se puder, tenha à mão a profundidade do
-        poço, o diâmetro e a tensão da rede — com isso a conversa resolve em minutos.
+        poço, o diâmetro e a tensão da rede · com isso a conversa resolve em minutos.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">

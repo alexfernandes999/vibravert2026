@@ -12,7 +12,7 @@
 export const EMPRESA = {
   nome: "Vibra Vert Bombas Submersas Vibratórias",
   cnpj: "21.276.576/0001-56",
-  endereco: "Rua Charles Darwin, 707 — Vila Santa Catarina, São Paulo/SP",
+  endereco: "Rua Charles Darwin, 707 · Vila Santa Catarina, São Paulo/SP",
   telefone: "11 4000-2440",
   email: "vendas@vibravert.com.br",
 };
@@ -44,13 +44,13 @@ export const PAGINAS: Institucional[] = [
     titulo: "Trocas, devoluções e garantia",
     resumo: "Seu direito de arrependimento, defeitos e o prazo de garantia de cada modelo.",
     corpo: [
-      "## Arrependimento — 7 dias",
+      "## Arrependimento · 7 dias",
       "O artigo 49 do Código de Defesa do Consumidor dá a você o direito de desistir de uma compra feita pela internet em até **7 dias corridos** a partir do recebimento, sem precisar justificar. O produto deve estar sem uso e na embalagem original.",
       "Nesse caso, devolvemos o valor integral, incluindo o frete que você pagou.",
       "## Produto com defeito",
-      "Se a bomba apresentar defeito de fabricação, a assistência é nossa: quem conserta é a fábrica, não um posto terceirizado. Fale com a gente antes de enviar qualquer coisa — na maior parte dos casos o técnico identifica o problema pelo telefone.",
+      "Se a bomba apresentar defeito de fabricação, a assistência é nossa: quem conserta é a fábrica, não um posto terceirizado. Fale com a gente antes de enviar qualquer coisa · na maior parte dos casos o técnico identifica o problema pelo telefone.",
       "## Garantia",
-      "O prazo de garantia varia por modelo e está informado na ficha técnica de cada produto. É a garantia de fábrica contra defeito de fabricação, e não cobre mau uso — em especial, deixar a bomba trabalhar sem água, que é o que mais queima motor.",
+      "O prazo de garantia varia por modelo e está informado na ficha técnica de cada produto. É a garantia de fábrica contra defeito de fabricação, e não cobre mau uso · em especial, deixar a bomba trabalhar sem água, que é o que mais queima motor.",
       "Para acionar a garantia, guarde a nota fiscal e o certificado que vem na caixa.",
       "Quem compra aqui no site tem cobertura estendida em relação ao prazo de fábrica. O prazo total aplicável ao seu modelo está informado na ficha técnica do produto.",
       "## Como solicitar",

@@ -14,6 +14,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
  */
 const COOKIE = "vv_admin";
 const OITO_HORAS = 60 * 60 * 8;
+/** "Manter conectado": um mês. Quem opera a loja entra várias vezes por dia. */
+const UM_MES = 60 * 60 * 24 * 30;
 
 const segredo = () => process.env.ADMIN_SEGREDO ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
@@ -32,20 +34,23 @@ function comparar(a: string, b: string) {
 export async function autenticado() {
   const c = (await cookies()).get(COOKIE)?.value;
   if (!c) return false;
-  const [emitidoEm, assinatura] = c.split(".");
-  if (!emitidoEm || !assinatura) return false;
-  if (Date.now() - Number(emitidoEm) > OITO_HORAS * 1000) return false;
-  return comparar(assinatura, assinar(emitidoEm));
+  const [emitidoEm, duracao, assinatura] = c.split(".");
+  if (!emitidoEm || !duracao || !assinatura) return false;
+  // A duração vai assinada junto: se ficasse fora da assinatura, bastaria
+  // editá-la no navegador para transformar oito horas em dez anos.
+  if (Date.now() - Number(emitidoEm) > Number(duracao) * 1000) return false;
+  return comparar(assinatura, assinar(`${emitidoEm}.${duracao}`));
 }
 
-export async function entrar(senha: string) {
+export async function entrar(senha: string, manter = false) {
   const esperada = process.env.ADMIN_SENHA;
   if (!esperada) return { ok: false, erro: "ADMIN_SENHA não está definida no .env" };
   if (!comparar(senha, esperada)) return { ok: false, erro: "Senha incorreta" };
 
   const emitidoEm = String(Date.now());
-  (await cookies()).set(COOKIE, `${emitidoEm}.${assinar(emitidoEm)}`, {
-    maxAge: OITO_HORAS,
+  const duracao = String(manter ? UM_MES : OITO_HORAS);
+  (await cookies()).set(COOKIE, `${emitidoEm}.${duracao}.${assinar(`${emitidoEm}.${duracao}`)}`, {
+    maxAge: manter ? UM_MES : OITO_HORAS,
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

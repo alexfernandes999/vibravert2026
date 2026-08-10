@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { brl } from "@/lib/formato";
 import { revalidatePath } from "next/cache";
@@ -18,6 +19,7 @@ export default async function Produtos() {
       id: true, slug: true, nome: true, sku: true, marca: true, preco: true, ativo: true,
       voltagem: true, pocoPolegadas: true, versao: true, principalDaFamilia: true,
       _count: { select: { imagens: true, especificacoes: true } },
+      imagens: { where: { principal: true }, select: { url: true }, take: 1 },
     },
   });
 
@@ -33,7 +35,7 @@ export default async function Produtos() {
         <table className="w-full text-[12.5px]">
           <thead>
             <tr className="border-b border-linha text-left text-[10px] uppercase tracking-[0.12em] text-mudo">
-              <th className="px-4 py-2.5 font-bold">Produto</th>
+              <th className="px-4 py-2.5 font-bold" colSpan={2}>Produto</th>
               <th className="px-2 py-2.5 font-bold">SKU</th>
               <th className="px-2 py-2.5 font-bold">Versão</th>
               <th className="px-2 py-2.5 text-right font-bold">Preço</th>
@@ -44,7 +46,18 @@ export default async function Produtos() {
           <tbody>
             {produtos.map((p) => (
               <tr key={p.id} className="border-b border-linha last:border-0">
-                <td className="px-4 py-2">
+                <td className="w-14 py-1.5 pl-4">
+                  {p.imagens[0] && (
+                    <Image
+                      src={p.imagens[0].url}
+                      alt=""
+                      width={44}
+                      height={44}
+                      className="h-11 w-11 rounded-lg border border-linha object-cover"
+                    />
+                  )}
+                </td>
+                <td className="py-2 pl-2">
                   {p.principalDaFamilia && <span className="mr-1 text-ouro-escuro">★</span>}
                   <Link href={`/produto/${p.slug}`} className="font-semibold hover:underline">
                     {p.nome}

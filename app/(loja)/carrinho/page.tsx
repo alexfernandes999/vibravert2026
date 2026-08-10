@@ -83,7 +83,7 @@ export default async function Carrinho() {
         {!c.freteGratis && c.faltaParaFreteGratis > 0 && (
           <p className="mt-3 rounded-caixa border border-ouro/40 bg-ouro/10 px-4 py-3 text-[13px] font-semibold text-ouro-txt">
             Faltam <span className="num font-extrabold">{brl(c.faltaParaFreteGratis)}</span> para o
-            frete sair de graça — acima de {brl(FRETE_GRATIS_ACIMA)} não se paga entrega.
+            frete sair de graça · acima de {brl(FRETE_GRATIS_ACIMA)} não se paga entrega.
           </p>
         )}
       </div>

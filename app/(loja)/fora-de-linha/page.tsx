@@ -56,7 +56,7 @@ export default function ForaDeLinha() {
         <Link href="/fale-conosco" className="font-bold text-marca underline">
           Fale com a gente
         </Link>{" "}
-        — informe a profundidade e o diâmetro do seu poço.
+ · informe a profundidade e o diâmetro do seu poço.
       </p>
     </div>
   );
