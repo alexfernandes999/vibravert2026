@@ -88,11 +88,29 @@ async function token() {
   return d.token as string;
 }
 
-/** Códigos de contrato, que são diferentes dos públicos. Vêm do contrato. */
+/**
+ * Códigos de contrato, que são diferentes dos públicos.
+ *
+ * O adicional muda por serviço e não é intercambiável: pedir o 064 no SEDEX
+ * volta ERP-054. Vem junto do serviço para os dois nunca se separarem.
+ */
 const SERVICOS = [
-  { codigo: process.env.CORREIOS_SERVICO_PAC ?? "03298", nome: "PAC" },
-  { codigo: process.env.CORREIOS_SERVICO_SEDEX ?? "03220", nome: "SEDEX" },
+  { codigo: process.env.CORREIOS_SERVICO_PAC ?? "03298", nome: "PAC", declarado: "064" },
+  { codigo: process.env.CORREIOS_SERVICO_SEDEX ?? "03220", nome: "SEDEX", declarado: "019" },
 ];
+
+/**
+ * Valor declarado, dentro da faixa que os Correios aceitam.
+ *
+ * Sem declarar, uma bomba de setecentos reais extraviada é prejuízo inteiro da
+ * loja — os Correios indenizam o valor do frete, não o da mercadoria. Custa
+ * cerca de 1% a mais no frete, e é o seguro mais barato que existe.
+ *
+ * A faixa vem da própria API (ERP-013): abaixo do mínimo o adicional não é
+ * aceito, e acima do teto a cotação inteira é recusada.
+ */
+const DECLARADO_MIN = 25.63;
+const DECLARADO_MAX = 4668.29;
 
 export async function calcular(cepDestino: string, volumes: Volume[], subtotal: number): Promise<Opcao[]> {
   const cep = cepDestino.replace(/\D/g, "");
@@ -125,12 +143,25 @@ export async function calcular(cepDestino: string, volumes: Volume[], subtotal: 
           comprimento: String(Math.max(16, caixa.comprimentoCm)),
           largura: String(Math.max(11, caixa.larguraCm)),
           altura: String(Math.max(2, caixa.alturaCm)),
-          vlDeclarado: String(Math.min(subtotal, 10000).toFixed(2)),
+        });
+
+        // O valor sozinho volta ERP-052: os Correios querem o código do
+        // adicional declarado junto, e com ponto decimal, nunca vírgula.
+        if (subtotal >= DECLARADO_MIN) {
+          q.set("servicosAdicionais", s.declarado);
+          q.set("vlDeclarado", Math.min(subtotal, DECLARADO_MAX).toFixed(2));
+        }
+
+        // O prazo não conhece nem peso nem adicional: mandar os mesmos
+        // parâmetros do preço só aumenta a chance de recusa por validação.
+        const qp = new URLSearchParams({
+          cepOrigem: process.env.CORREIOS_CEP_ORIGEM!,
+          cepDestino: cep,
         });
 
         const [preco, prazo] = await Promise.all([
           fetch(`${API}/preco/v1/nacional/${s.codigo}?${q}`, { headers: { Authorization: `Bearer ${t}` } }).then((r) => r.json()),
-          fetch(`${API}/prazo/v1/nacional/${s.codigo}?${q}`, { headers: { Authorization: `Bearer ${t}` } }).then((r) => r.json()),
+          fetch(`${API}/prazo/v1/nacional/${s.codigo}?${qp}`, { headers: { Authorization: `Bearer ${t}` } }).then((r) => r.json()),
         ]);
 
         const valor = Number(String(preco.pcFinal ?? "0").replace(",", "."));
