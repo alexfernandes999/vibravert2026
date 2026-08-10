@@ -6,7 +6,7 @@ import { RedeLojas } from "@/components/rede-lojas";
 import { resumoCarrinho } from "@/lib/carrinho";
 import { Revelar } from "@/components/revelar";
 import { FaixaAvisos } from "@/components/faixa-avisos";
-import { BotaoWhatsapp } from "@/components/whatsapp";
+import { Vibrinha } from "@/components/vibrinha";
 import { AcoesCabecalho } from "@/components/acoes-cabecalho";
 import "../globals.css";
 
@@ -130,7 +130,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
         <main>{children}</main>
 
-        <BotaoWhatsapp />
+        <Vibrinha />
         <Revelar />
 
         <div className="mt-16 border-t border-linha bg-superficie">

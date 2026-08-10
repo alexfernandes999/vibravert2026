@@ -1,3 +1,4 @@
+import Image from "next/image";
 /**
  * Menção cruzada com as lojas do Grupo das Bombas ARF.
  *
@@ -16,7 +17,8 @@ export type Loja = {
   dominio: string;
   descricao: string;
   vitrine: string;
-  logo?: string;
+  logo: string;
+  alturaLogo: number;
 };
 
 export const LOJAS: Loja[] = [
@@ -25,18 +27,24 @@ export const LOJAS: Loja[] = [
     dominio: "acasasaopaulo.com.br",
     descricao: "Catálogo completo",
     vitrine: "Centrífugas, drenagem, pressurização e linha industrial",
+    logo: "/lojas/casa-sao-paulo.png",
+    alturaLogo: 168,
   },
   {
     nome: "Loja Oficial Schneider",
     dominio: "grupodasbombas.com.br",
     descricao: "Distribuidor autorizado Franklin Electric",
     vitrine: "Submersas tipo caneta, pressurização e motobombas",
+    logo: "/lojas/schneider.png",
+    alturaLogo: 103,
   },
   {
     nome: "Casa da Thebe",
     dominio: "casadathebe.com.br",
     descricao: "Distribuidor autorizado EBARA / Thebe",
     vitrine: "Multiestágio, drenagem e linha industrial",
+    logo: "/lojas/casa-thebe.png",
+    alturaLogo: 245,
   },
 ];
 
@@ -71,12 +79,20 @@ export function RedeLojas({
               href={comUtm(l.dominio, origem)}
               target="_blank"
               rel="noopener"
-              className="block h-full overflow-hidden rounded-caixa border border-linha border-t-[3px] border-t-ouro bg-superficie transition hover:border-marca-linha hover:shadow-lg hover:shadow-marca/5"
+              className="group block h-full overflow-hidden rounded-caixa border border-linha border-t-[3px] border-t-ouro bg-superficie transition duration-300 hover:-translate-y-1 hover:border-marca-linha hover:shadow-xl hover:shadow-marca/10"
             >
-              <div className="flex h-[68px] items-center justify-center border-b border-linha bg-superficie-2 px-4 text-center">
-                <span className="text-[15px] font-extrabold uppercase leading-tight tracking-tight text-marca-escuro">
-                  {l.nome}
-                </span>
+              {/* O logotipo real, e não o nome em texto: o visitante reconhece
+                  a marca pelo desenho antes de ler qualquer palavra. Altura fixa
+                  e object-contain para logotipos de proporções diferentes
+                  ficarem visualmente do mesmo tamanho. */}
+              <div className="flex h-[86px] items-center justify-center border-b border-linha bg-superficie-2 px-6">
+                <Image
+                  src={l.logo}
+                  alt={l.nome}
+                  width={420}
+                  height={l.alturaLogo}
+                  className="max-h-[52px] w-auto object-contain transition group-hover:scale-105"
+                />
               </div>
               <div className="p-4">
                 <p className="text-[13.5px] font-bold">{l.descricao}</p>

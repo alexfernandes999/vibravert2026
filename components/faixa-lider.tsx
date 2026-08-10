@@ -185,25 +185,83 @@ export function FaixaLider({
   );
 }
 
-/** Os quatro pontos que o marketplace não entrega. */
-export function FaixaConfianca() {
-  const pontos = [
-    ["Fábrica desde 1974", "a primeira fábrica de bombas submersas vibratórias do Brasil"],
-    ["A assistência é nossa", "quem conserta é a fábrica, não um posto terceirizado"],
-    ["Garantia estendida", "mais tempo de cobertura para quem compra aqui no site"],
-    ["27 estados", "Grupo das Bombas ARF, 28 anos de distribuição"],
-  ];
+/**
+ * Os quatro pontos que o marketplace não entrega.
+ *
+ * Cada um vira um cartão com ícone, que reage ao toque: numa loja de produto
+ * técnico esses argumentos são o que separa comprar aqui de comprar lá, e
+ * merecem peso de bloco, não de rodapé.
+ *
+ * No celular viram uma tira que desliza com encaixe, um cartão por vez. Empilhar
+ * quatro blocos altos empurraria os produtos para longe do primeiro olhar.
+ */
+const PONTOS = [
+  {
+    t: "Fábrica desde 1974",
+    d: "a primeira fábrica de bombas submersas vibratórias do Brasil",
+    icone: (
+      <>
+        <path d="M3 21V9l6-4 6 4v12" />
+        <path d="M15 21V11h6v10M1 21h22M7 13h2M7 17h2" />
+      </>
+    ),
+  },
+  {
+    t: "A assistência é nossa",
+    d: "quem conserta é a fábrica, não um posto terceirizado",
+    icone: (
+      <>
+        <path d="M14.7 6.3a4 4 0 01-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 015.4-5.4l-2.5 2.5-1.4-1.4 2.5-2.5z" />
+      </>
+    ),
+  },
+  {
+    t: "Garantia estendida",
+    d: "mais tempo de cobertura para quem compra aqui no site",
+    icone: (
+      <>
+        <path d="M12 3l8 3v6c0 5-3.4 8.1-8 9-4.6-.9-8-4-8-9V6z" />
+        <path d="M9 12l2 2 4-4" />
+      </>
+    ),
+  },
+  {
+    t: "27 estados",
+    d: "Grupo das Bombas ARF, 28 anos de distribuição",
+    icone: (
+      <>
+        <path d="M1.5 6.5h13v11h-13z" />
+        <path d="M14.5 10h4l3.5 3.5v4h-7.5z" />
+        <circle cx="6" cy="18.5" r="2" />
+        <circle cx="18" cy="18.5" r="2" />
+      </>
+    ),
+  },
+];
 
+export function FaixaConfianca() {
   return (
     <section className="border-y border-linha bg-superficie">
-      <dl className="mx-auto grid max-w-7xl gap-6 px-5 py-7 sm:grid-cols-2 lg:grid-cols-4">
-        {pontos.map(([t, d]) => (
-          <div key={t} className="revelar border-l-2 border-ouro pl-3.5">
-            <dt className="text-[14px] font-extrabold tracking-tight">{t}</dt>
-            <dd className="mt-0.5 text-[12.8px] leading-snug text-mudo">{d}</dd>
-          </div>
+      <ul className="mx-auto flex max-w-7xl snap-x snap-mandatory gap-3 overflow-x-auto px-5 py-8 [scrollbar-width:none] sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible lg:grid-cols-4">
+        {PONTOS.map((p) => (
+          <li
+            key={p.t}
+            className="revelar group w-[78vw] shrink-0 snap-center rounded-caixa border border-linha bg-superficie p-5 transition duration-300 hover:-translate-y-1 hover:border-marca hover:bg-marca-suave hover:shadow-lg hover:shadow-marca/10 sm:w-auto"
+          >
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-marca-suave text-marca transition group-hover:bg-marca group-hover:text-white">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="h-6 w-6">
+                {p.icone}
+              </svg>
+            </span>
+            <p className="mt-3.5 text-[15px] font-extrabold tracking-tight">{p.t}</p>
+            <p className="mt-1 text-[13px] leading-snug text-mudo">{p.d}</p>
+            <span
+              aria-hidden
+              className="mt-3.5 block h-[3px] w-8 rounded-full bg-ouro transition-all duration-300 group-hover:w-16"
+            />
+          </li>
         ))}
-      </dl>
+      </ul>
     </section>
   );
 }
