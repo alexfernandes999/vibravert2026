@@ -64,7 +64,6 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
     !configurado && "Mercado Pago sem credencial · nenhum pedido pode ser cobrado.",
     !emailOk && "E-mail não configurado · o comprador não recebe confirmação nem rastreio.",
     !freteOk && "Correios sem contrato · o frete usa valor fixo em vez de calcular por CEP.",
-    !CONTROLA_ESTOQUE && "Controle de estoque desligado · a loja vende sem verificar quantidade.",
     semGarantia > 0 && `${semGarantia} produto(s) sem prazo de garantia publicado.`,
     semCurva > 0 && `${semCurva} produto(s) sem curva de vazão · ficam fora da calculadora.`,
   ].filter(Boolean) as string[];
@@ -193,10 +192,15 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
 
         <section className="rounded-caixa border border-linha bg-superficie">
           <h2 className="flex items-baseline border-b border-linha px-4 py-3 text-[13.5px] font-extrabold">
-            Estoque baixo
+            {CONTROLA_ESTOQUE ? "Estoque baixo" : "Estoque"}
             <Link href="/admin/estoque" className="ml-auto text-[12px] font-bold text-marca">Ver todos</Link>
           </h2>
-          {baixo.length === 0 ? (
+          {!CONTROLA_ESTOQUE ? (
+            <p className="p-4 text-[13px] leading-relaxed text-mudo">
+              A quantidade não é controlada por SKU: a fábrica produz sob demanda e a loja vende
+              sem travar por estoque.
+            </p>
+          ) : baixo.length === 0 ? (
             <p className="p-4 text-[13px] text-mudo">Nada abaixo do mínimo.</p>
           ) : (
             <ul className="divide-y divide-linha">

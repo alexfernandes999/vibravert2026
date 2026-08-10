@@ -485,9 +485,9 @@ async function main() {
             principal: img.principal,
           })),
         },
-        // o estoque da VTEX vem como 99.999 — placeholder, não quantidade real.
-        // Entra como zero para o alerta do painel não nascer mentindo.
-        estoque: { create: { quantidade: 0, minimo: 5 } },
+        // O estoque fica como na VTEX, por decisão do cliente: a fábrica não
+        // controla quantidade por SKU, produz sob demanda.
+        estoque: { create: { quantidade: p.estoque ?? 0, minimo: 0 } },
       },
     });
 

@@ -19,12 +19,11 @@ export const DESCONTO_PIX = 0.05;
 export const PARCELAS_SEM_JUROS = 6;
 
 /**
- * Enquanto o estoque não vier do ERP, todos os produtos estão com quantidade
- * zero — o cadastro da VTEX marcava 99.999 em tudo, que é o mesmo que não
- * controlar. Bloquear a venda por esse número impediria qualquer compra;
- * ignorá-lo sem avisar levaria a vender o que não existe.
+ * A fábrica não controla quantidade por SKU: produz sob demanda, e o cadastro
+ * da VTEX sempre marcou disponibilidade aberta. Decisão do cliente, não
+ * pendência.
  *
- * A trava fica desligada e explícita: quando houver quantidade real, é só
- * ligar aqui.
+ * Se um dia houver contagem real vinda do ERP, basta ligar aqui: o carrinho e
+ * o checkout já respeitam esta chave.
  */
 export const CONTROLA_ESTOQUE = false;
