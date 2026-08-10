@@ -32,6 +32,18 @@ function comparar(a: string, b: string) {
   return ba.length === bb.length && timingSafeEqual(ba, bb);
 }
 
+/**
+ * Só a senha, sem emitir cookie.
+ *
+ * A tela que mostra o QR do autenticador precisa disto: a senha é suficiente
+ * para ver o QR, e não é suficiente para entrar. São autorizações diferentes, e
+ * misturá-las num único `entrar()` seria abrir a porta pela metade.
+ */
+export function conferirSenha(senha: string) {
+  const esperada = process.env.ADMIN_SENHA;
+  return Boolean(esperada) && comparar(senha, esperada!);
+}
+
 export async function autenticado() {
   const c = (await cookies()).get(COOKIE)?.value;
   if (!c) return false;

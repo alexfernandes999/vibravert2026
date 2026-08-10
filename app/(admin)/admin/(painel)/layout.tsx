@@ -13,6 +13,7 @@ const MENU = [
   { href: "/admin/estoque", r: "Estoque", grupo: "" },
   { href: "/admin/banners", r: "Banners e vitrine", grupo: "Loja" },
   { href: "/admin/videos", r: "Vídeos", grupo: "Loja" },
+  { href: "/admin/seguranca", r: "Segurança", grupo: "Conta" },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

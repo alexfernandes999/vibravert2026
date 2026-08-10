@@ -13,7 +13,7 @@ export function GraficoVendas({ dias }: { dias: { dia: string; total: number }[]
 
   if (!temDado) {
     return (
-      <div className="flex h-[190px] flex-col items-center justify-center gap-1 px-6 text-center">
+      <div className="flex h-[130px] flex-col items-center justify-center gap-1 px-6 text-center">
         <p className="text-[13.5px] font-bold text-tinta-2">Ainda não há vendas</p>
         <p className="text-[12.5px] text-mudo">
           O gráfico começa a desenhar no primeiro pedido pago.
@@ -22,7 +22,7 @@ export function GraficoVendas({ dias }: { dias: { dia: string; total: number }[]
     );
   }
 
-  const W = 620, H = 190, L = 46, R = 10, T = 14, B = 26;
+  const W = 900, H = 150, L = 42, R = 8, T = 12, B = 22;
   const iw = W - L - R, ih = H - T - B;
   const max = Math.max(...dias.map((d) => d.total));
   const teto = Math.ceil(max / 100) * 100 || 100;
@@ -38,14 +38,14 @@ export function GraficoVendas({ dias }: { dias: { dia: string; total: number }[]
     n >= 1000 ? `${(n / 1000).toFixed(1).replace(".", ",")}k` : String(Math.round(n));
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img"
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-[150px] w-full" role="img"
       aria-label={`Faturamento diário dos últimos ${dias.length} dias. Máximo de R$ ${max.toFixed(2)}.`}>
       {[0, 1, 2, 3].map((k) => {
         const v = (teto / 3) * k;
         return (
           <g key={k}>
             <line x1={L} y1={py(v)} x2={W - R} y2={py(v)} stroke="var(--color-linha)" strokeWidth={1} />
-            <text x={L - 8} y={py(v) + 3.5} textAnchor="end" fontSize="9.5" fill="var(--color-tenue)" fontWeight="600">
+            <text x={L - 8} y={py(v) + 3.5} textAnchor="end" fontSize="11" fill="var(--color-tenue)" fontWeight="600">
               {brl(v)}
             </text>
           </g>
@@ -58,7 +58,7 @@ export function GraficoVendas({ dias }: { dias: { dia: string; total: number }[]
 
       {[0, Math.floor(dias.length / 2), dias.length - 1].map((i) => (
         <text key={i} x={px(i)} y={H - 7} textAnchor={i === 0 ? "start" : i === dias.length - 1 ? "end" : "middle"}
-          fontSize="9.5" fill="var(--color-tenue)" fontWeight="600">
+          fontSize="11" fill="var(--color-tenue)" fontWeight="600">
           {dias[i].dia}
         </text>
       ))}

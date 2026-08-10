@@ -3,6 +3,7 @@ import Image from "next/image";
 import { entrar, autenticado } from "@/lib/admin-auth";
 import { ativo as doisFatoresAtivo } from "@/lib/dois-fatores";
 import { FormLoginAdmin } from "@/components/form-login-admin";
+import { Cadastro2FA } from "@/components/cadastro-2fa";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,7 @@ export default async function Entrar({ searchParams }: { searchParams: Promise<{
         <h1 className="mt-5 text-lg font-extrabold tracking-tight">Administração</h1>
         <p className="mt-1 text-[12.5px] text-mudo">Oi! Entra aí que eu te espero do outro lado.</p>
         <FormLoginAdmin acao={acao} erro={erro} doisFatores={doisFatoresAtivo} />
+        {doisFatoresAtivo && <Cadastro2FA />}
       </div>
     </div>
   );

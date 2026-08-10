@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { PedidoStatus } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { brl } from "@/lib/formato";
 import { configurado } from "@/lib/mercadopago";
@@ -11,6 +12,29 @@ import { GraficoVendas } from "@/components/grafico-vendas";
 import { Funil, PorCanal, PorEstado, PorPagamento } from "@/components/painel-comercial";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * Dado de demonstração precisa se anunciar.
+ *
+ * Um painel cheio de números que ninguém sabe se são reais é pior que um
+ * painel vazio: alguém toma decisão em cima disso. O aviso fica no alto, com o
+ * botão que apaga tudo num clique.
+ */
+async function limparExemplo() {
+  "use server";
+  const clientes = await prisma.cliente.findMany({
+    where: { email: { endsWith: "@demo.vibravert" } },
+    select: { id: true },
+  });
+  const ids = clientes.map((c) => c.id);
+  if (ids.length) {
+    await prisma.pedido.deleteMany({ where: { clienteId: { in: ids } } });
+    await prisma.endereco.deleteMany({ where: { clienteId: { in: ids } } });
+    await prisma.cliente.deleteMany({ where: { id: { in: ids } } });
+  }
+  await prisma.evento.deleteMany({ where: { sessao: { startsWith: "demo-" } } });
+  revalidatePath("/admin", "layout");
+}
 
 const PAGOS: PedidoStatus[] = ["PAGO", "SEPARANDO", "ENVIADO", "ENTREGUE"];
 
@@ -44,6 +68,8 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
       distinct: ["sessao"],
     }),
   ]);
+
+  const temExemplo = await prisma.cliente.count({ where: { email: { endsWith: "@demo.vibravert" } } });
 
   const fat = Number(agg._sum.total ?? 0);
   const passo = (e: string) => etapas.find((x) => x.etapa === e)?._count.sessao ?? 0;
@@ -86,6 +112,23 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
           ))}
         </nav>
       </div>
+
+      {temExemplo > 0 && (
+        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-caixa border border-marca-linha bg-marca-suave px-4 py-3">
+          <span className="rounded-md bg-marca px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
+            Exemplo
+          </span>
+          <p className="text-[13px] font-semibold text-marca">
+            Os números abaixo são de demonstração, para mostrar como o painel se comporta com
+            movimento. Nenhuma venda real aconteceu ainda.
+          </p>
+          <form action={limparExemplo} className="ml-auto">
+            <button className="rounded-lg border border-marca bg-superficie px-3.5 py-1.5 text-[12.5px] font-bold text-marca">
+              Apagar os dados de exemplo
+            </button>
+          </form>
+        </div>
+      )}
 
       <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi r="Faturamento" v={brl(fat)} />
