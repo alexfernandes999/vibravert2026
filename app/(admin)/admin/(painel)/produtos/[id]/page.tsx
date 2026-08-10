@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { registrarAcao } from "@/lib/admin-auth";
 import { brl } from "@/lib/formato";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +35,8 @@ async function salvar(id: string, dados: FormData) {
       destaque: dados.get("destaque") === "on",
     },
   });
+
+  await registrarAcao("editou o produto");
 
   revalidatePath("/admin/produtos");
   revalidatePath("/", "layout");

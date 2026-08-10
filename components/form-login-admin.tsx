@@ -18,11 +18,9 @@ import { useFormStatus } from "react-dom";
 export function FormLoginAdmin({
   acao,
   erro,
-  doisFatores = false,
 }: {
   acao: (dados: FormData) => void;
   erro?: string;
-  doisFatores?: boolean;
 }) {
   const [visivel, setVisivel] = useState(false);
   const [ajuda, setAjuda] = useState(false);
@@ -31,12 +29,22 @@ export function FormLoginAdmin({
     <>
       <form action={acao}>
         <label className="mt-4 block">
+          <span className="mb-1.5 block text-[12.5px] font-bold">Usuário</span>
+          <input
+            name="login"
+            autoFocus
+            autoCapitalize="none"
+            autoComplete="username"
+            className="w-full rounded-lg border border-linha-2 bg-superficie px-3 py-2.5 text-[14px] font-semibold"
+          />
+        </label>
+
+        <label className="mt-3.5 block">
           <span className="mb-1.5 block text-[12.5px] font-bold">Senha</span>
           <span className="relative block">
             <input
               name="senha"
               type={visivel ? "text" : "password"}
-              autoFocus
               autoComplete="current-password"
               className="w-full rounded-lg border border-linha-2 bg-superficie px-3 py-2.5 pr-11 text-[14px] font-semibold"
             />
@@ -69,11 +77,10 @@ export function FormLoginAdmin({
           </p>
         )}
 
-        {doisFatores && (
-          <label className="mt-3.5 block">
+        <label className="mt-3.5 block">
             <span className="mb-1.5 block text-[12.5px] font-bold">
               Código do aplicativo
-              <span className="ml-1.5 font-medium text-mudo">(6 dígitos)</span>
+              <span className="ml-1.5 font-medium text-mudo">deixe em branco no primeiro acesso</span>
             </span>
             <input
               name="codigo"
@@ -83,8 +90,7 @@ export function FormLoginAdmin({
               placeholder="000000"
               className="num w-full rounded-lg border border-linha-2 bg-superficie px-3 py-2.5 text-center text-[20px] font-extrabold tracking-[0.35em]"
             />
-          </label>
-        )}
+        </label>
 
         <label className="mt-3.5 flex cursor-pointer items-center gap-2.5 text-[12.8px] font-semibold text-tinta-2">
           <input
@@ -111,18 +117,15 @@ export function FormLoginAdmin({
       {ajuda && (
         <div className="mt-3 rounded-lg border border-linha bg-superficie-2 p-4 text-[12.8px] leading-relaxed text-tinta-2">
           <p>
-            O painel usa <strong className="font-bold">uma senha só</strong>, compartilhada pela
-            equipe · ainda não há conta por pessoa, então não há como enviar um link de
-            recuperação por e-mail.
+            Cada pessoa tem a sua conta. Peça a quem cuida do sistema para redefinir a sua senha ·
+            é um comando, e sai uma senha nova na hora.
           </p>
           <p className="mt-2.5">
-            Peça a senha a quem administra a loja. Se ninguém tiver, ela pode ser trocada em{" "}
-            <strong className="font-bold">Vercel → Settings → Environment Variables → ADMIN_SENHA</strong>,
-            publicando o site em seguida.
+            Perdeu o celular do autenticador? A mesma pessoa desliga o segundo fator da sua conta, e
+            você cadastra de novo no próximo acesso.
           </p>
           <p className="mt-2.5 text-mudo">
-            Quando cada pessoa tiver o seu acesso, este passa a ser um “recuperar por e-mail” de
-            verdade.
+            Recuperação por e-mail entra quando o envio de e-mails estiver ligado.
           </p>
         </div>
       )}

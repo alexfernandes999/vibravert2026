@@ -1,0 +1,427 @@
+<title>Loja Oficial Vibra Vert · o que falta para vender</title>
+<style>
+  :root {
+    --tinta: #101623;
+    --tinta-2: #3c4557;
+    --mudo: #737d8f;
+    --papel: #f6f7fa;
+    --superficie: #ffffff;
+    --linha: #e0e5ee;
+    --linha-2: #c9d1e0;
+    --marca: #14307a;
+    --marca-clara: #2a4ba8;
+    --marca-suave: #eaeff9;
+    --ouro: #a8791f;
+    --ouro-suave: #f8f1e0;
+    --bom: #12694a;
+    --bom-suave: #e4f1ea;
+    --sombra: 0 1px 2px rgba(16,22,35,.05), 0 8px 24px -12px rgba(16,22,35,.14);
+  }
+  :root:not([data-theme="light"]) { }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --tinta: #eaeef6;
+      --tinta-2: #b3bccd;
+      --mudo: #7d879a;
+      --papel: #0d111a;
+      --superficie: #151b28;
+      --linha: #262f42;
+      --linha-2: #38445e;
+      --marca: #7d9bea;
+      --marca-clara: #a3baf5;
+      --marca-suave: #17223c;
+      --ouro: #d6a747;
+      --ouro-suave: #2a2214;
+      --bom: #5cc79a;
+      --bom-suave: #10281f;
+      --sombra: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --tinta: #eaeef6;
+    --tinta-2: #b3bccd;
+    --mudo: #7d879a;
+    --papel: #0d111a;
+    --superficie: #151b28;
+    --linha: #262f42;
+    --linha-2: #38445e;
+    --marca: #7d9bea;
+    --marca-clara: #a3baf5;
+    --marca-suave: #17223c;
+    --ouro: #d6a747;
+    --ouro-suave: #2a2214;
+    --bom: #5cc79a;
+    --bom-suave: #10281f;
+    --sombra: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--papel);
+    color: var(--tinta);
+    font: 400 16px/1.62 ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+  .env { max-width: 812px; margin: 0 auto; padding: 0 24px 96px; }
+  h1, h2, h3 { text-wrap: balance; letter-spacing: -.021em; margin: 0; }
+  p { margin: 0; }
+  a { color: var(--marca); }
+  code, .mono {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    font-size: .9em;
+  }
+
+  /* ── topo ─────────────────────────────────────────── */
+  header { padding: 60px 0 34px; }
+  .eyebrow {
+    font-size: 11.5px; font-weight: 800; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--marca);
+  }
+  h1 { font-size: clamp(30px, 5.4vw, 42px); font-weight: 800; line-height: 1.1; margin-top: 12px; }
+  .sub { margin-top: 14px; font-size: 17.5px; line-height: 1.6; color: var(--tinta-2); max-width: 60ch; }
+
+  /* ── acesso ───────────────────────────────────────── */
+  .acessos { display: grid; gap: 12px; margin-top: 30px; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); }
+  .acesso {
+    background: var(--superficie); border: 1px solid var(--linha);
+    border-radius: 13px; padding: 17px 19px; box-shadow: var(--sombra);
+  }
+  .acesso .rot { font-size: 11.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--mudo); }
+  .acesso a { display: block; margin-top: 5px; font-size: 15.5px; font-weight: 700; text-decoration: none; word-break: break-all; }
+  .acesso a:hover { text-decoration: underline; }
+  .acesso .nota { margin-top: 7px; font-size: 13px; color: var(--mudo); }
+
+  /* ── seções ───────────────────────────────────────── */
+  section { margin-top: 52px; }
+  h2 {
+    font-size: 13px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase;
+    color: var(--marca); padding-bottom: 11px; border-bottom: 2px solid var(--marca);
+  }
+  .intro { margin-top: 18px; font-size: 16px; color: var(--tinta-2); max-width: 66ch; }
+
+  /* ── lista do que funciona ────────────────────────── */
+  .pronto { list-style: none; padding: 0; margin: 20px 0 0; display: grid; gap: 3px; }
+  .pronto li {
+    display: grid; grid-template-columns: 21px 1fr; gap: 11px; align-items: start;
+    padding: 9px 0; border-bottom: 1px solid var(--linha);
+  }
+  .pronto li:last-child { border-bottom: 0; }
+  .tick { color: var(--bom); font-weight: 800; line-height: 1.5; }
+  .pronto b { font-weight: 700; }
+  .pronto span { display: block; font-size: 14.2px; color: var(--mudo); line-height: 1.5; margin-top: 1px; }
+
+  /* ── passos numerados ─────────────────────────────── */
+  .passos { counter-reset: p; display: grid; gap: 14px; margin-top: 22px; }
+  .passo {
+    background: var(--superficie); border: 1px solid var(--linha);
+    border-radius: 14px; padding: 21px 23px 23px; box-shadow: var(--sombra);
+    position: relative;
+  }
+  .passo::before {
+    counter-increment: p; content: counter(p);
+    position: absolute; top: 20px; left: 23px;
+    width: 25px; height: 25px; border-radius: 7px;
+    background: var(--marca); color: #fff;
+    font-size: 13px; font-weight: 800; display: grid; place-items: center;
+  }
+  .passo > * { margin-left: 37px; }
+  .passo h3 { font-size: 17.5px; font-weight: 800; line-height: 1.32; }
+  .passo .porque { margin-top: 8px; font-size: 14.8px; color: var(--tinta-2); line-height: 1.58; }
+  .passo ol, .passo ul { margin: 13px 0 0; padding-left: 19px; font-size: 14.8px; color: var(--tinta-2); }
+  .passo li { margin-bottom: 6px; line-height: 1.55; }
+  .passo li:last-child { margin-bottom: 0; }
+  .selo {
+    display: inline-block; margin-bottom: 9px; padding: 3px 9px; border-radius: 6px;
+    font-size: 10.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+  }
+  .selo.trava { background: var(--ouro-suave); color: var(--ouro); }
+  .selo.espera { background: var(--marca-suave); color: var(--marca); }
+
+  /* ── caixa de aviso ───────────────────────────────── */
+  .aviso {
+    margin-top: 13px; padding: 13px 16px; border-radius: 0 10px 10px 0;
+    background: var(--ouro-suave); border-left: 3px solid var(--ouro);
+    font-size: 14.2px; line-height: 1.55; color: var(--tinta-2);
+  }
+  .aviso b { color: var(--ouro); }
+  .aviso.azul { background: var(--marca-suave); border-left-color: var(--marca); }
+  .aviso.azul b { color: var(--marca); }
+  .aviso.verde { background: var(--bom-suave); border-left-color: var(--bom); }
+  .aviso.verde b { color: var(--bom); }
+
+  /* ── tabela ───────────────────────────────────────── */
+  .rolagem { overflow-x: auto; margin-top: 16px; border-radius: 11px; border: 1px solid var(--linha); }
+  table { width: 100%; border-collapse: collapse; background: var(--superficie); font-size: 14.5px; }
+  th, td { padding: 10px 15px; text-align: left; border-bottom: 1px solid var(--linha); white-space: nowrap; }
+  th { font-size: 11.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--mudo); }
+  td:last-child, th:last-child { text-align: right; }
+  tr:last-child td { border-bottom: 0; }
+  td b { font-weight: 700; }
+
+  /* ── credenciais ──────────────────────────────────── */
+  .chave {
+    display: grid; grid-template-columns: auto 1fr; gap: 4px 15px; align-items: baseline;
+    margin-top: 14px; padding: 15px 18px; border-radius: 11px;
+    background: var(--marca-suave); border: 1px solid var(--linha);
+    font-size: 14.5px;
+  }
+  .chave dt { font-weight: 700; color: var(--tinta-2); }
+  .chave dd { margin: 0; font-weight: 700; }
+
+  footer {
+    margin-top: 62px; padding-top: 22px; border-top: 1px solid var(--linha);
+    font-size: 13.5px; color: var(--mudo); line-height: 1.65;
+  }
+</style>
+
+<div class="env">
+
+<header>
+  <p class="eyebrow">Vibra Vert · Rymer</p>
+  <h1>A loja está de pé. Falta ligar o pagamento.</h1>
+  <p class="sub">
+    Os 48 produtos das duas marcas próprias já estão publicados, com ficha técnica conferida
+    embalagem por embalagem, frete calculado pelos Correios e painel administrativo funcionando.
+    O que falta depende de credenciais que só você consegue.
+  </p>
+
+  <div class="acessos">
+    <div class="acesso">
+      <p class="rot">Loja</p>
+      <a href="https://vibravert-loja.vercel.app">vibravert-loja.vercel.app</a>
+      <p class="nota">Aberta, mas invisível para o Google de propósito enquanto for endereço de teste.</p>
+    </div>
+    <div class="acesso">
+      <p class="rot">Painel</p>
+      <a href="https://vibravert-loja.vercel.app/admin">vibravert-loja.vercel.app/admin</a>
+      <p class="nota">Pedidos, estoque, produtos, banners, vídeos e relatórios de venda.</p>
+    </div>
+  </div>
+</header>
+
+<section>
+  <h2>Como entrar no painel</h2>
+  <p class="intro">
+    O painel pede a senha e um código de 6 dígitos que muda a cada 30 segundos, gerado por um
+    aplicativo no seu celular. Assim, senha descoberta não basta para entrar.
+  </p>
+
+  <dl class="chave">
+    <dt>Senha</dt><dd class="mono">bomba-motor-1547</dd>
+    <dt>Código</dt><dd>gerado pelo Google Authenticator</dd>
+  </dl>
+
+  <div class="passos">
+    <div class="passo">
+      <h3>Instale o aplicativo e cadastre a conta</h3>
+      <p class="porque">É uma vez só, e depois disso o celular gera o código sozinho.</p>
+      <ol>
+        <li>Instale o <b>Google Authenticator</b> pela loja de aplicativos. Microsoft Authenticator,
+            Authy, 1Password e Bitwarden também servem.</li>
+        <li>Abra <a href="https://vibravert-loja.vercel.app/admin">o painel</a> e toque em
+            <b>“Primeira vez? Eu te ajudo a ligar o autenticador”</b>, logo abaixo do botão de entrar.</li>
+        <li>Digite a senha do painel. Aparece um quadrado preto e azul, o QR.</li>
+        <li>No aplicativo, toque em <b>+</b> e depois em <b>Ler código QR</b>. Aponte a câmera para o quadrado.</li>
+        <li>O aplicativo passa a mostrar 6 dígitos. Digite-os no campo de conferência ali mesmo,
+            para a gente ter certeza de que funcionou antes de você precisar.</li>
+      </ol>
+      <div class="aviso azul">
+        <b>Guarde o QR fora do celular.</b> Se o aparelho sumir e não houver cópia, ninguém entra
+        no painel sem mexer na configuração do servidor. Tire uma foto e guarde, ou cadastre em
+        dois celulares. Depois de entrar, o mesmo QR fica em <b>Segurança</b>, no menu do painel.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>O que já funciona</h2>
+  <ul class="pronto">
+    <li><span class="tick">✓</span><div><b>48 produtos publicados</b>
+      <span>31 Vibra Vert e 17 Rymer, com foto, preço, medida e voltagem.</span></div></li>
+    <li><span class="tick">✓</span><div><b>Ficha técnica conferida na embalagem</b>
+      <span>Curva de vazão por altura de instalação, diâmetro mínimo do poço e prazo real de garantia.</span></div></li>
+    <li><span class="tick">✓</span><div><b>Calculadora de bomba</b>
+      <span>Diz quanto cada modelo entrega na profundidade do cliente, e não só a vazão máxima do catálogo.</span></div></li>
+    <li><span class="tick">✓</span><div><b>Frete dos Correios por CEP</b>
+      <span>PAC e SEDEX lado a lado, com prazo, peso cubado e valor declarado. Ligado com o contrato 9912392511.</span></div></li>
+    <li><span class="tick">✓</span><div><b>Carrinho e checkout completos</b>
+      <span>Busca de endereço pelo CEP, escolha do frete e cálculo do desconto do PIX.</span></div></li>
+    <li><span class="tick">✓</span><div><b>Painel comercial</b>
+      <span>Faturamento, funil de vendas, origem do tráfego, mapa por estado e carrinhos abandonados.</span></div></li>
+    <li><span class="tick">✓</span><div><b>Controle de estoque</b>
+      <span>900 unidades cadastradas por produto, com aviso quando cai abaixo do mínimo.</span></div></li>
+    <li><span class="tick">✓</span><div><b>SEO e Google Shopping</b>
+      <span>Feed de produtos pronto, dados estruturados com frete e devolução, e redirecionamento das URLs antigas.</span></div></li>
+    <li><span class="tick">✓</span><div><b>Vibrinha, o atendimento no site</b>
+      <span>Faz as perguntas de triagem e passa a conversa para o WhatsApp já com o diagnóstico.</span></div></li>
+  </ul>
+
+  <div class="aviso verde">
+    <b>Os pedidos que você vê no painel são de demonstração.</b> Servem para você avaliar as telas
+    com movimento, já que loja nova não tem venda. Estão marcados como <b>Exemplo</b> no alto do
+    painel e somem num clique, no botão ao lado do aviso.
+  </div>
+</section>
+
+<section>
+  <h2>O que falta, e depende de você</h2>
+  <p class="intro">
+    Na ordem em que travam a venda. O primeiro é o único que impede de faturar hoje.
+  </p>
+
+  <div class="passos">
+
+    <div class="passo">
+      <span class="selo trava">Trava a venda</span>
+      <h3>Mercado Pago: liberar a cobrança</h3>
+      <p class="porque">
+        As credenciais que você mandou autenticam, mas não conseguem criar cobrança. A API responde
+        <code>401 Unauthorized use of live credentials</code>, que quer dizer que a aplicação existe
+        mas ainda não está autorizada a receber dinheiro.
+      </p>
+      <ol>
+        <li>Entre em <b>mercadopago.com.br/developers</b> → <b>Suas integrações</b> → a aplicação.</li>
+        <li>Se aparecer aviso pedindo para completar dados do negócio, complete. É isso que costuma
+            segurar a autorização.</li>
+        <li>Abra <b>Credenciais de teste</b> e me mande a <b>Public Key</b> e o <b>Access Token</b>
+            (começam com <code>TEST-</code>). Com eles a loja passa a fechar pedidos de mentira, de
+            ponta a ponta, sem mover dinheiro.</li>
+        <li>Quando a aplicação for aprovada, me mande as de <b>produção</b> e a loja passa a cobrar
+            de verdade.</li>
+      </ol>
+    </div>
+
+    <div class="passo">
+      <span class="selo trava">Trava a venda</span>
+      <h3>Cadastrar uma chave PIX no Mercado Pago</h3>
+      <p class="porque">
+        Consultando os meios de pagamento ativos da conta aparecem cartão, boleto e saldo, mas
+        <b>não aparece PIX</b>. Isso importa: o PIX é o meio com 5% de desconto anunciado na loja
+        inteira, e é o que mais converte. Sem a chave, a promessa da vitrine não se cumpre.
+      </p>
+      <ul>
+        <li>No aplicativo ou site do Mercado Pago: <b>Seu negócio</b> → <b>Configurações</b> →
+            <b>PIX</b> → criar chave.</li>
+        <li>Não precisa me mandar nada. Assim que a chave existir, a loja passa a oferecer o PIX sozinha.</li>
+      </ul>
+    </div>
+
+    <div class="passo">
+      <span class="selo trava">Trava a venda</span>
+      <h3>Nota fiscal: qual sistema a fábrica usa</h3>
+      <p class="porque">
+        É o único bloqueio legal. Vender pela internet sem emitir nota não é uma questão de
+        preferência, e o Mercado Pago pede a nota em caso de disputa.
+      </p>
+      <ul>
+        <li>Me diga o que a fábrica usa hoje: <b>Bling</b>, <b>Tiny</b>, <b>Omie</b>, emissor da
+            prefeitura, ou outro.</li>
+        <li>Se já usa um desses, a loja se conecta a ele e a nota sai sozinha quando o pagamento cai.</li>
+        <li>Se hoje é manual, dá para começar assim: o pedido chega no painel e alguém emite. Funciona
+            para o volume inicial, mas não escala.</li>
+      </ul>
+    </div>
+
+    <div class="passo">
+      <span class="selo espera">Antes de abrir</span>
+      <h3>E-mails automáticos de pedido</h3>
+      <p class="porque">
+        Confirmação de pedido, pagamento aprovado, envio com rastreio e recuperação de carrinho
+        abandonado. Os quatro já estão desenhados com o logotipo e a Vibrinha, e só falta a chave.
+      </p>
+      <ol>
+        <li>Crie conta grátis em <b>resend.com</b> e adicione o domínio <b>vibravert.com.br</b>.</li>
+        <li>O Resend mostra registros de <b>SPF</b> e <b>DKIM</b> para colocar no DNS.</li>
+        <li>Me mande a <b>API key</b> e o endereço remetente que prefere, por exemplo
+            <code>pedidos@vibravert.com.br</code>.</li>
+      </ol>
+      <div class="aviso">
+        <b>Cuidado no DNS.</b> O e-mail da empresa está na Locaweb, e já existe um registro SPF lá.
+        Os registros novos entram <b>ao lado</b> dos que existem. Se alguém substituir o SPF em vez
+        de acrescentar, o e-mail da empresa inteira para de ser entregue no mesmo dia.
+      </div>
+    </div>
+
+    <div class="passo">
+      <span class="selo espera">Antes de abrir</span>
+      <h3>Celular de WhatsApp da loja</h3>
+      <p class="porque">
+        O botão flutuante e a Vibrinha entregam a conversa no WhatsApp. Hoje apontam para o fixo, e
+        mensagem enviada para número fixo não chega em ninguém: o cliente acha que foi ignorado.
+      </p>
+      <ul><li>Me mande o número de celular com DDD que vai atender a loja.</li></ul>
+    </div>
+
+    <div class="passo">
+      <span class="selo espera">Antes de abrir</span>
+      <h3>Foto da embalagem da Vibra Vert 800</h3>
+      <p class="porque">
+        Oito produtos estão publicados sem a curva de vazão e sem o prazo de garantia da fábrica,
+        porque não tenho a embalagem dessa linha. São eles que a calculadora não consegue responder.
+      </p>
+      <ul>
+        <li>Produtos: <code>VT-8A</code>, <code>VT-8B</code>, <code>VTBO-8A</code>, <code>VTBO-8B</code>,
+            <code>VTKIT-8A</code>, <code>VTKIT-8B</code>, <code>VTBOKIT-8A</code>, <code>VTBOKIT-8B</code>.</li>
+        <li>Preciso da tabela de vazão por altura e do prazo de garantia impresso.</li>
+      </ul>
+    </div>
+
+    <div class="passo">
+      <span class="selo espera">No dia de abrir</span>
+      <h3>Apontar o domínio vibravert.com.br</h3>
+      <p class="porque">
+        Enquanto a loja estiver no endereço de teste, ela está <b>bloqueada para o Google de
+        propósito</b>. Isso evita que o endereço temporário seja indexado e passe a competir com o
+        site oficial nos resultados de busca.
+      </p>
+      <ul>
+        <li>Quando você aprovar, mudamos o DNS e a loja assume o domínio.</li>
+        <li>As URLs antigas dos 48 produtos já redirecionam para as novas, então a posição no Google
+            é transferida em vez de perdida.</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <h2>Uma decisão comercial para você tomar</h2>
+  <p class="intro">
+    Agora que o frete é calculado de verdade, dá para ver quanto custa a promessa de <b>frete grátis
+    acima de R$ 399</b>. Estes são valores reais dos Correios, PAC, saindo da fábrica com uma bomba
+    de 5&nbsp;kg num pedido de R$ 433:
+  </p>
+
+  <div class="rolagem">
+    <table>
+      <thead><tr><th>Destino</th><th>Custo do PAC</th><th>Do pedido</th></tr></thead>
+      <tbody>
+        <tr><td>São Paulo</td><td><b>R$ 30,52</b></td><td>7,0%</td></tr>
+        <tr><td>Minas, Paraná, Goiás</td><td><b>R$ 36,91</b></td><td>8,5%</td></tr>
+        <tr><td>Bahia, Mato Grosso</td><td><b>R$ 40,86</b></td><td>9,4%</td></tr>
+        <tr><td>Ceará, Pará</td><td><b>R$ 45,14</b></td><td>10,4%</td></tr>
+        <tr><td>Acre</td><td><b>R$ 53,36</b></td><td>12,3%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="aviso">
+    <b>O frete varia pouco: entre R$ 30 e R$ 53 para o Brasil inteiro.</b> Isso é bom, porque um
+    limite único funciona bem. Mas com o corte em R$ 399 a loja entrega de 7% a 12% do pedido em
+    frete, e isso sai direto da margem. Me diga qual é a sua margem nessas bombas e eu calculo o
+    limite que preserva o desconto do PIX sem comer o lucro. O valor de hoje foi um chute meu, não
+    uma conta.
+  </div>
+</section>
+
+<footer>
+  <p>
+    Loja Oficial Vibra Vert · ambiente de testes · atualizado em 10 de agosto de 2026.<br>
+    Qualquer dúvida sobre qualquer passo daqui, é só chamar.
+  </p>
+</footer>
+
+</div>

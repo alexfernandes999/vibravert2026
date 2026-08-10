@@ -1,17 +1,20 @@
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { conferir, ativo as doisFatoresAtivo } from "@/lib/dois-fatores";
+import type { PapelUsuario } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import { conferirSenhaHash } from "@/lib/senha";
+import { conferir } from "@/lib/dois-fatores";
 
 /**
- * Porta do painel.
+ * Porta do painel, com uma conta por pessoa.
  *
- * Uma senha única e um cookie assinado — não é gestão de usuários, e não
- * pretende ser. É o suficiente para o painel não ficar aberto na internet
- * enquanto a loja não tem contas de verdade, e a troca por autenticação real
- * (Supabase Auth, com um usuário por pessoa) toca só este arquivo.
+ * Antes era uma senha só, compartilhada. Isso funcionava com uma pessoa e
+ * quebra com duas: não dá para saber quem trocou o preço, tirar o acesso de
+ * alguém obriga a trocar a senha de todo mundo, e o segundo fator mora num
+ * celular só.
  *
- * O cookie leva assinatura HMAC: sem ela, bastaria alguém escrever
- * `admin=1` no navegador para entrar.
+ * O cookie leva o id do usuário e uma assinatura HMAC. Sem a assinatura,
+ * bastaria escrever outro id no navegador para virar outra pessoa.
  */
 const COOKIE = "vv_admin";
 const OITO_HORAS = 60 * 60 * 8;
@@ -27,58 +30,125 @@ function assinar(valor: string) {
 function comparar(a: string, b: string) {
   const ba = Buffer.from(a);
   const bb = Buffer.from(b);
-  // Comparar em tempo constante: um `===` vaza, pelo tempo de resposta,
-  // quantos caracteres iniciais estavam certos.
   return ba.length === bb.length && timingSafeEqual(ba, bb);
 }
 
+export type Sessao = {
+  id: string;
+  login: string;
+  nome: string;
+  papel: PapelUsuario;
+};
+
 /**
- * Só a senha, sem emitir cookie.
+ * Quem está logado, ou null.
  *
- * A tela que mostra o QR do autenticador precisa disto: a senha é suficiente
- * para ver o QR, e não é suficiente para entrar. São autorizações diferentes, e
- * misturá-las num único `entrar()` seria abrir a porta pela metade.
+ * Consulta o banco a cada verificação em vez de confiar no que está no cookie.
+ * É uma consulta por navegação, e é o que faz "desativar o usuário" ter efeito
+ * imediato — com os dados dentro do cookie, alguém desativado continuaria
+ * entrando até o cookie vencer, o que pode ser um mês.
  */
-export function conferirSenha(senha: string) {
-  const esperada = process.env.ADMIN_SENHA;
-  return Boolean(esperada) && comparar(senha, esperada!);
+export async function usuarioAtual(): Promise<Sessao | null> {
+  const c = (await cookies()).get(COOKIE)?.value;
+  if (!c) return null;
+
+  const [id, emitidoEm, duracao, assinatura] = c.split(".");
+  if (!id || !emitidoEm || !duracao || !assinatura) return null;
+  // A duração vai assinada junto: se ficasse fora da assinatura, bastaria
+  // editá-la no navegador para transformar oito horas em dez anos.
+  if (Date.now() - Number(emitidoEm) > Number(duracao) * 1000) return null;
+  if (!comparar(assinatura, assinar(`${id}.${emitidoEm}.${duracao}`))) return null;
+
+  const u = await prisma.usuario.findUnique({
+    where: { id },
+    select: { id: true, login: true, nome: true, papel: true, ativo: true },
+  });
+  if (!u || !u.ativo) return null;
+
+  return { id: u.id, login: u.login, nome: u.nome, papel: u.papel };
 }
 
 export async function autenticado() {
-  const c = (await cookies()).get(COOKIE)?.value;
-  if (!c) return false;
-  const [emitidoEm, duracao, assinatura] = c.split(".");
-  if (!emitidoEm || !duracao || !assinatura) return false;
-  // A duração vai assinada junto: se ficasse fora da assinatura, bastaria
-  // editá-la no navegador para transformar oito horas em dez anos.
-  if (Date.now() - Number(emitidoEm) > Number(duracao) * 1000) return false;
-  return comparar(assinatura, assinar(`${emitidoEm}.${duracao}`));
+  return (await usuarioAtual()) !== null;
 }
 
-export async function entrar(senha: string, manter = false, codigo = "") {
-  const esperada = process.env.ADMIN_SENHA;
-  if (!esperada) return { ok: false, erro: "ADMIN_SENHA não está definida no .env" };
-  if (!comparar(senha, esperada)) return { ok: false, erro: "Senha incorreta" };
+/** Só quem desenvolve vê integrações, credenciais e diagnóstico técnico. */
+export async function ehDesenvolvedor() {
+  return (await usuarioAtual())?.papel === "DESENVOLVEDOR";
+}
 
-  // O segundo fator só é exigido quando há segredo configurado. Assim ligar e
-  // desligar é trocar uma variável, sem alterar código nem trancar ninguém
-  // para fora por engano.
-  if (doisFatoresAtivo && !conferir(codigo)) {
-    return { ok: false, erro: codigo ? "Código inválido ou expirado" : "Informe o código do aplicativo" };
-  }
-
+async function abrirSessao(id: string, manter: boolean) {
   const emitidoEm = String(Date.now());
   const duracao = String(manter ? UM_MES : OITO_HORAS);
-  (await cookies()).set(COOKIE, `${emitidoEm}.${duracao}.${assinar(`${emitidoEm}.${duracao}`)}`, {
+  (await cookies()).set(COOKIE, `${id}.${emitidoEm}.${duracao}.${assinar(`${id}.${emitidoEm}.${duracao}`)}`, {
     maxAge: manter ? UM_MES : OITO_HORAS,
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
   });
-  return { ok: true };
+}
+
+/**
+ * Entrar.
+ *
+ * A resposta de erro é sempre a mesma para login inexistente e senha errada.
+ * Distinguir os dois entrega a lista de quem tem acesso a quem estiver
+ * tentando.
+ */
+export async function entrar(login: string, senha: string, manter = false, codigo = "") {
+  const u = await prisma.usuario.findUnique({
+    where: { login: login.trim().toLowerCase() },
+  });
+
+  if (!u || !u.ativo || !(await conferirSenhaHash(senha, u.senhaHash))) {
+    return { ok: false as const, erro: "Usuário ou senha incorretos" };
+  }
+
+  // O segundo fator só é exigido de quem já cadastrou o aplicativo. Assim
+  // ninguém fica trancado do lado de fora no dia em que a conta é criada.
+  if (u.segredo2FA && !conferir(codigo, u.segredo2FA)) {
+    return {
+      ok: false as const,
+      erro: codigo ? "Código inválido ou expirado" : "Informe o código do aplicativo",
+    };
+  }
+
+  await prisma.usuario.update({ where: { id: u.id }, data: { ultimoAcesso: new Date() } });
+  await abrirSessao(u.id, manter);
+  return { ok: true as const, precisaCadastrar2FA: !u.segredo2FA };
+}
+
+/**
+ * Confere a senha sem abrir sessão.
+ *
+ * A tela do QR precisa disto: a senha basta para ver o próprio QR, e não basta
+ * para entrar. São autorizações diferentes.
+ */
+export async function conferirSenhaDe(usuarioId: string, senha: string) {
+  const u = await prisma.usuario.findUnique({
+    where: { id: usuarioId },
+    select: { senhaHash: true, ativo: true },
+  });
+  return Boolean(u?.ativo) && conferirSenhaHash(senha, u!.senhaHash);
 }
 
 export async function sair() {
   (await cookies()).delete(COOKIE);
+}
+
+/**
+ * Trilha de auditoria.
+ *
+ * Falha em silêncio de propósito: não registrar é ruim, mas derrubar a ação
+ * que a pessoa acabou de fazer por causa do registro é pior.
+ */
+export async function registrarAcao(acao: string, alvo?: string, detalhe?: string) {
+  const u = await usuarioAtual();
+  if (!u) return;
+  try {
+    await prisma.registro.create({ data: { usuarioId: u.id, acao, alvo, detalhe } });
+  } catch (e) {
+    console.error("[auditoria] não registrou:", e);
+  }
 }

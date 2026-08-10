@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
+import { registrarAcao } from "@/lib/admin-auth";
 import { brl } from "@/lib/formato";
 import { revalidatePath } from "next/cache";
 
@@ -9,6 +10,7 @@ export const dynamic = "force-dynamic";
 async function alternarAtivo(id: string, ativo: boolean) {
   "use server";
   await prisma.produto.update({ where: { id }, data: { ativo } });
+  await registrarAcao("alterou o produto");
   revalidatePath("/admin/produtos");
 }
 

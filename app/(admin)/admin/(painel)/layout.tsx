@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import { autenticado, sair } from "@/lib/admin-auth";
+import { usuarioAtual, sair } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -14,10 +14,14 @@ const MENU = [
   { href: "/admin/banners", r: "Banners e vitrine", grupo: "Loja" },
   { href: "/admin/videos", r: "Vídeos", grupo: "Loja" },
   { href: "/admin/seguranca", r: "Segurança", grupo: "Conta" },
+  { href: "/admin/equipe", r: "Equipe e registros", grupo: "Conta", soDev: true },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  if (!(await autenticado())) redirect("/admin/entrar");
+  const eu = await usuarioAtual();
+  if (!eu) redirect("/admin/entrar");
+
+  const menu = MENU.filter((m) => !m.soDev || eu.papel === "DESENVOLVEDOR");
 
   const [aSeparar, estoqueBaixo] = await Promise.all([
     prisma.pedido.count({ where: { status: { in: ["PAGO", "SEPARANDO"] } } }),
@@ -37,9 +41,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </Link>
 
         <nav className="mt-4 flex flex-col gap-0.5">
-          {MENU.map((m, i) => (
+          {menu.map((m, i) => (
             <span key={m.href}>
-              {m.grupo && MENU[i - 1]?.grupo !== m.grupo && (
+              {m.grupo && menu[i - 1]?.grupo !== m.grupo && (
                 <span className="block px-2.5 pb-1.5 pt-4 text-[9.5px] font-extrabold uppercase tracking-[0.14em] text-tenue">
                   {m.grupo}
                 </span>
@@ -59,9 +63,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           ))}
         </nav>
 
-        <form action={async () => { "use server"; await sair(); redirect("/admin/entrar"); }} className="mt-6 border-t border-linha pt-4">
-          <button className="text-[12.5px] font-semibold text-mudo underline underline-offset-2">Sair</button>
-        </form>
+        {/* Quem está logado fica visível: em máquina compartilhada, agir sem
+            saber em nome de quem é o jeito de a auditoria virar ficção. */}
+        <div className="mt-6 border-t border-linha pt-4">
+          <p className="text-[12.5px] font-bold leading-tight">{eu.nome}</p>
+          <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-mudo">
+            {eu.papel === "DESENVOLVEDOR" ? "Desenvolvedor" : "Operador"}
+          </p>
+          <form action={async () => { "use server"; await sair(); redirect("/admin/entrar"); }}>
+            <button className="mt-2 text-[12.5px] font-semibold text-mudo underline underline-offset-2">Sair</button>
+          </form>
+        </div>
       </aside>
 
       <main className="min-w-0 bg-fundo">{children}</main>

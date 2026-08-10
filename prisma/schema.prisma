@@ -448,3 +448,60 @@ model PedidoItem {
   @@map("pedidos_itens")
   @@schema("vibravert")
 }
+
+/// Quem opera a loja.
+///
+/// Substitui a senha única compartilhada. Uma conta por pessoa resolve três
+/// coisas que uma senha só não resolve: dá para saber quem mexeu no preço,
+/// dá para tirar o acesso de uma pessoa sem trocar a senha de todo mundo, e
+/// cada um tem o seu próprio segundo fator, no seu próprio celular.
+model Usuario {
+  id    String @id @default(cuid())
+  login String @unique
+  nome  String
+  email String @unique
+
+  /// scrypt com sal por usuário. Nunca a senha em texto.
+  senhaHash String
+  /// Segredo TOTP, um por pessoa. Perder o celular afeta só quem o perdeu.
+  segredo2FA String?
+
+  papel PapelUsuario @default(OPERADOR)
+  ativo Boolean      @default(true)
+
+  ultimoAcesso DateTime?
+  criadoEm     DateTime  @default(now())
+  atualizadoEm DateTime  @updatedAt
+
+  registros Registro[]
+
+  @@schema("vibravert")
+}
+
+enum PapelUsuario {
+  /// Mexe na loja: pedidos, estoque, produtos, banners.
+  OPERADOR
+  /// Tudo do operador, mais as integrações e o diagnóstico técnico.
+  DESENVOLVEDOR
+
+  @@schema("vibravert")
+}
+
+/// Trilha de auditoria.
+///
+/// Preço trocado, pedido cancelado, produto desativado: sem registro, a
+/// pergunta "quem fez isso" não tem resposta, e numa loja com mais de uma
+/// pessoa essa pergunta sempre aparece.
+model Registro {
+  id        String   @id @default(cuid())
+  usuarioId String
+  acao      String
+  alvo      String?
+  detalhe   String?
+  criadoEm  DateTime @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([criadoEm])
+  @@schema("vibravert")
+}

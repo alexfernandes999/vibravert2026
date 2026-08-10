@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { registrarAcao } from "@/lib/admin-auth";
 import { brl } from "@/lib/formato";
 import { revalidatePath } from "next/cache";
 import type { PedidoStatus } from "@prisma/client";
@@ -28,6 +29,8 @@ async function avancar(id: string, para: PedidoStatus) {
     });
     if (p) await pedidoEnviado(p);
   }
+
+  await registrarAcao("mudou a situação do pedido");
 
   revalidatePath("/admin/pedidos");
 }

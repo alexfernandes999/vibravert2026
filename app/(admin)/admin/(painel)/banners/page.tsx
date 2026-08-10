@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { registrarAcao } from "@/lib/admin-auth";
 import { revalidatePath } from "next/cache";
 import type { BannerPosicao } from "@prisma/client";
 
@@ -13,6 +14,7 @@ const POSICOES: { v: BannerPosicao; r: string; d: string }[] = [
 async function alternar(id: string, ativo: boolean) {
   "use server";
   await prisma.banner.update({ where: { id }, data: { ativo } });
+  await registrarAcao("mexeu nos banners");
   revalidatePath("/", "layout");
 }
 

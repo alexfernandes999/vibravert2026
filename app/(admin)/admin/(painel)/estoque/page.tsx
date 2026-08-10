@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
+import { registrarAcao } from "@/lib/admin-auth";
 import { revalidatePath } from "next/cache";
 import { CONTROLA_ESTOQUE } from "@/lib/loja";
 
@@ -15,6 +16,7 @@ async function gravar(dados: FormData) {
     update: { quantidade: q },
     create: { produtoId: id, quantidade: q },
   });
+  await registrarAcao("ajustou o estoque");
   revalidatePath("/admin/estoque");
 }
 

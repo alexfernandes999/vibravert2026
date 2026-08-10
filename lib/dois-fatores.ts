@@ -8,15 +8,12 @@ import { createHmac, timingSafeEqual, randomBytes } from "node:crypto";
  * quarenta linhas de HMAC, e uma biblioteca a mais no caminho do login é uma
  * superfície a mais para se preocupar.
  *
- * O segredo mora numa variável de ambiente, como a senha. Enquanto não houver
- * conta por pessoa, um segredo compartilhado é o que faz sentido — e já resolve
- * o caso que importa: senha vazada não basta para entrar.
+ * Cada pessoa tem o seu segredo, guardado na própria conta: senha vazada não
+ * basta para entrar, e quem perde o celular não derruba o acesso dos outros.
  */
 const ALFABETO = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 const PASSO = 30;
 const DIGITOS = 6;
-
-export const ativo = Boolean(process.env.ADMIN_2FA_SECRET);
 
 /** Base32 sem preenchimento, que é o formato que os aplicativos leem. */
 export function gerarSegredo(bytes = 20) {
@@ -54,7 +51,7 @@ function codigoNoInstante(segredo: string, contador: number) {
  * isso faz o usuário achar que o aplicativo está quebrado. Uma janela de trinta
  * segundos para cada lado é o que a própria RFC recomenda.
  */
-export function conferir(codigo: string, segredo = process.env.ADMIN_2FA_SECRET) {
+export function conferir(codigo: string, segredo: string | null | undefined) {
   if (!segredo) return false;
   const limpo = codigo.replace(/\D/g, "");
   if (limpo.length !== DIGITOS) return false;

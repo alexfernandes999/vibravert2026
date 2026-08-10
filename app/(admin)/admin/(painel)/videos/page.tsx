@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { registrarAcao } from "@/lib/admin-auth";
 import { revalidatePath } from "next/cache";
 import type { TipoVideo } from "@prisma/client";
 
@@ -29,6 +30,8 @@ async function salvar(dados: FormData) {
 
   if (id) await prisma.video.update({ where: { id }, data: { titulo, resumo, familia, tipo } });
   else await prisma.video.create({ data: { youtubeId: youtubeId!, titulo, resumo, familia, tipo, ativo: true } });
+
+  await registrarAcao("mexeu nos vídeos");
 
   revalidatePath("/admin/videos");
   revalidatePath("/", "layout");

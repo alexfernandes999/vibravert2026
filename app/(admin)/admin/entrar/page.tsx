@@ -1,9 +1,7 @@
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import { entrar, autenticado } from "@/lib/admin-auth";
-import { ativo as doisFatoresAtivo } from "@/lib/dois-fatores";
 import { FormLoginAdmin } from "@/components/form-login-admin";
-import { Cadastro2FA } from "@/components/cadastro-2fa";
 
 export const dynamic = "force-dynamic";
 
@@ -14,11 +12,15 @@ export default async function Entrar({ searchParams }: { searchParams: Promise<{
   async function acao(dados: FormData) {
     "use server";
     const r = await entrar(
+      String(dados.get("login") ?? ""),
       String(dados.get("senha") ?? ""),
       dados.get("manter") === "on",
       String(dados.get("codigo") ?? ""),
     );
-    redirect(r.ok ? "/admin" : `/admin/entrar?erro=${encodeURIComponent(r.erro ?? "Erro")}`);
+    if (!r.ok) redirect(`/admin/entrar?erro=${encodeURIComponent(r.erro)}`);
+    // Quem ainda não tem autenticador vai direto cadastrar. Deixar para depois
+    // significa nunca: a conta fica só com senha e ninguém lembra de voltar.
+    redirect(r.precisaCadastrar2FA ? "/admin/seguranca?novo=1" : "/admin");
   }
 
   return (
@@ -30,8 +32,7 @@ export default async function Entrar({ searchParams }: { searchParams: Promise<{
         </div>
         <h1 className="mt-5 text-lg font-extrabold tracking-tight">Administração</h1>
         <p className="mt-1 text-[12.5px] text-mudo">Oi! Entra aí que eu te espero do outro lado.</p>
-        <FormLoginAdmin acao={acao} erro={erro} doisFatores={doisFatoresAtivo} />
-        {doisFatoresAtivo && <Cadastro2FA />}
+        <FormLoginAdmin acao={acao} erro={erro} />
       </div>
     </div>
   );

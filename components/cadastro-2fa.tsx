@@ -20,8 +20,8 @@ const APLICATIVOS = [
   { nome: "1Password · Bitwarden", nota: "se já usa um" },
 ];
 
-export function Cadastro2FA() {
-  const [aberto, setAberto] = useState(false);
+export function Cadastro2FA({ abertoDeInicio = false }: { abertoDeInicio?: boolean }) {
+  const [aberto, setAberto] = useState(abertoDeInicio);
   const [dados, setDados] = useState<Cadastro | null>(null);
   const [senha, setSenha] = useState("");
   const [codigo, setCodigo] = useState("");
@@ -49,8 +49,8 @@ export function Cadastro2FA() {
       >
         <Image src="/vibrinha.png" alt="" width={30} height={30} className="shrink-0 rounded-full" />
         <span className="text-[12.5px] font-semibold leading-tight text-tinta-2">
-          Primeira vez? <span className="text-marca underline underline-offset-2">Eu te ajudo a
-          ligar o autenticador</span>
+          <span className="text-marca underline underline-offset-2">Cadastrar o autenticador
+          no celular</span>
         </span>
       </button>
     );
@@ -64,7 +64,7 @@ export function Cadastro2FA() {
           <p className="text-[13px] font-extrabold text-marca">Vibrinha</p>
           <p className="mt-0.5 text-[12.8px] leading-relaxed text-tinta-2">
             {!dados?.ok
-              ? "Vamos ligar o código de 6 dígitos no seu celular. Leva um minuto e é só uma vez. Primeiro me confirma a senha do painel, só para eu saber que é você."
+              ? "Vamos ligar o código de 6 dígitos no seu celular. Leva um minuto e é só uma vez. Primeiro me confirma a sua senha, só para eu saber que é você."
               : !prova?.ok
                 ? "Pronto. Abre o aplicativo autenticador no celular, aponta a câmera para o quadrado e depois digita aqui o código que aparecer, para a gente conferir."
                 : "É isso. A partir de agora o aplicativo mostra um código novo a cada 30 segundos, e é ele que você digita junto com a senha."}
@@ -195,7 +195,7 @@ export function Cadastro2FA() {
 
           <p className="mt-3 rounded-lg bg-superficie px-3 py-2.5 text-[11.8px] leading-relaxed text-mudo">
             Guarde este QR fora do celular, num lugar seguro. Se o aparelho sumir e não houver
-            cópia, ninguém entra no painel sem trocar a variável no Vercel.
+            cópia, quem cuida do sistema desliga o segundo fator da sua conta e você cadastra de novo.
           </p>
         </div>
       )}
