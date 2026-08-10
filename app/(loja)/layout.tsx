@@ -7,6 +7,7 @@ import { resumoCarrinho } from "@/lib/carrinho";
 import { Revelar } from "@/components/revelar";
 import { FaixaAvisos } from "@/components/faixa-avisos";
 import { Vibrinha } from "@/components/vibrinha";
+import { RodapePagamento } from "@/components/rodape-pagamento";
 import { AcoesCabecalho } from "@/components/acoes-cabecalho";
 import "../globals.css";
 
@@ -170,17 +171,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </ul>
             </div>
             <div>
-              <h2 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-marca">
-                Pagamento
-              </h2>
-              <p className="text-[13px] font-medium text-tinta-2">
-                PIX · Cartão em até {6}× · Boleto
-              </p>
-              <p className="mt-4 text-[13px] font-medium text-tinta-2">
-                Atendimento de segunda a sexta, das 8h às 18h
-              </p>
+              <RodapePagamento />
             </div>
           </div>
+
           <div className="border-t border-linha px-5 py-4 text-center text-[11.5px] font-medium text-mudo">
             © {new Date().getFullYear()} Vibra Vert Bombas Submersas Vibratórias · Indústria Brasileira
           </div>

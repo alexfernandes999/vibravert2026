@@ -20,7 +20,7 @@ export type ProdutoVitrine = {
  * entra. Por isso os três aparecem já na prateleira, e não escondidos dentro
  * da página do produto.
  */
-export function CartaoProduto({ p }: { p: ProdutoVitrine }) {
+export function CartaoProduto({ p, lider = false }: { p: ProdutoVitrine; lider?: boolean }) {
   const capa = p.imagens[0];
   const preco = Number(p.preco);
 
@@ -38,8 +38,16 @@ export function CartaoProduto({ p }: { p: ProdutoVitrine }) {
             sizes="(max-width: 640px) 50vw, 300px"
           />
         ) : null}
+        {lider && (
+          <span className="absolute left-0 top-3 flex items-center gap-1.5 rounded-r-full bg-ouro py-1 pl-2.5 pr-3 text-[10px] font-extrabold uppercase tracking-wide text-ouro-txt shadow-md">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5">
+              <path d="M12 2l2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 15.8 6.6 18.7l1.2-6.1L3.3 8.4l6.1-.8z" />
+            </svg>
+            Líder em vendas
+          </span>
+        )}
         {p.saiaProtecao && (
-          <span className="absolute left-2.5 top-2.5 rounded bg-ciano px-1.5 py-0.5 text-[9.5px] font-extrabold uppercase tracking-wider text-white">
+          <span className="absolute right-2.5 top-2.5 rounded bg-ciano px-1.5 py-0.5 text-[9.5px] font-extrabold uppercase tracking-wider text-white">
             Com saia
           </span>
         )}
@@ -72,11 +80,19 @@ export function CartaoProduto({ p }: { p: ProdutoVitrine }) {
           )}
         </ul>
 
-        <div className="mt-auto pt-1.5">
-          <p className="num text-xl font-extrabold tracking-tight">{brl(preco)}</p>
-          <p className="num text-[11.5px] font-bold text-bom">{brl(precoPix(preco))} no PIX</p>
-          <p className="num text-[11.5px] font-semibold text-mudo">
-            ou {PARCELAS_MAX}× de {brl(parcela(preco))}
+        {/* O preço do PIX vem primeiro e maior. É o valor que a pessoa vai
+            pagar de verdade, e ancorar por ele em vez de pelo cheio é o que
+            faz o desconto trabalhar a favor da venda. */}
+        <div className="mt-auto pt-2">
+          <p className="num text-[11.5px] font-semibold text-mudo line-through">{brl(preco)}</p>
+          <p className="num text-[22px] font-extrabold leading-tight tracking-tight text-bom">
+            {brl(precoPix(preco))}
+          </p>
+          <p className="text-[11px] font-extrabold uppercase tracking-wide text-bom">
+            à vista no PIX
+          </p>
+          <p className="num mt-1.5 rounded-md bg-superficie-2 px-2 py-1 text-[11.5px] font-bold text-tinta-2">
+            ou {PARCELAS_MAX}× de {brl(parcela(preco))} sem juros
           </p>
         </div>
       </div>

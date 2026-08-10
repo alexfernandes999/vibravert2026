@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { SeletorVersao } from "@/components/seletor-versao";
 import { CartaoProduto } from "@/components/cartao-produto";
 import { Medir } from "@/components/medir";
+import { Galeria } from "@/components/galeria";
 import { Video } from "@/components/video";
 import { BotaoComprar } from "@/components/botao-comprar";
 import { brl, precoPix, parcela, PARCELAS_MAX, ALTURAS_MCA, litros } from "@/lib/formato";
@@ -110,30 +111,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
       </nav>
 
       <div className="grid gap-10 md:grid-cols-2">
-        <div>
-          <div className="flex items-center justify-center rounded-caixa border border-linha bg-superficie-2 p-8">
-            {capa && (
-              <Image
-                src={capa.url}
-                alt={capa.alt}
-                width={640}
-                height={640}
-                priority
-                className="h-80 w-auto object-contain"
-                sizes="(max-width: 768px) 100vw, 560px"
-              />
-            )}
-          </div>
-          {p.imagens.length > 1 && (
-            <ul className="mt-3 flex gap-2 overflow-x-auto">
-              {p.imagens.slice(0, 8).map((img) => (
-                <li key={img.url} className="shrink-0 rounded-lg border border-linha bg-superficie-2 p-1.5">
-                  <Image src={img.url} alt={img.alt} width={64} height={64} className="h-14 w-14 object-contain" />
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <Galeria imagens={p.imagens} nome={p.nome} />
 
         <div>
           <p className="text-[10.5px] font-extrabold uppercase tracking-[0.16em] text-marca">{p.marca}</p>

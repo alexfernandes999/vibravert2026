@@ -176,7 +176,7 @@ export default async function Home() {
 
       <FaixaConfianca />
 
-      <Prateleira titulo="Mais vendidas" produtos={maisVendidas} />
+      <Prateleira titulo="Mais vendidas" produtos={maisVendidas} lider />
 
       {/* Esta posição é um banner, e só. Antes havia uma composição de texto
           com coroa, número e métricas · e um espaço de banner embaixo dela, o
@@ -210,27 +210,69 @@ export default async function Home() {
 
       <Prateleira titulo="Preços imbatíveis" produtos={precos} verTudo="/bombas?ordem=preco" />
 
-      {/* A história por último e em banda estreita: quem quer comprar já passou
-          por dez blocos de venda antes de chegar aqui. A credencial de 1974 não
-          sai do lado do preço · é lá que mora o medo de "vai queimar em três
-          meses", não numa página institucional. */}
-      <section className="mt-4 border-y border-linha bg-superficie-2">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 px-5 py-7">
-          <div>
-            <h2 className="text-lg font-extrabold tracking-tight">
+      {/* A história fecha a página, mas em bloco com foto, não em linha de texto.
+          É a última coisa que o visitante vê antes de decidir, e a credencial de
+          meio século pesa mais com um produto ao lado do que sozinha.
+          A foto sai do catálogo; quando houver imagem da fábrica, troca aqui. */}
+      <section className="relative mt-6 overflow-hidden bg-marca-escuro text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "radial-gradient(700px 400px at 85% 50%, rgba(245,185,33,.14), transparent 65%)" }}
+        />
+        <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 py-14 lg:grid-cols-[1.1fr_.9fr]">
+          <div className="revelar">
+            <p className="text-[10.5px] font-extrabold uppercase tracking-[0.2em] text-ouro">
+              Indústria brasileira
+            </p>
+            <h2 className="mt-3 text-balance text-3xl font-extrabold leading-tight tracking-tight md:text-4xl">
               Fabricamos bomba submersa vibratória desde 1974
             </h2>
-            <p className="mt-1 max-w-2xl text-[14px] text-mudo">
+            <p className="mt-3.5 max-w-xl text-[15px] leading-relaxed text-white/70">
               Fomos a primeira fábrica do país. A marca Rymer vem de 1958, quando o fundador
-              aprendeu o ofício na Rymer Bombas.
+              aprendeu o ofício na Rymer Bombas, e voltou às nossas mãos em 2003.
             </p>
+
+            <dl className="mt-7 flex flex-wrap gap-x-10 gap-y-5">
+              {[
+                ["1958", "origem da marca Rymer"],
+                ["1974", "primeira fábrica do país"],
+                ["27", "estados atendidos"],
+              ].map(([v, r]) => (
+                <div key={r}>
+                  <dd className="num text-3xl font-extrabold leading-none tracking-tight text-ouro">{v}</dd>
+                  <dt className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-white/50">{r}</dt>
+                </div>
+              ))}
+            </dl>
+
+            <Link
+              href="/sobre"
+              className="mt-8 inline-flex items-center gap-2 rounded-lg bg-ouro px-6 py-3.5 text-[14px] font-extrabold text-ouro-txt transition hover:brightness-110"
+            >
+              Conheça a nossa história
+              <span aria-hidden>→</span>
+            </Link>
           </div>
-          <Link
-            href="/sobre"
-            className="rounded-lg bg-marca-escuro px-5 py-2.5 text-[13.5px] font-bold text-white"
-          >
-            Conheça a nossa história →
-          </Link>
+
+          {destaque?.imagens[0] && (
+            <div className="revelar relative overflow-hidden rounded-caixa border border-white/10">
+              <span className="relative block aspect-[4/3]">
+                <Image
+                  src={destaque.imagens[0].url}
+                  alt="Bomba submersa vibratória fabricada pela Vibra Vert"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 520px"
+                  className="object-cover"
+                />
+              </span>
+              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-marca-escuro to-transparent p-4 pt-12">
+                <span className="text-[11.5px] font-bold text-white/80">
+                  Produzida na nossa fábrica em São Paulo
+                </span>
+              </span>
+            </div>
+          )}
         </div>
       </section>
     </>
@@ -241,10 +283,12 @@ function Prateleira({
   titulo,
   produtos,
   verTudo = "/bombas",
+  lider = false,
 }: {
   titulo: string;
   produtos: React.ComponentProps<typeof CartaoProduto>["p"][];
   verTudo?: string;
+  lider?: boolean;
 }) {
   if (!produtos.length) return null;
   return (
@@ -257,7 +301,7 @@ function Prateleira({
       </div>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {produtos.map((p) => (
-          <CartaoProduto key={p.slug} p={p} />
+          <CartaoProduto key={p.slug} p={p} lider={lider} />
         ))}
       </div>
     </section>
