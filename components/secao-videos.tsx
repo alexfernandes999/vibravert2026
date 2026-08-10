@@ -22,17 +22,22 @@ export function SecaoVideos({
   if (!videos.length) return null;
 
   return (
-    <section className="border-y border-linha bg-superficie-2">
-      <div className="mx-auto max-w-7xl px-5 py-12">
+    <section className="relative overflow-hidden bg-marca-escuro text-white">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "radial-gradient(800px 400px at 20% 0%, rgba(31,101,145,.5), transparent 65%)" }}
+      />
+      <div className="relative mx-auto max-w-7xl px-5 py-14">
         <div className="flex flex-wrap items-end gap-4">
           <div>
-            <p className="text-[10.5px] font-extrabold uppercase tracking-[0.18em] text-marca">
+            <p className="text-[10.5px] font-extrabold uppercase tracking-[0.2em] text-ouro">
               Canal Vibra Vert
             </p>
-            <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-balance">
+            <h2 className="mt-2.5 text-2xl font-extrabold tracking-tight text-balance md:text-3xl">
               Veja a bomba funcionando antes de comprar
             </h2>
-            <p className="mt-1.5 max-w-xl text-[14px] text-mudo">
+            <p className="mt-2 max-w-xl text-[14px] leading-relaxed text-white/65">
               Quem fabrica e conserta é quem sabe explicar. No canal mostramos os modelos por
               dentro, a instalação passo a passo e o que fazer quando a bomba para.
             </p>
