@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { brl } from "@/lib/formato";
 import { configurado } from "@/lib/mercadopago";
 
+import { TELEFONE } from "@/lib/contato";
 export const metadata: Metadata = { title: "Pedido", robots: { index: false, follow: false } };
 
 const ROTULO: Record<string, { t: string; d: string; cor: string }> = {
@@ -88,7 +89,7 @@ export default async function Pedido({ params }: { params: Promise<{ numero: str
       <p className="mt-8 text-[13.5px] text-mudo">
         Dúvidas sobre o pedido?{" "}
         <Link href="/fale-conosco" className="font-bold text-marca underline">Fale com a gente</Link>
-        {" "} ou ligue para 11 4000-2440.
+        {" "} ou ligue para {TELEFONE}.
       </p>
     </div>
   );

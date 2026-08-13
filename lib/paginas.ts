@@ -9,11 +9,13 @@
  * loja virtual, e é justamente onde o comprador olha antes de digitar o
  * cartão — por isso ficam linkadas no rodapé de todas as páginas.
  */
+
+import { TELEFONE } from "@/lib/contato";
 export const EMPRESA = {
   nome: "Vibra Vert Bombas Submersas Vibratórias",
   cnpj: "21.276.576/0001-56",
   endereco: "Rua Charles Darwin, 707 · Vila Santa Catarina, São Paulo/SP",
-  telefone: "11 4000-2440",
+  telefone: TELEFONE,
   email: "vendas@vibravert.com.br",
 };
 

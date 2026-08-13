@@ -11,6 +11,7 @@ import { RodapePagamento } from "@/components/rodape-pagamento";
 import { AcoesCabecalho } from "@/components/acoes-cabecalho";
 import "../globals.css";
 
+import { TELEFONE_LINK } from "@/lib/contato";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br"),
   title: {
@@ -145,7 +146,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               foundingDate: "1974",
               contactPoint: {
                 "@type": "ContactPoint",
-                telephone: "+551140002440",
+                telephone: TELEFONE_LINK,
                 contactType: "vendas",
                 areaServed: "BR",
                 availableLanguage: "Portuguese",

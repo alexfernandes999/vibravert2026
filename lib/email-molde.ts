@@ -1,3 +1,5 @@
+import { TELEFONE, TELEFONE_LINK } from "@/lib/contato";
+
 /**
  * Molde dos e-mails da loja.
  *
@@ -116,7 +118,7 @@ export function montar(m: Molde) {
             <strong style="color:${TINTA}">Vibrinha</strong>
             <span style="color:${MUDO}"> · atendimento Vibra Vert</span><br>
             Qualquer dúvida é só responder este e-mail, ou chamar no
-            <a href="tel:+551140002440" style="color:${AZUL};text-decoration:none;font-weight:600">11 4000-2440</a>.
+            <a href="tel:${TELEFONE_LINK}" style="color:${AZUL};text-decoration:none;font-weight:600">${TELEFONE}</a>.
             Falamos de bomba, não é SAC.
           </td>
         </tr>

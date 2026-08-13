@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { brl } from "@/lib/formato";
 import { Selo } from "@/components/selo-pedido";
 
+import { TELEFONE } from "@/lib/contato";
 export const metadata: Metadata = { title: "Acompanhar pedido", robots: { index: false, follow: true } };
 export const dynamic = "force-dynamic";
 
@@ -59,7 +60,7 @@ export default async function Pedidos({ searchParams }: { searchParams: Promise<
 
         {erro && (
           <p role="alert" className="text-[13px] font-semibold text-critico">
-            Não encontramos esse pedido. Confira o número e o e-mail · ou ligue para 11 4000-2440.
+            Não encontramos esse pedido. Confira o número e o e-mail · ou ligue para {TELEFONE}.
           </p>
         )}
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { TELEFONE, TELEFONE_LINK } from "@/lib/contato";
 export default function NaoEncontrado() {
   return (
     <div className="mx-auto max-w-xl px-5 py-24 text-center">
@@ -21,7 +22,7 @@ export default function NaoEncontrado() {
       </div>
       <p className="mt-8 text-[13px] text-mudo">
         Prefere falar com alguém?{" "}
-        <a href="tel:+551140002440" className="font-bold text-marca">11 4000-2440</a>
+        <a href={`tel:${TELEFONE_LINK}`} className="font-bold text-marca">{TELEFONE}</a>
       </p>
     </div>
   );

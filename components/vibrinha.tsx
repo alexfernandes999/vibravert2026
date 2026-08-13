@@ -1,5 +1,7 @@
 "use client";
 
+import { whatsappLink } from "@/lib/contato";
+
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -95,16 +97,16 @@ export function Vibrinha() {
 
 
 
-  const contexto = encodeURIComponent(
-    [
-      nome ? `Olá! Meu nome é ${nome}.` : "Olá!",
-      "Vim pelo site e conversei com a Vibrinha.",
-      apurado.length ? `Já informei: ${apurado.join(" · ")}.` : "",
-    ]
-      .filter(Boolean)
-      .join(" "),
-  );
-  const numero = (process.env.NEXT_PUBLIC_WHATSAPP || "1140002440").replace(/\D/g, "");
+  // O que a Vibrinha já apurou vai junto na mensagem: quem atende do outro
+  // lado não precisa refazer as mesmas três perguntas, e quem escreve não
+  // precisa contar a história de novo.
+  const contexto = [
+    nome ? `Olá! Meu nome é ${nome}.` : "Olá!",
+    "Vim pelo site e conversei com a Vibrinha.",
+    apurado.length ? `Já informei: ${apurado.join(" · ")}.` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <>
@@ -205,7 +207,7 @@ export function Vibrinha() {
 
                 {encaminhar && (
                   <a
-                    href={`https://wa.me/55${numero}?text=${contexto}`}
+                    href={whatsappLink(contexto)}
                     target="_blank"
                     rel="noopener"
                     className="mt-2.5 flex items-center justify-center gap-2 rounded-lg bg-[#25D366] py-2.5 text-[13px] font-extrabold text-white"

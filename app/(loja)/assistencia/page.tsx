@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FaixaConfianca } from "@/components/faixa-lider";
 
+import { TELEFONE, TELEFONE_LINK } from "@/lib/contato";
 export const metadata: Metadata = {
   title: "Assistência técnica · quem conserta a sua bomba somos nós",
   description:
@@ -14,8 +15,8 @@ const FABRICA = {
   bairro: "Vila Santa Catarina",
   cidade: "São Paulo",
   uf: "SP",
-  telefone: "11 4000-2440",
-  telefoneLink: "+551140002440",
+  telefone: TELEFONE,
+  telefoneLink: TELEFONE_LINK,
 };
 
 const HORARIOS = [
