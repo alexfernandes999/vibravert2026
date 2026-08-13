@@ -6,7 +6,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { obterCarrinho } from "@/lib/carrinho";
 import { buscarCep, soDigitos } from "@/lib/cep";
-import { calcular, type Opcao } from "@/lib/correios";
+import { calcular, type Opcao } from "@/lib/frete";
 import { cobrar, configurado } from "@/lib/mercadopago";
 import { pedidoRecebido } from "@/lib/email";
 import { registrar, origemDaSessao } from "@/lib/analitica";

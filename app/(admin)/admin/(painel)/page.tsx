@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { brl } from "@/lib/formato";
 import { configurado } from "@/lib/mercadopago";
 import { configurado as emailOk } from "@/lib/email";
-import { configurado as freteOk } from "@/lib/correios";
+import { configurado as freteConfigurado, nomeDoProvedor } from "@/lib/frete";
 import { CONTROLA_ESTOQUE } from "@/lib/loja";
 import { Selo } from "@/components/selo-pedido";
 import { GraficoVendas } from "@/components/grafico-vendas";
@@ -89,7 +89,7 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
   const pendencias = [
     !configurado && "Mercado Pago sem credencial · nenhum pedido pode ser cobrado.",
     !emailOk && "E-mail não configurado · o comprador não recebe confirmação nem rastreio.",
-    !freteOk && "Correios sem contrato · o frete usa valor fixo em vez de calcular por CEP.",
+    !freteConfigurado() && `${nomeDoProvedor()} sem credencial · o frete usa valor fixo em vez de calcular por CEP.`,
     semGarantia > 0 && `${semGarantia} produto(s) sem prazo de garantia publicado.`,
     semCurva > 0 && `${semCurva} produto(s) sem curva de vazão · ficam fora da calculadora.`,
   ].filter(Boolean) as string[];

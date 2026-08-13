@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { finalizar, consultarCep, cotarFrete, type EstadoCheckout } from "@/app/(loja)/checkout/acoes";
-import type { Opcao } from "@/lib/correios";
+import type { Opcao } from "@/lib/frete";
 import { PARCELAS_SEM_JUROS, DESCONTO_PIX } from "@/lib/loja";
 import { brl } from "@/lib/formato";
 import Image from "next/image";
@@ -127,11 +127,18 @@ export function FormularioCheckout({
                     onChange={() => setServico(o.servico)}
                     className="h-4 w-4 accent-marca"
                   />
-                  <span className="text-[13.5px] font-bold">{o.nome}</span>
-                  <span className="text-[12px] font-semibold text-mudo">
-                    {o.prazoDias > 0
-                      ? `${o.prazoDias} ${o.prazoDias === 1 ? "dia útil" : "dias úteis"}`
-                      : "prazo a confirmar"}
+                  <span className="min-w-0">
+                    <span className="block text-[13.5px] font-bold leading-tight">
+                      {o.nome}
+                      <span className="ml-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-mudo">
+                        {o.transportadora}
+                      </span>
+                    </span>
+                    <span className="block text-[12px] font-semibold text-mudo">
+                      {o.prazoDias > 0
+                        ? `chega em ${o.prazoDias} ${o.prazoDias === 1 ? "dia útil" : "dias úteis"}`
+                        : "prazo a confirmar"}
+                    </span>
                   </span>
                   <span className={`num ml-auto text-[13.5px] font-extrabold ${o.valor === 0 ? "text-bom" : ""}`}>
                     {o.valor === 0 ? "Grátis" : brl(o.valor)}
