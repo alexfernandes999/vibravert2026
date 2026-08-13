@@ -18,7 +18,7 @@ export default async function Recuperar({
     "use server";
     const h = await headers();
     const base =
-      process.env.NEXT_PUBLIC_URL ??
+      process.env.NEXT_PUBLIC_URL ||
       `https://${h.get("x-forwarded-host") ?? h.get("host") ?? "vibravert-loja.vercel.app"}`;
 
     const r = await pedirTroca(String(dados.get("quem") ?? ""), base);

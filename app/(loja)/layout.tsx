@@ -13,7 +13,7 @@ import "../globals.css";
 
 import { TELEFONE_LINK } from "@/lib/contato";
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br"),
   title: {
     default: "Vibra Vert · Bombas Submersas Vibratórias | Loja Oficial",
     template: "%s | Loja Oficial Vibra Vert",
@@ -141,8 +141,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "Vibra Vert Bombas Submersas Vibratórias",
-              url: process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br",
-              logo: `${process.env.NEXT_PUBLIC_URL ?? ""}/logo-vibravert.png`,
+              url: process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br",
+              logo: `${process.env.NEXT_PUBLIC_URL || ""}/logo-vibravert.png`,
               foundingDate: "1974",
               contactPoint: {
                 "@type": "ContactPoint",

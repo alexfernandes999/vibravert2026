@@ -3,7 +3,7 @@ import { DESCONTO_PIX } from "@/lib/loja";
 
 export const revalidate = 3600;
 
-const base = process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br";
+const base = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
 const esc = (s: string) => s.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" }[c]!));
 
 /**

@@ -12,7 +12,7 @@ import { Video } from "@/components/video";
 import { BotaoComprar } from "@/components/botao-comprar";
 import { brl, precoPix, parcela, PARCELAS_MAX, ALTURAS_MCA, litros } from "@/lib/formato";
 
-const SITE = process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br";
+const SITE = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
 
 export const revalidate = 300;
 

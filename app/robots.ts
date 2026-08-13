@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const base = process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br";
+const base = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
 
 /**
  * A Vercel publica cada deploy também num endereço .vercel.app. Se o Google
@@ -12,7 +12,8 @@ const base = process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br";
  * inteiro, incluindo os deploys de teste.
  */
 const ehProducao = () => {
-  const url = process.env.NEXT_PUBLIC_URL ?? "";
+  // Aqui o vazio é o comportamento certo: sem URL definida, não é produção.
+  const url = process.env.NEXT_PUBLIC_URL || "";
   return url.includes("vibravert.com.br") && process.env.VERCEL_ENV !== "preview";
 };
 

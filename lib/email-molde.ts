@@ -27,7 +27,7 @@ const BOM_SUAVE = "#e7f3ec";
 export const brl = (v: unknown) =>
   Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-const base = () => process.env.NEXT_PUBLIC_URL ?? "https://vibravert-loja.vercel.app";
+const base = () => process.env.NEXT_PUBLIC_URL || "https://vibravert-loja.vercel.app";
 const F = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 
 export type Peca = { nome: string; qtd: number; total: number; sku?: string; imagem?: string | null };

@@ -16,7 +16,7 @@ export const configurado = Boolean(process.env.RESEND_API_KEY && process.env.EMA
 
 type PedidoCompleto = Pedido & { itens: PedidoItem[]; endereco: Endereco; cliente: Cliente };
 
-const base = () => process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br";
+const base = () => process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
 
 const pecas = (p: PedidoCompleto): Peca[] =>
   p.itens.map((i) => ({

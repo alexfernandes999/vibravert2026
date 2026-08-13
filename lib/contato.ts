@@ -7,15 +7,21 @@
  *
  * São dois números diferentes, e misturá-los é o erro que importa: o fixo
  * atende voz, e mensagem mandada para ele não chega em ninguém.
+ *
+ * Os padrões usam `||`, e não `??`, de propósito. O Next substitui
+ * `process.env.NEXT_PUBLIC_*` no momento da compilação, e variável ausente
+ * vira string vazia — que não é null nem undefined, então `??` deixa passar o
+ * vazio e o link sai como "wa.me/55", sem número. É um erro que não aparece
+ * lendo o código: só aparece olhando o pacote que o navegador recebe.
  */
 const so = (s: string) => s.replace(/\D/g, "");
 
 /** Vibra Phone: atendimento por voz. */
-export const TELEFONE = process.env.NEXT_PUBLIC_TELEFONE ?? "11 4000-2440";
+export const TELEFONE = process.env.NEXT_PUBLIC_TELEFONE || "11 4000-2440";
 export const TELEFONE_LINK = `+55${so(TELEFONE)}`;
 
 /** WhatsApp: é para onde a Vibrinha passa a conversa. */
-export const WHATSAPP = so(process.env.NEXT_PUBLIC_WHATSAPP ?? "1150332828");
+export const WHATSAPP = so(process.env.NEXT_PUBLIC_WHATSAPP || "1150332828");
 export const WHATSAPP_BONITO = WHATSAPP.replace(/^(\d{2})(\d{4})(\d{4})$/, "$1 $2-$3").replace(
   /^(\d{2})(\d{5})(\d{4})$/,
   "$1 $2-$3",

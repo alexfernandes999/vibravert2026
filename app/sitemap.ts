@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 
-const base = process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br";
+const base = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
 
 /**
  * Só entram no sitemap as URLs que queremos indexadas.

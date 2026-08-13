@@ -18,7 +18,7 @@ export const revalidate = 300;
  */
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
-const SITE = process.env.NEXT_PUBLIC_URL ?? "https://www.vibravert.com.br";
+const SITE = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
 
 const CAMPOS = {
   slug: true,
