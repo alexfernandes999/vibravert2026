@@ -420,6 +420,13 @@ model Pedido {
   freteServico String?
   fretePrazo   Int?
 
+  /// Etiqueta comprada no SuperFrete. Guarda o id do pedido lá e o link do PDF
+  /// para reimprimir: a expedição perde etiqueta, e comprar de novo é pagar
+  /// duas vezes pelo mesmo envio.
+  etiquetaId  String?
+  etiquetaUrl String?
+  etiquetaEm  DateTime?
+
   rastreio     String?
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
