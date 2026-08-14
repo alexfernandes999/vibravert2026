@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { SeloGarantia } from "@/components/selo-garantia";
 import { brl, precoPix, parcela, PARCELAS_MAX, ALTURAS_MCA, vazaoNaAltura, litros } from "@/lib/formato";
 
 export type ModeloCalc = {
@@ -232,7 +233,7 @@ function Ficha({ item, hTotal }: { item: { m: ModeloCalc; vazao: number }; hTota
       </div>
 
       <div className="grid gap-6 p-5 sm:grid-cols-[220px_1fr]">
-        <div className="flex items-center justify-center rounded-lg border border-linha bg-superficie-2 p-4">
+        <div className="relative flex items-center justify-center rounded-lg border border-linha bg-superficie-2 p-4">
           {m.imagem && (
             <Image
               src={m.imagem.url}
@@ -242,6 +243,8 @@ function Ficha({ item, hTotal }: { item: { m: ModeloCalc; vazao: number }; hTota
               className="h-48 w-auto object-contain"
             />
           )}
+          {/* Só acende quando a ficha do modelo diz dois anos. */}
+          <SeloGarantia garantia={m.garantia} className="absolute right-2 top-2" tamanho={62} />
         </div>
 
         <div>

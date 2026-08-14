@@ -11,6 +11,7 @@ import { Galeria } from "@/components/galeria";
 import { Video } from "@/components/video";
 import { BotaoComprar } from "@/components/botao-comprar";
 import { brl, precoPix, parcela, PARCELAS_MAX, ALTURAS_MCA, litros } from "@/lib/formato";
+import { SeloGarantia } from "@/components/selo-garantia";
 
 const SITE = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
 
@@ -115,7 +116,15 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
       </nav>
 
       <div className="grid gap-10 md:grid-cols-2">
-        <Galeria imagens={p.imagens} nome={p.nome} />
+        <div className="relative">
+          <Galeria imagens={p.imagens} nome={p.nome} />
+          {/* Preso à ficha: aparece só onde a garantia for mesmo de 2 anos. */}
+          <SeloGarantia
+            garantia={p.especificacoes.find((e) => e.nome === "Garantia")?.valor}
+            className="pointer-events-none absolute right-3 top-3 z-10"
+            tamanho={72}
+          />
+        </div>
 
         <div>
           <p className="text-[10.5px] font-extrabold uppercase tracking-[0.16em] text-marca">{p.marca}</p>
