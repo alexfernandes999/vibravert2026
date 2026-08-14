@@ -1,14 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { registrarAcao } from "@/lib/admin-auth";
 import { revalidatePath } from "next/cache";
+import { CampoImagem } from "@/components/campo-imagem";
 import type { BannerPosicao } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
-const POSICOES: { v: BannerPosicao; r: string; d: string }[] = [
-  { v: "TARJA_TOPO", r: "Tarja do topo", d: "A faixa acima do cabeçalho. É o espaço mais visto da loja." },
-  { v: "PRINCIPAL", r: "Banner principal", d: "O bloco grande da página inicial." },
-  { v: "FAIXA_DUPLA", r: "Faixas duplas", d: "Os dois blocos lado a lado, no meio da home." },
+const POSICOES: { v: BannerPosicao; r: string; d: string; m?: string }[] = [
+  { v: "TARJA_TOPO", r: "Tarja do topo", d: "A faixa acima do cabeçalho. É o espaço mais visto da loja.", m: "só texto" },
+  { v: "PRINCIPAL", r: "Banner principal", d: "O bloco grande da página inicial.", m: "2098 × 750 px" },
+  { v: "FAIXA_MEIO", r: "Faixa do meio", d: "O bloco largo entre as prateleiras.", m: "2098 × 520 px" },
+  { v: "FAIXA_DUPLA", r: "Faixas duplas", d: "Os dois blocos lado a lado, no meio da home.", m: "1040 × 520 px" },
 ];
 
 async function alternar(id: string, ativo: boolean) {
@@ -28,10 +30,16 @@ async function salvar(dados: FormData) {
   const fim = String(dados.get("fimEm") ?? "");
   if (!titulo || !alt) return;
 
+  // Campo vazio apaga a imagem de propósito · é o botão "Remover" do formulário.
+  const imagemDesktop = String(dados.get("imagemDesktop") ?? "").trim() || null;
+  const imagemMobile = String(dados.get("imagemMobile") ?? "").trim() || null;
+
   const campos = {
     titulo,
     alt,
     link,
+    imagemDesktop,
+    imagemMobile,
     inicioEm: inicio ? new Date(inicio) : null,
     fimEm: fim ? new Date(fim) : null,
   };
@@ -98,6 +106,23 @@ export default async function Banners() {
                       <Campo nome="alt" rotulo="Texto alternativo" valor={b.alt} dica="obrigatório · acessibilidade e SEO" />
                       <Campo nome="link" rotulo="Link de destino" valor={b.link ?? ""} dica="opcional" />
 
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <CampoImagem
+                          nome="imagemDesktop"
+                          rotulo="Imagem para computador"
+                          valor={b.imagemDesktop}
+                          medida={pos.m ?? ""}
+                          marca={`${pos.v.toLowerCase()}-desktop`}
+                        />
+                        <CampoImagem
+                          nome="imagemMobile"
+                          rotulo="Imagem para celular"
+                          valor={b.imagemMobile}
+                          medida="opcional · usa a de computador se faltar"
+                          marca={`${pos.v.toLowerCase()}-mobile`}
+                        />
+                      </div>
+
                       <div className="grid gap-3 sm:grid-cols-2">
                         <Campo nome="inicioEm" rotulo="Começa em" tipo="date" valor={b.inicioEm?.toISOString().slice(0, 10) ?? ""} dica="opcional" />
                         <Campo nome="fimEm" rotulo="Termina em" tipo="date" valor={b.fimEm?.toISOString().slice(0, 10) ?? ""} dica="opcional" />
@@ -117,6 +142,21 @@ export default async function Banners() {
                   <p className="text-[12.5px] font-extrabold text-mudo">Novo banner nesta posição</p>
                   <Campo nome="titulo" rotulo="Texto" />
                   <Campo nome="alt" rotulo="Texto alternativo" dica="obrigatório" />
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <CampoImagem
+                      nome="imagemDesktop"
+                      rotulo="Imagem para computador"
+                      medida={pos.m ?? ""}
+                      marca={`${pos.v.toLowerCase()}-desktop`}
+                    />
+                    <CampoImagem
+                      nome="imagemMobile"
+                      rotulo="Imagem para celular"
+                      medida="opcional"
+                      marca={`${pos.v.toLowerCase()}-mobile`}
+                    />
+                  </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <Campo nome="inicioEm" rotulo="Começa em" tipo="date" dica="opcional" />
                     <Campo nome="fimEm" rotulo="Termina em" tipo="date" dica="opcional" />
