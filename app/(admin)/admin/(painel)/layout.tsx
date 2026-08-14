@@ -11,7 +11,7 @@ const MENU = [
   { href: "/admin/pedidos", r: "Pedidos", grupo: "" },
   { href: "/admin/produtos", r: "Produtos", grupo: "" },
   { href: "/admin/estoque", r: "Estoque", grupo: "" },
-  { href: "/admin/recuperar", r: "Recuperar vendas", grupo: "" },
+  { href: "/admin/recuperar-vendas", r: "Recuperar vendas", grupo: "" },
   { href: "/admin/banners", r: "Banners e vitrine", grupo: "Loja" },
   { href: "/admin/videos", r: "Vídeos", grupo: "Loja" },
   { href: "/admin/seguranca", r: "Segurança", grupo: "Conta" },

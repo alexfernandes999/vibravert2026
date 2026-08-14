@@ -47,7 +47,7 @@ async function mandarEmail(id: string) {
     data: { lembretes: { increment: 1 }, lembreteEm: new Date() },
   });
   await registrarAcao("mandou lembrete por e-mail", `#${p.numero}`);
-  revalidatePath("/admin/recuperar");
+  revalidatePath("/admin/recuperar-vendas");
 }
 
 /** O WhatsApp abre no navegador de quem atende, então só marca o envio. */
@@ -59,7 +59,7 @@ async function marcarWhats(id: string) {
     select: { numero: true },
   });
   await registrarAcao("chamou no WhatsApp", `#${p.numero}`);
-  revalidatePath("/admin/recuperar");
+  revalidatePath("/admin/recuperar-vendas");
 }
 
 const horas = (d: Date) => Math.round((Date.now() - d.getTime()) / 36e5);
