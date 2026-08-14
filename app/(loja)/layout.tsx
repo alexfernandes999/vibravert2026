@@ -32,6 +32,9 @@ const DEPARTAMENTOS = [
   { href: "/bombas", rotulo: "Bombas Vibratórias" },
   { href: "/bombas?acompanha=boia", rotulo: "Com Boia de Nível" },
   { href: "/bombas?acompanha=kit", rotulo: "Kits de Manutenção" },
+  // Aponta para a seção da home enquanto as peças não têm página própria:
+  // um item de menu que leva a lugar nenhum é pior que não ter o item.
+  { href: "/#pecas", rotulo: "Peças Originais" },
   { href: "/qual-bomba", rotulo: "Qual bomba eu preciso?" },
   { href: "/assistencia", rotulo: "Assistência técnica" },
 ];

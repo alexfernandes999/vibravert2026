@@ -10,6 +10,7 @@ import { Medir } from "@/components/medir";
 import { SecaoVideos } from "@/components/secao-videos";
 import { SecaoFabrica } from "@/components/secao-fabrica";
 import { SecaoErros } from "@/components/secao-erros";
+import { SecaoPecas } from "@/components/secao-pecas";
 import { SecaoMaterias } from "@/components/secao-materias";
 import { SecaoTrocaExpressa } from "@/components/secao-troca-expressa";
 import { Calculadora } from "@/components/calculadora";
@@ -314,6 +315,10 @@ export default async function Home() {
 
 
       <SecaoErros />
+
+
+      <SecaoPecas />
+
 
 
       <SecaoFabrica />
