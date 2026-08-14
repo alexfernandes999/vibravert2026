@@ -52,8 +52,16 @@ export function CartaoProduto({ p }: { p: ProdutoVitrine }) {
           </span>
         )}
         {p.saiaProtecao && (
-          <span className="absolute right-2.5 top-2.5 rounded bg-ciano px-1.5 py-0.5 text-[9.5px] font-extrabold uppercase tracking-wider text-white">
+          // Quem não é instalador não sabe o que é "saia". O title explica no
+          // toque e no mouse, sem gastar linha do cartão com uma legenda.
+          <span
+            title="Saia de proteção: borracha que envolve o corpo e deixa a bomba trabalhar justa no poço sem bater nas paredes"
+            className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded bg-ciano px-1.5 py-0.5 text-[9.5px] font-extrabold uppercase tracking-wider text-white"
+          >
             Com saia
+            <span aria-hidden className="grid h-3 w-3 place-items-center rounded-full bg-white/25 text-[8px] leading-none">
+              ?
+            </span>
           </span>
         )}
       </Link>
@@ -99,6 +107,15 @@ export function CartaoProduto({ p }: { p: ProdutoVitrine }) {
           <p className="num mt-1.5 rounded-md bg-superficie-2 px-2 py-1 text-[11.5px] font-bold text-tinta-2">
             ou {PARCELAS_MAX}× de {brl(parcela(preco))} sem juros
           </p>
+
+          {/* Comprar sem sair da prateleira. Obrigar a abrir o produto para
+              descobrir onde se compra custa uma etapa em quem já decidiu. */}
+          <Link
+            href={`/produto/${p.slug}`}
+            className="mt-2.5 block rounded-lg bg-marca py-2.5 text-center text-[12.5px] font-bold text-white shadow-md shadow-marca/20 transition hover:brightness-110 active:scale-[0.98]"
+          >
+            Comprar
+          </Link>
         </div>
       </div>
     </article>

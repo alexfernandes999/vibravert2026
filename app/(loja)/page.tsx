@@ -341,9 +341,17 @@ export default async function Home() {
             <h2 className="mt-3 text-balance text-3xl font-extrabold leading-tight tracking-tight md:text-4xl">
               Fabricamos bomba submersa vibratória desde 1974
             </h2>
+            {/* A frase anterior dizia que a Rymer "voltou às nossas mãos", o que
+                dá a entender que já tinha sido nossa antes. São dois fatos
+                separados: a marca nasceu em 1958, em outra empresa, e foi
+                adquirida em 2003. Duas frases resolvem. */}
             <p className="mt-3.5 max-w-xl text-[15px] leading-relaxed text-white/70">
-              Fomos a primeira fábrica do país. A marca Rymer vem de 1958, quando o fundador
-              aprendeu o ofício na Rymer Bombas, e voltou às nossas mãos em 2003.
+              Fomos a primeira fábrica de bombas submersas vibratórias do país. O fundador
+              aprendeu o ofício na Rymer Bombas, marca criada em 1958.
+            </p>
+            <p className="mt-2.5 max-w-xl text-[15px] leading-relaxed text-white/70">
+              Em 2003 a Rymer passou a ser nossa. Hoje as duas linhas saem da mesma fábrica, em
+              São Paulo.
             </p>
 
             <dl className="mt-8 grid gap-4 sm:grid-cols-3">
