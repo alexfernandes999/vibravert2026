@@ -68,8 +68,11 @@ export function Calculadora({ modelos }: { modelos: ModeloCalc[] }) {
     };
   }, [modelos, poco, tensao, hTotal]);
 
+  // `items-start` porque o formulário é curto e o resultado é alto: sem isso a
+  // coluna da esquerda estica até a altura da direita e deixa um vazio branco
+  // enorme embaixo dos campos.
   return (
-    <div className="grid gap-7 lg:grid-cols-[minmax(0,380px)_1fr]">
+    <div className="grid items-start gap-7 lg:grid-cols-[minmax(0,380px)_1fr]">
       <form className="rounded-caixa border border-marca-linha bg-superficie p-5 shadow-lg shadow-marca/5">
         <div className="grid gap-4 sm:grid-cols-2">
           <Campo
