@@ -168,7 +168,11 @@ export async function finalizar(_estado: EstadoCheckout, dados: FormData): Promi
 
   await registrar("PEDIDO");
   (await cookies()).delete("carrinho");
-  redirect(`/pedido/${pedido.numero}`);
+
+  // No Checkout Pro o pagamento acontece numa página do Mercado Pago. O pedido
+  // já está gravado como aguardando, então voltar sem pagar não perde nada: a
+  // página de acompanhamento continua lá e o webhook confirma quando cair.
+  redirect(cobranca.redirecionar ?? `/pedido/${pedido.numero}`);
 }
 
 export async function pagamentoDisponivel() {

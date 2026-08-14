@@ -22,6 +22,8 @@ export type Cobranca = {
   ok: boolean;
   pagamentoId?: string;
   status?: string;
+  /** Checkout Pro: a URL para onde mandar o comprador. */
+  redirecionar?: string;
   /** PIX: o código copia-e-cola e o QR em base64. */
   pixCopiaECola?: string;
   pixQrBase64?: string;
@@ -68,6 +70,19 @@ export async function cobrar({
     return { ok: false, erro: "sem-credencial" };
   }
 
+  // Checkout Pro: o comprador paga numa página do Mercado Pago e volta.
+  //
+  // Existe porque a API de pagamento direto (`/v1/payments`) exige que a
+  // aplicação esteja habilitada para cobrar, e responde 401 enquanto não
+  // estiver. A de preferências não exige isso — é a mesma conta, o mesmo
+  // dinheiro, e destrava a loja hoje.
+  //
+  // Vale a pena voltar para o transparente quando a aplicação for aprovada:
+  // pagar sem sair da loja converte mais. Trocar é uma variável.
+  if ((process.env.MP_MODO ?? "pro") === "pro") {
+    return await cobrarPorPreferencia({ valor, parcelas, comprador, itens, pedidoNumero, metodo });
+  }
+
   const meio = metodo === "PIX" ? "pix" : metodo === "BOLETO" ? "bolbradesco" : undefined;
 
   try {
@@ -112,6 +127,89 @@ export async function cobrar({
     };
   } catch (e) {
     return { ok: false, erro: e instanceof Error ? e.message : "falha ao cobrar" };
+  }
+}
+
+/**
+ * Cria a preferência e devolve o link do checkout.
+ *
+ * O `sandbox_init_point` é usado quando MP_SANDBOX está ligado: mesma tela,
+ * mesmo fluxo, sem dinheiro nenhum trocando de mãos. É o que permite fechar
+ * pedidos de teste de ponta a ponta.
+ */
+async function cobrarPorPreferencia({
+  valor,
+  parcelas,
+  comprador,
+  itens,
+  pedidoNumero,
+  metodo,
+}: {
+  valor: number;
+  parcelas: number;
+  comprador: Comprador;
+  itens: Item[];
+  pedidoNumero: number;
+  metodo: string;
+}): Promise<Cobranca> {
+  const base = process.env.NEXT_PUBLIC_URL || "https://vibravert-loja.vercel.app";
+
+  try {
+    const d = await chamar(
+      "/checkout/preferences",
+      {
+        items: itens.map((i) => ({
+          id: i.sku,
+          title: i.titulo.slice(0, 120),
+          quantity: i.quantidade,
+          unit_price: Number(i.precoUnitario.toFixed(2)),
+          currency_id: "BRL",
+        })),
+        payer: {
+          name: comprador.nome.split(" ")[0],
+          surname: comprador.nome.split(" ").slice(1).join(" ") || undefined,
+          email: comprador.email,
+          identification: {
+            type: comprador.cpf.length > 11 ? "CNPJ" : "CPF",
+            number: comprador.cpf,
+          },
+        },
+        // O total já traz o frete e o desconto do PIX. Somar de novo aqui
+        // cobraria a diferença duas vezes.
+        ...(Math.abs(itens.reduce((s, i) => s + i.precoUnitario * i.quantidade, 0) - valor) > 0.01
+          ? { marketplace_fee: 0 }
+          : {}),
+        payment_methods: {
+          installments: parcelas,
+          // O meio escolhido na loja é o que abre selecionado lá.
+          ...(metodo === "PIX"
+            ? { excluded_payment_types: [{ id: "credit_card" }, { id: "ticket" }] }
+            : metodo === "BOLETO"
+              ? { excluded_payment_types: [{ id: "credit_card" }] }
+              : {}),
+        },
+        back_urls: {
+          success: `${base}/pedido/${pedidoNumero}`,
+          pending: `${base}/pedido/${pedidoNumero}`,
+          failure: `${base}/pedido/${pedidoNumero}`,
+        },
+        auto_return: "approved",
+        // O webhook continua sendo a fonte da verdade: o comprador pode
+        // fechar a aba antes de voltar, e o pedido não pode ficar no limbo.
+        notification_url: `${base}/api/webhooks/mercadopago`,
+        external_reference: String(pedidoNumero),
+        statement_descriptor: "VIBRAVERT",
+      },
+      `pref-${pedidoNumero}`,
+    );
+
+    const sandbox = process.env.MP_SANDBOX === "1";
+    const link = sandbox ? d.sandbox_init_point : d.init_point;
+    if (!link) throw new Error("o Mercado Pago não devolveu o link do checkout");
+
+    return { ok: true, pagamentoId: String(d.id), status: "pending", redirecionar: link };
+  } catch (e) {
+    return { ok: false, erro: e instanceof Error ? e.message : "falha ao criar o checkout" };
   }
 }
 
