@@ -266,6 +266,13 @@ export default async function Home() {
       <SecaoTrocaExpressa />
 
 
+      <Prateleira
+        titulo="Linha Rymer · a bomba mais vendida do Brasil"
+        subtitulo="Tradição desde 1958. Líder de vendas no Mercado Livre, Magazine Luiza, Amazon e Shopee."
+        produtos={precos}
+        verTudo="/bombas?marca=Rymer"
+      />
+
       <SecaoVideos videos={videos} />
 
       {/* As mesmas perguntas que a Vibrinha responde, em dados estruturados.
@@ -305,12 +312,6 @@ export default async function Home() {
 
 
 
-      <Prateleira
-        titulo="Linha Rymer · a bomba mais vendida do Brasil"
-        subtitulo="Tradição desde 1958. Líder de vendas no Mercado Livre, Magazine Luiza, Amazon e Shopee."
-        produtos={precos}
-        verTudo="/bombas?marca=Rymer"
-      />
 
       <SecaoErros />
 
