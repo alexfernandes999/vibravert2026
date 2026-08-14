@@ -31,9 +31,11 @@ export const LOJAS: Loja[] = [
     alturaLogo: 168,
   },
   {
-    nome: "Loja Oficial Schneider",
+    // O logotipo é Schneider e o título dizia Franklin Electric. Quem não é do
+    // ramo não liga as duas marcas, e o cartão ficava sem dizer o que vende.
+    nome: "Loja oficial Schneider Motobombas",
     dominio: "grupodasbombas.com.br",
-    descricao: "Distribuidor autorizado Franklin Electric",
+    descricao: "Catálogo oficial da marca",
     vitrine: "Submersas tipo caneta, pressurização e motobombas",
     logo: "/lojas/schneider.png",
     alturaLogo: 103,

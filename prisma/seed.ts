@@ -26,6 +26,23 @@ const prisma = new PrismaClient();
  * que o Google indexa, então corrigir card a card no painel não resolve: na
  * próxima carga voltaria tudo errado. A correção mora aqui, na entrada.
  */
+/**
+ * Páginas de catálogo institucional que vinham na galeria dos produtos.
+ *
+ * Não são fotos do produto: são folhetos do Grupo ARF anunciando bombas de
+ * outras marcas, citando a Franklin Electric — que o briefing proíbe citar —
+ * e com endereço e telefone antigos. Numa loja própria, o efeito é mandar o
+ * comprador para o concorrente no meio da própria página de produto.
+ *
+ * São cinco arquivos repetidos em 22 produtos. O corte é pelo tamanho porque
+ * o nome do arquivo acompanha o produto, não o conteúdo.
+ */
+const FOLHETOS: Set<string> = new Set(
+  (JSON.parse(readFileSync(new URL("../data/folhetos-excluidos.json", import.meta.url), "utf8")) as {
+    arquivos: string[];
+  }).arquivos,
+);
+
 export const acentuar = (s: string) =>
   s
     .replace(/Vibratoria/g, "Vibratória")
@@ -496,7 +513,7 @@ async function main() {
         curvaVazao: ficha?.vazaoPorAltura ?? [],
         especificacoes: { create: especificacoes },
         imagens: {
-          create: p.imagens.map((img, i) => ({
+          create: p.imagens.filter((img) => !FOLHETOS.has(img.arquivo)).map((img, i) => ({
             url: `${CDN}${img.arquivo}`,
             alt: acentuar(img.alt),
             ordem: i,
