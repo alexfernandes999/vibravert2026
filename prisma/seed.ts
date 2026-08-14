@@ -18,6 +18,21 @@ const prisma = new PrismaClient();
  * A primeira versão gerava "bomba-submersa-de-po-o", porque limpava o "ç"
  * em vez de convertê-lo — uma URL que não diz nada a quem lê nem ao Google.
  */
+/**
+ * Acentos que a VTEX perdeu.
+ *
+ * O catálogo de origem escreve "Vibratoria", "de Agua" e "Nivel" sem acento,
+ * em nome, descrição, categoria e alt de imagem. É o texto que o cliente lê e
+ * que o Google indexa, então corrigir card a card no painel não resolve: na
+ * próxima carga voltaria tudo errado. A correção mora aqui, na entrada.
+ */
+export const acentuar = (s: string) =>
+  s
+    .replace(/Vibratoria/g, "Vibratória")
+    .replace(/vibratoria/g, "vibratória")
+    .replace(/\bde Agua\b/g, "de Água")
+    .replace(/\bNivel\b/g, "Nível");
+
 const slugificar = (s: string) =>
   s
     .normalize("NFD")
@@ -280,7 +295,9 @@ async function main() {
     for (const c of p.categorias) {
       const partes = c.split("/").filter(Boolean);
       if (partes.length === 1) {
-        const nome = partes[0].replace(/-/g, " ");
+        // O slug sai do texto original, sem acento, para não trocar URLs que
+        // já existem. O nome, que é o que se lê, sai acentuado.
+        const nome = acentuar(partes[0].replace(/-/g, " "));
         nomesCategoria.set(partes[0].toLowerCase(), nome);
       }
     }
@@ -451,16 +468,17 @@ async function main() {
       create: {
         slug: slugificar(p.nome),
         slugAntigo: p.slugAntigo,
-        nome: p.nome,
+        nome: acentuar(p.nome),
         marca: p.marca,
         sku: p.sku,
         ean: p.ean,
         modelo: p.modelo,
-        descricao: p.descricao,
-        metaTitulo: `${p.nome} | Loja Oficial Vibra Vert`,
-        metaDescricao:
+        descricao: acentuar(p.descricao),
+        metaTitulo: acentuar(`${p.nome} | Loja Oficial Vibra Vert`),
+        metaDescricao: acentuar(
           p.metaDescricao ||
           `${p.nome}. ${vazao ? `Vazão de até ${vazao.toLocaleString("pt-BR")} litros por hora. ` : ""}Garantia de fábrica de 2 anos e envio em 24h úteis.`,
+        ),
         preco: p.preco,
         precoDe: p.precoDe && p.precoDe > p.preco ? p.precoDe : null,
         ativo: !semPreco,
@@ -480,7 +498,7 @@ async function main() {
         imagens: {
           create: p.imagens.map((img, i) => ({
             url: `${CDN}${img.arquivo}`,
-            alt: img.alt,
+            alt: acentuar(img.alt),
             ordem: i,
             principal: img.principal,
           })),
