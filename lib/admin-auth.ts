@@ -77,6 +77,18 @@ export async function ehDesenvolvedor() {
   return (await usuarioAtual())?.papel === "DESENVOLVEDOR";
 }
 
+/**
+ * Quem pode dar e tirar acesso: o dono e quem cuida do sistema.
+ *
+ * O operador não entra aqui de propósito. Quem opera a loja não precisa poder
+ * criar uma conta nova, e cada pessoa a mais com esse poder é uma porta a mais
+ * para deixar aberta.
+ */
+export async function podeGerirEquipe() {
+  const p = (await usuarioAtual())?.papel;
+  return p === "MASTER" || p === "DESENVOLVEDOR";
+}
+
 async function abrirSessao(id: string, manter: boolean) {
   const emitidoEm = String(Date.now());
   const duracao = String(manter ? UM_MES : OITO_HORAS);

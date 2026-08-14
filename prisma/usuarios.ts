@@ -19,7 +19,8 @@ const prisma = new PrismaClient();
 const uso = () => {
   console.log(`
   listar
-  criar <login> "<Nome>" <email> [OPERADOR|DESENVOLVEDOR]
+  criar <login> "<Nome>" <email> [OPERADOR|MASTER|DESENVOLVEDOR]
+  papel <login> <OPERADOR|MASTER|DESENVOLVEDOR>
   senha <login>
   desligar2fa <login>
   ativar <login> · desativar <login>
@@ -44,8 +45,8 @@ async function listar() {
 
 async function criar(login: string, nome: string, email: string, papel: string) {
   const p = (papel?.toUpperCase() ?? "OPERADOR") as PapelUsuario;
-  if (p !== "OPERADOR" && p !== "DESENVOLVEDOR") {
-    return console.log("  papel deve ser OPERADOR ou DESENVOLVEDOR");
+  if (!["OPERADOR", "MASTER", "DESENVOLVEDOR"].includes(p)) {
+    return console.log("  papel deve ser OPERADOR, MASTER ou DESENVOLVEDOR");
   }
 
   const senha = senhaInicial();
@@ -64,6 +65,15 @@ async function criar(login: string, nome: string, email: string, papel: string) 
   console.log(`  senha:  ${senha}`);
   console.log(`\n  A senha aparece uma vez só. O segundo fator é cadastrado no primeiro acesso,`);
   console.log(`  no próprio painel, e vira obrigatório a partir daí.\n`);
+}
+
+async function papel(login: string, novo: string) {
+  const p = novo.toUpperCase() as PapelUsuario;
+  if (!["OPERADOR", "MASTER", "DESENVOLVEDOR"].includes(p)) {
+    return console.log("  papel deve ser OPERADOR, MASTER ou DESENVOLVEDOR");
+  }
+  const u = await prisma.usuario.update({ where: { login: login.toLowerCase() }, data: { papel: p } });
+  console.log(`\n  ${u.login} agora é ${u.papel}\n`);
 }
 
 async function senha(login: string) {
@@ -93,6 +103,7 @@ const [comando, ...args] = process.argv.slice(2);
 const acoes: Record<string, () => Promise<void>> = {
   listar,
   criar: () => criar(args[0], args[1], args[2], args[3]),
+  papel: () => papel(args[0], args[1]),
   senha: () => senha(args[0]),
   desligar2fa: () => desligar2fa(args[0]),
   ativar: () => ligar(args[0], true),

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { PedidoStatus } from "@prisma/client";
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { usuarioAtual } from "@/lib/admin-auth";
+import { Saudacao } from "@/components/saudacao";
 import { brl } from "@/lib/formato";
 import { configurado } from "@/lib/mercadopago";
 import { configurado as emailOk } from "@/lib/email";
@@ -20,32 +21,18 @@ export const dynamic = "force-dynamic";
  * painel vazio: alguém toma decisão em cima disso. O aviso fica no alto, com o
  * botão que apaga tudo num clique.
  */
-async function limparExemplo() {
-  "use server";
-  const clientes = await prisma.cliente.findMany({
-    where: { email: { endsWith: "@demo.vibravert" } },
-    select: { id: true },
-  });
-  const ids = clientes.map((c) => c.id);
-  if (ids.length) {
-    await prisma.pedido.deleteMany({ where: { clienteId: { in: ids } } });
-    await prisma.endereco.deleteMany({ where: { clienteId: { in: ids } } });
-    await prisma.cliente.deleteMany({ where: { id: { in: ids } } });
-  }
-  await prisma.evento.deleteMany({ where: { sessao: { startsWith: "demo-" } } });
-  revalidatePath("/admin", "layout");
-}
 
 const PAGOS: PedidoStatus[] = ["PAGO", "SEPARANDO", "ENVIADO", "ENTREGUE"];
 
 export default async function Painel({ searchParams }: { searchParams: Promise<{ d?: string }> }) {
+  const eu = (await usuarioAtual())!;
   const dias = Math.min(Math.max(Number((await searchParams).d) || 30, 1), 90);
   const desde = new Date(Date.now() - dias * 864e5);
   const pagos = { status: { in: PAGOS }, criadoEm: { gte: desde } };
 
   const [
     agg, qtd, recentes, baixo, semGarantia, semCurva,
-    etapas, porOrigem, pedidosPeriodo, abandonados,
+    etapas, porOrigem, pedidosPeriodo, sessoesQueCompraram, abandonados,
   ] = await Promise.all([
     prisma.pedido.aggregate({ where: pagos, _sum: { total: true }, _avg: { total: true } }),
     prisma.pedido.count({ where: pagos }),
@@ -63,18 +50,21 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
     }),
     // carrinho montado que não virou pedido: é a venda que estava a um passo
     prisma.evento.findMany({
+      where: { etapa: "PEDIDO", criadoEm: { gte: desde } },
+      select: { sessao: true },
+      distinct: ["sessao"],
+    }),
+    prisma.evento.findMany({
       where: { etapa: "CARRINHO", criadoEm: { gte: desde } },
       select: { sessao: true, origem: true },
       distinct: ["sessao"],
     }),
   ]);
 
-  const temExemplo = await prisma.cliente.count({ where: { email: { endsWith: "@demo.vibravert" } } });
-
   const fat = Number(agg._sum.total ?? 0);
   const passo = (e: string) => etapas.find((x) => x.etapa === e)?._count.sessao ?? 0;
   const comPedido = new Set(
-    (await prisma.evento.findMany({ where: { etapa: "PEDIDO", criadoEm: { gte: desde } }, select: { sessao: true } })).map((x) => x.sessao),
+    sessoesQueCompraram.map((x) => x.sessao),
   );
   const perdidos = abandonados.filter((a) => !comPedido.has(a.sessao));
 
@@ -97,7 +87,7 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
   return (
     <div className="p-6">
       <div className="flex flex-wrap items-baseline gap-3">
-        <h1 className="text-xl font-extrabold tracking-tight">Visão comercial</h1>
+        <Saudacao nome={eu.nome} />
         <nav className="ml-auto flex gap-1.5">
           {[1, 7, 30, 90].map((d) => (
             <Link
@@ -113,22 +103,6 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
         </nav>
       </div>
 
-      {temExemplo > 0 && (
-        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-caixa border border-marca-linha bg-marca-suave px-4 py-3">
-          <span className="rounded-md bg-marca px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
-            Exemplo
-          </span>
-          <p className="text-[13px] font-semibold text-marca">
-            Os números abaixo são de demonstração, para mostrar como o painel se comporta com
-            movimento. Nenhuma venda real aconteceu ainda.
-          </p>
-          <form action={limparExemplo} className="ml-auto">
-            <button className="rounded-lg border border-marca bg-superficie px-3.5 py-1.5 text-[12.5px] font-bold text-marca">
-              Apagar os dados de exemplo
-            </button>
-          </form>
-        </div>
-      )}
 
       <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi r="Faturamento" v={brl(fat)} />

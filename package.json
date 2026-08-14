@@ -15,7 +15,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:demo": "tsx prisma/demo.ts",
     "db:demo:limpar": "tsx prisma/demo.ts --limpar",
-    "usuarios": "tsx --env-file=.env.local prisma/usuarios.ts"
+    "usuarios": "tsx --env-file=.env.local prisma/usuarios.ts",
+    "db:reiniciar": "tsx --env-file=.env.local prisma/reiniciar.ts --aplicar"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

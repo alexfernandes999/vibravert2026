@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import { usuarioAtual } from "@/lib/admin-auth";
+import { usuarioAtual, podeGerirEquipe } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
+import { GerirEquipe } from "@/components/gerir-equipe";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Equipe e registros" };
@@ -20,7 +21,7 @@ const quando = (d: Date | null) =>
  */
 export default async function Equipe() {
   const eu = await usuarioAtual();
-  if (eu?.papel !== "DESENVOLVEDOR") notFound();
+  if (!eu || !(await podeGerirEquipe())) notFound();
 
   const [pessoas, registros] = await Promise.all([
     prisma.usuario.findMany({ orderBy: { criadoEm: "asc" } }),
@@ -34,51 +35,24 @@ export default async function Equipe() {
   return (
     <div className="p-6">
       <h1 className="text-xl font-extrabold tracking-tight">Equipe e registros</h1>
-      <p className="mt-1.5 max-w-xl text-[13.5px] leading-relaxed text-tinta-2">
-        Contas do painel. Criar, redefinir senha e desligar o autenticador de alguém é por linha de
-        comando: <code className="rounded bg-superficie-2 px-1.5 py-0.5 text-[12.5px]">npm run usuarios</code>
+      <p className="mt-1.5 max-w-2xl text-[13.5px] leading-relaxed text-tinta-2">
+        Quem tem acesso ao painel. Você pode criar contas, trocar o nível de acesso, redefinir
+        senha e desligar o autenticador de quem perdeu o celular.
       </p>
 
-      <div className="mt-5 overflow-x-auto rounded-caixa border border-linha">
-        <table className="w-full border-collapse bg-superficie text-[13.5px]">
-          <thead>
-            <tr className="text-[11px] uppercase tracking-wide text-mudo">
-              <th className="border-b border-linha px-4 py-2.5 text-left font-extrabold">Pessoa</th>
-              <th className="border-b border-linha px-4 py-2.5 text-left font-extrabold">Acesso</th>
-              <th className="border-b border-linha px-4 py-2.5 text-left font-extrabold">Autenticador</th>
-              <th className="border-b border-linha px-4 py-2.5 text-right font-extrabold">Último acesso</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pessoas.map((u) => (
-              <tr key={u.id}>
-                <td className="border-b border-linha px-4 py-2.5">
-                  <span className="font-bold">{u.nome}</span>
-                  <span className="ml-2 text-mudo">{u.login}</span>
-                  {!u.ativo && (
-                    <span className="ml-2 rounded bg-critico/10 px-1.5 py-0.5 text-[10.5px] font-extrabold text-critico">
-                      inativo
-                    </span>
-                  )}
-                </td>
-                <td className="border-b border-linha px-4 py-2.5 font-semibold">
-                  {u.papel === "DESENVOLVEDOR" ? "Desenvolvedor" : "Operador"}
-                </td>
-                <td className="border-b border-linha px-4 py-2.5">
-                  {u.segredo2FA ? (
-                    <span className="font-semibold text-bom">ligado</span>
-                  ) : (
-                    <span className="font-semibold text-atencao">só senha</span>
-                  )}
-                </td>
-                <td className="num border-b border-linha px-4 py-2.5 text-right text-mudo">
-                  {quando(u.ultimoAcesso)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <GerirEquipe
+        euId={eu.id}
+        pessoas={pessoas.map((u) => ({
+          id: u.id,
+          login: u.login,
+          nome: u.nome,
+          email: u.email,
+          papel: u.papel,
+          ativo: u.ativo,
+          temDoisFatores: Boolean(u.segredo2FA),
+          ultimoAcesso: u.ultimoAcesso ? quando(u.ultimoAcesso) : null,
+        }))}
+      />
 
       <h2 className="mt-8 text-[15px] font-extrabold">Últimas ações</h2>
       {registros.length === 0 ? (

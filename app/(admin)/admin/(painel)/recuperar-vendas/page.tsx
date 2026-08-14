@@ -140,8 +140,9 @@ export default async function Recuperar() {
 
       {!emailLigado && (
         <p className="mt-4 rounded-caixa border border-atencao/35 bg-atencao/10 px-4 py-3 text-[13px] font-semibold text-tinta-2">
-          O envio de e-mail ainda não está ligado · falta a chave do Resend. O WhatsApp funciona
-          normalmente.
+          <strong className="font-extrabold">O e-mail ainda não sai de verdade</strong> · falta a
+          chave do Resend. O botão funciona e marca o lembrete, e a mensagem fica registrada no
+          servidor · quando a chave chegar, passa a sair sozinho. O WhatsApp já funciona normal.
         </p>
       )}
 
@@ -214,11 +215,9 @@ export default async function Recuperar() {
                   )}
 
                   <form action={mandarEmail.bind(null, p.id)}>
-                    <button
-                      disabled={!emailLigado}
-                      className="rounded-lg border border-marca bg-superficie px-4 py-2 text-[12.5px] font-bold text-marca transition hover:bg-marca-suave disabled:cursor-not-allowed disabled:opacity-45"
-                    >
+                    <button className="rounded-lg border border-marca bg-superficie px-4 py-2 text-[12.5px] font-bold text-marca transition hover:bg-marca-suave">
                       Mandar e-mail
+                      {!emailLigado && <span className="ml-1.5 font-semibold text-mudo">(fila)</span>}
                     </button>
                   </form>
 

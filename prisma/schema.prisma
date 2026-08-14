@@ -498,9 +498,11 @@ model Usuario {
 }
 
 enum PapelUsuario {
-  /// Mexe na loja: pedidos, estoque, produtos, banners.
+  /// Mexe na loja: pedidos, estoque, produtos, banners. É o dia a dia.
   OPERADOR
-  /// Tudo do operador, mais as integrações e o diagnóstico técnico.
+  /// O dono. Tudo do operador, mais criar e desligar quem tem acesso.
+  MASTER
+  /// Quem cuida do sistema. Tudo do master, mais integrações e diagnóstico.
   DESENVOLVEDOR
 
   @@schema("vibravert")
