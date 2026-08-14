@@ -3,6 +3,7 @@ import type { PedidoStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { usuarioAtual } from "@/lib/admin-auth";
 import { Saudacao } from "@/components/saudacao";
+import { RelogioPainel } from "@/components/relogio-painel";
 import { brl } from "@/lib/formato";
 import { configurado } from "@/lib/mercadopago";
 import { configurado as emailOk } from "@/lib/email";
@@ -86,9 +87,11 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
 
   return (
     <div className="p-6">
-      <div className="flex flex-wrap items-baseline gap-3">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <Saudacao nome={eu.nome} />
-        <nav className="ml-auto flex gap-1.5">
+        <div className="ml-auto flex flex-wrap items-center gap-3">
+          <RelogioPainel />
+        <nav className="flex gap-1.5">
           {[1, 7, 30, 90].map((d) => (
             <Link
               key={d}
@@ -101,8 +104,8 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
             </Link>
           ))}
         </nav>
+        </div>
       </div>
-
 
       <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi r="Faturamento" v={brl(fat)} />

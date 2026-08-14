@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { RelogioPainel } from "@/components/relogio-painel";
 import { registrarAcao } from "@/lib/admin-auth";
 import { brl } from "@/lib/formato";
 import { revalidatePath } from "next/cache";
@@ -146,7 +147,10 @@ export default async function Pedidos({ searchParams }: { searchParams: Promise<
 
   return (
     <div className="p-6">
-      <h1 className="text-xl font-extrabold tracking-tight">Pedidos</h1>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-xl font-extrabold tracking-tight">Pedidos</h1>
+        <div className="ml-auto"><RelogioPainel /></div>
+      </div>
 
       {emCaixa !== null && (emCaixa < 50 || aDespachar > 0) && (
         <div

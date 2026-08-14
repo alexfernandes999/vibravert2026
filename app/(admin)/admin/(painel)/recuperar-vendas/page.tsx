@@ -1,5 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { RelogioPainel } from "@/components/relogio-painel";
 import { registrarAcao } from "@/lib/admin-auth";
 import { carrinhoAbandonado } from "@/lib/email";
 import { configurado as emailLigado } from "@/lib/email";
@@ -109,7 +110,10 @@ export default async function Recuperar() {
 
   return (
     <div className="p-6">
-      <h1 className="text-xl font-extrabold tracking-tight">Recuperar vendas</h1>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-xl font-extrabold tracking-tight">Recuperar vendas</h1>
+        <div className="ml-auto"><RelogioPainel /></div>
+      </div>
       <p className="mt-1.5 max-w-2xl text-[13.5px] leading-relaxed text-tinta-2">
         Quem escolheu a bomba, preencheu o endereço e parou na hora de pagar. É a venda mais barata
         de fechar · já sabemos o nome, o telefone e o que a pessoa queria.
