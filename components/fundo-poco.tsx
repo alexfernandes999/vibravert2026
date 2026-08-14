@@ -27,16 +27,16 @@ export function FundoPoco({ className = "" }: { className?: string }) {
           <stop offset="100%" stopColor="var(--color-marca)" stopOpacity="0" />
         </linearGradient>
         <linearGradient id="agua" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="var(--color-marca)" stopOpacity="0.2" />
-          <stop offset="100%" stopColor="var(--color-marca)" stopOpacity="0.06" />
+          <stop offset="0%" stopColor="var(--color-marca)" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="var(--color-marca)" stopOpacity="0.1" />
         </linearGradient>
         {/* Areia e cascalho: pontinhos, do jeito que geologia se desenha. */}
         <pattern id="areia" width="16" height="16" patternUnits="userSpaceOnUse">
-          <circle cx="4" cy="4" r="1.3" fill="var(--color-marca)" fillOpacity="0.16" />
-          <circle cx="12" cy="10" r="1" fill="var(--color-marca)" fillOpacity="0.12" />
+          <circle cx="4" cy="4" r="1.3" fill="var(--color-marca)" fillOpacity="0.26" />
+          <circle cx="12" cy="10" r="1" fill="var(--color-marca)" fillOpacity="0.2" />
         </pattern>
         <pattern id="rocha" width="22" height="14" patternUnits="userSpaceOnUse">
-          <path d="M0 7h22M11 0v7M0 14h22M5 7v7" stroke="var(--color-marca)" strokeOpacity="0.13" strokeWidth="1.2" fill="none" />
+          <path d="M0 7h22M11 0v7M0 14h22M5 7v7" stroke="var(--color-marca)" strokeOpacity="0.2" strokeWidth="1.2" fill="none" />
         </pattern>
       </defs>
 
@@ -44,9 +44,9 @@ export function FundoPoco({ className = "" }: { className?: string }) {
       <path
         d="M243 40c16 7 24 25 41 28 15 4 30-4 43 5 10 8 9 24 18 33 11 11 30 8 39 21 7 13 0 28 5 42 6 17 24 25 24 43 0 19-20 30-27 48-7 16-1 35-10 50-10 16-35 14-49 26-13 12-13 32-26 42-15 13-38 6-52 17-15 11-18 31-36 37-17 6-34-8-51-6-18 2-31 19-48 16-18-3-25-23-39-34-15-12-36-5-48-18-11-13-7-32-15-47-10-17-33-20-37-40-5-18 10-34 8-52-2-18-22-34-16-52 6-17 27-22 38-38 10-15 7-35 20-47 13-11 34-7 49-16 14-9 19-30 36-35 15-6 31 6 47 1 15-4 23-24 40-24Z"
         fill="var(--color-marca)"
-        fillOpacity="0.05"
+        fillOpacity="0.07"
         stroke="var(--color-marca)"
-        strokeOpacity="0.14"
+        strokeOpacity="0.22"
         strokeWidth="2"
       />
 
@@ -65,7 +65,7 @@ export function FundoPoco({ className = "" }: { className?: string }) {
 
       {/* ── camadas do terreno ───────────────────────────────────── */}
       {/* solo superficial */}
-      <path d="M40 170 Q140 158 240 170 T420 168 V214 H40Z" fill="var(--color-marca)" fillOpacity="0.1" />
+      <path d="M40 170 Q140 158 240 170 T420 168 V214 H40Z" fill="var(--color-marca)" fillOpacity="0.16" />
       {/* areia */}
       <path d="M40 214 H420 V300 H40Z" fill="url(#areia)" />
       {/* rocha */}
@@ -128,12 +128,19 @@ export function FundoPoco({ className = "" }: { className?: string }) {
         fill="none" stroke="var(--color-marca)" strokeOpacity="0.42" strokeWidth="5"
         strokeLinecap="round" strokeLinejoin="round" />
 
-      {/* sentido do fluxo, subindo */}
-      <g stroke="var(--color-marca)" strokeOpacity="0.5" strokeWidth="2.2" fill="none" strokeLinecap="round">
-        <path d="M194 300 l6-7 6 7" />
-        <path d="M194 250 l6-7 6 7" />
-        <path d="M194 205 l6-7 6 7" />
-      </g>
+      {/* A água subindo. É um tracejado que corre pelo próprio caminho da
+          mangueira · leve, sem elemento novo se movendo pela tela, e some
+          inteiro para quem pediu menos animação no sistema. */}
+      <path
+        className="corrente"
+        d="M200 361 V190 Q200 150 236 146 H300"
+        fill="none"
+        stroke="var(--color-marca)"
+        strokeOpacity="0.75"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+        strokeDasharray="10 26"
+      />
 
       {/* profundidade, do jeito que vai no manual */}
       <g stroke="var(--color-marca)" strokeOpacity="0.3" strokeWidth="1.4" fill="none">

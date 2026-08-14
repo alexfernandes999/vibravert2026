@@ -8,6 +8,13 @@ const config: NextConfig = {
     // next/image recusa a origem e a loja fica sem nenhuma imagem.
     remotePatterns: [
       {
+        // Fotos das peças, servidas pelo CDN da loja do mesmo grupo. É
+        // provisório: quando a chave de serviço do Storage estiver à mão, elas
+        // passam a ser hospedadas aqui, como as das bombas.
+        protocol: "https",
+        hostname: "acasasaopaulo.vteximg.com.br",
+      },
+      {
         protocol: "https",
         hostname: "bcshyedkqssuzpucpkiy.supabase.co",
         pathname: "/storage/v1/object/public/**",

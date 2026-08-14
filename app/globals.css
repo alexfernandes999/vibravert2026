@@ -131,3 +131,21 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .fita, .pulso { animation: none; }
 }
+
+/* A água subindo pela mangueira, no desenho do poço.
+   É só o tracejado deslizando pelo próprio traço: nada entra nem sai da tela,
+   então o navegador não repinta área nenhuma. Quem pediu menos movimento no
+   sistema não vê nada se mexer. */
+.corrente {
+  animation: subir 2.4s linear infinite;
+}
+@keyframes subir {
+  to {
+    stroke-dashoffset: -36;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .corrente {
+    animation: none;
+  }
+}

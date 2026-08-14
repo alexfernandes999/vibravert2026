@@ -6,7 +6,7 @@ import { CartaoProduto } from "@/components/cartao-produto";
 
 export const revalidate = 300;
 
-type Busca = { poco?: string; voltagem?: string; acompanha?: string; ordem?: string; lider?: string; marca?: string };
+type Busca = { poco?: string; voltagem?: string; acompanha?: string; ordem?: string; lider?: string; marca?: string; tipo?: string };
 
 /**
  * Cada combinação com demanda de busca vira uma página própria, indexável.
@@ -14,7 +14,7 @@ type Busca = { poco?: string; voltagem?: string; acompanha?: string; ordem?: str
  * produtos, muitas com um ou dois itens, competindo entre si no Google. Aqui
  * o caminho é o inverso.
  */
-const INDEXAVEIS = new Set(["poco", "voltagem"]);
+const INDEXAVEIS = new Set(["poco", "voltagem", "tipo"]);
 
 /**
  * Descrição própria por combinação de filtro.
@@ -30,6 +30,9 @@ function descricao(s: Busca) {
   if (s.voltagem) {
     return `Bombas submersas vibratórias em ${s.voltagem}, das linhas Vibra Vert e Rymer. Compre direto de quem fabrica, com assistência técnica própria.`;
   }
+  if (s.tipo === "peca") {
+    return "Peças originais para bomba submersa vibratória: caneca, kit de manutenção, ventosa, martelete, válvula e canopla. Direto da fábrica, compatíveis também com as bombas que já existem no mercado.";
+  }
   return "Bomba sapo Vibra Vert e Rymer, direto da fábrica. Filtre por diâmetro do poço, vazão e voltagem, e veja quanto cada bomba entrega na sua instalação.";
 }
 
@@ -42,6 +45,7 @@ function canonica(s: Busca) {
 
 function titulo(s: Busca) {
   const partes = ["Bombas submersas vibratórias"];
+  if (s.tipo === "peca") return "Peças originais para bomba submersa vibratória";
   if (s.poco) partes.push(`para poço de ${s.poco} polegadas`);
   if (s.voltagem) partes.push(s.voltagem);
   if (s.marca) partes.push(`da linha ${s.marca}`);
@@ -82,6 +86,9 @@ export default async function Listagem({ searchParams }: { searchParams: Promise
   if (s.acompanha === "kit") where.acompanhaKit = true;
   if (s.lider) where.destaque = true;
   if (s.marca) where.marca = s.marca;
+  // Sem filtro, a listagem é de bombas: peça tem lógica de compra própria e
+  // misturada na grade só atrapalha quem procura bomba.
+  where.tipo = s.tipo === "peca" ? "PECA" : "BOMBA";
 
   const [produtos, porPoco, porVoltagem] = await Promise.all([
     prisma.produto.findMany({

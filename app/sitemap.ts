@@ -14,9 +14,12 @@ const base = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [produtos, pocos, voltagens] = await Promise.all([
+    // Bomba entra só na versão principal, para as quatro montagens não
+    // competirem entre si. Peça não tem família: cada uma é uma página só, e
+    // todas entram.
     prisma.produto.findMany({
-      where: { ativo: true, principalDaFamilia: true },
-      select: { slug: true, atualizadoEm: true },
+      where: { ativo: true, OR: [{ principalDaFamilia: true }, { tipo: "PECA" }] },
+      select: { slug: true, atualizadoEm: true, tipo: true },
     }),
     prisma.produto.groupBy({ by: ["pocoPolegadas"], where: { ativo: true, pocoPolegadas: { not: null } } }),
     prisma.produto.groupBy({ by: ["voltagem"], where: { ativo: true, voltagem: { not: null } } }),
@@ -26,6 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: base, changeFrequency: "weekly", priority: 1 },
     { url: `${base}/qual-bomba`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${base}/bombas`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${base}/bombas?tipo=peca`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/assistencia`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/sobre`, changeFrequency: "yearly", priority: 0.5 },
     { url: `${base}/fale-conosco`, changeFrequency: "yearly", priority: 0.5 },
@@ -61,7 +65,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${base}/produto/${p.slug}`,
       lastModified: p.atualizadoEm,
       changeFrequency: "weekly" as const,
-      priority: 0.9,
+      priority: p.tipo === "PECA" ? 0.6 : 0.9,
     })),
   ];
 }

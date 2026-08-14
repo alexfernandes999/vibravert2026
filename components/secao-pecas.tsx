@@ -1,4 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
+import { prisma } from "@/lib/prisma";
+import { brl, precoPix } from "@/lib/formato";
 
 /**
  * Peças originais.
@@ -81,7 +84,19 @@ const PECAS = [
   },
 ];
 
-export function SecaoPecas() {
+export async function SecaoPecas() {
+  // As peças agora existem de verdade no catálogo. A grade de "Em breve" fica
+  // como reserva: se um dia não houver peça ativa, a seção não some da home.
+  const pecas = await prisma.produto.findMany({
+    where: { ativo: true, tipo: "PECA" },
+    orderBy: { preco: "desc" },
+    take: 6,
+    select: {
+      slug: true, nome: true, preco: true, modelo: true,
+      imagens: { where: { principal: true }, select: { url: true, alt: true }, take: 1 },
+    },
+  });
+
   return (
     <section id="pecas" className="scroll-mt-16 border-t border-linha bg-superficie">
       <div className="mx-auto max-w-7xl px-5 py-14">
@@ -96,6 +111,46 @@ export function SecaoPecas() {
           bombas que já existem no mercado.
         </p>
 
+        {pecas.length > 0 ? (
+          <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {pecas.map((p, i) => (
+              <li key={p.slug} className="revelar" style={{ transitionDelay: `${(i % 6) * 45}ms` }}>
+                <Link
+                  href={`/produto/${p.slug}`}
+                  className="group flex h-full flex-col overflow-hidden rounded-caixa border border-linha bg-superficie-2 transition duration-300 hover:-translate-y-1 hover:border-marca hover:shadow-lg hover:shadow-marca/10"
+                >
+                  <span className="relative block aspect-square overflow-hidden bg-superficie">
+                    {p.imagens[0] && (
+                      <Image
+                        src={p.imagens[0].url}
+                        alt={p.imagens[0].alt}
+                        fill
+                        sizes="(min-width:1024px) 16vw, 44vw"
+                        className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
+                      />
+                    )}
+                  </span>
+                  <span className="flex flex-1 flex-col p-3">
+                    {p.modelo && (
+                      <span className="text-[9.5px] font-extrabold uppercase tracking-[0.12em] text-marca">
+                        {p.modelo}
+                      </span>
+                    )}
+                    <span className="mt-1 line-clamp-2 text-[12px] font-bold leading-snug">
+                      {p.nome}
+                    </span>
+                    <span className="num mt-auto pt-2 text-[15px] font-extrabold text-bom">
+                      {brl(precoPix(Number(p.preco)))}
+                    </span>
+                    <span className="text-[10.5px] font-bold uppercase tracking-wide text-bom">
+                      no PIX
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
         <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {PECAS.map((p, i) => (
             <li
@@ -117,14 +172,25 @@ export function SecaoPecas() {
             </li>
           ))}
         </ul>
+        )}
 
-        <p className="revelar mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13.5px] text-tinta-2">
-          Precisa de uma peça agora?
-          <Link href="/assistencia" className="font-bold text-marca underline underline-offset-2">
-            Fale com a assistência
+        <div className="revelar mt-6 flex flex-wrap items-center gap-3">
+          <Link
+            href="/bombas?tipo=peca"
+            className="rounded-lg bg-marca px-5 py-3 text-[13.5px] font-bold text-white shadow-lg shadow-marca/25 transition hover:brightness-110 active:scale-[0.98]"
+          >
+            Ver todas as peças
           </Link>
-          <span className="text-mudo">· a fábrica tem estoque de reposição de toda a linha.</span>
-        </p>
+          <Link
+            href="/assistencia"
+            className="rounded-lg border border-marca bg-superficie px-5 py-3 text-[13.5px] font-bold text-marca transition hover:bg-marca-suave"
+          >
+            Falar com a assistência
+          </Link>
+          <span className="text-[12.5px] text-mudo">
+            A fábrica tem estoque de reposição de toda a linha.
+          </span>
+        </div>
       </div>
     </section>
   );
