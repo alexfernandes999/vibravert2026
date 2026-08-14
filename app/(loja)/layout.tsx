@@ -8,6 +8,8 @@ import { Revelar } from "@/components/revelar";
 import { FaixaAvisos } from "@/components/faixa-avisos";
 import { Vibrinha } from "@/components/vibrinha";
 import { RodapePagamento } from "@/components/rodape-pagamento";
+import { RodapeCanais, RodapeRedes } from "@/components/rodape-canais";
+import { RodapeNewsletter } from "@/components/rodape-newsletter";
 import { AcoesCabecalho } from "@/components/acoes-cabecalho";
 import "../globals.css";
 
@@ -167,7 +169,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </div>
 
         <footer className="border-t border-linha bg-superficie-2">
-          <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 sm:grid-cols-2 lg:grid-cols-4">
+          {/* 1 · newsletter  2 · canais  3 · menus e pagamento
+              4 · endereço e redes  5 · dados da empresa */}
+          <RodapeNewsletter />
+          <RodapeCanais />
+
+          <div className="mx-auto grid max-w-7xl gap-8 border-t border-linha px-5 py-10 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <Logotipo largura={158} />
               <p className="mt-3 max-w-xs text-[13px] leading-relaxed text-mudo">
@@ -210,6 +217,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               O CNPJ é o da matriz (0001-32) — a A Casa São Paulo é filial, e
               publicar o dela apontaria o consumidor para o estabelecimento
               errado na hora de reclamar. */}
+          <div className="border-t border-linha">
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-5 py-5">
+              <p className="text-[12.5px] leading-snug text-mudo">
+                <strong className="font-bold text-tinta-2">Rua Charles Darwin, 707</strong>
+                <span className="block">Vila Santa Catarina · São Paulo/SP · CEP 04379-074</span>
+              </p>
+              <div className="ml-auto flex items-center gap-3">
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.13em] text-mudo">
+                  Redes
+                </span>
+                <RodapeRedes />
+              </div>
+            </div>
+          </div>
+
           <div className="border-t border-linha px-5 py-5">
             <address className="mx-auto max-w-7xl text-center text-[11.5px] font-medium not-italic leading-relaxed text-mudo">
               <strong className="font-bold text-tinta-2">ARF Comércio de Bombas e Máquinas Ltda.</strong>
