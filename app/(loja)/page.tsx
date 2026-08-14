@@ -11,6 +11,9 @@ import { SecaoVideos } from "@/components/secao-videos";
 import { SecaoFabrica } from "@/components/secao-fabrica";
 import { SecaoErros } from "@/components/secao-erros";
 import { SecaoMaterias } from "@/components/secao-materias";
+import { SecaoTrocaExpressa } from "@/components/secao-troca-expressa";
+import { Calculadora } from "@/components/calculadora";
+import { modelosDaCalculadora } from "@/lib/modelos-calculadora";
 
 export const revalidate = 300;
 
@@ -38,7 +41,7 @@ const CAMPOS = {
 
 export default async function Home() {
 
-  const [principal, meio, maisVendidas, precos, videos, destaque] = await Promise.all([
+  const [principal, meio, maisVendidas, precos, videos, destaque, modelosCalc] = await Promise.all([
     bannerAtivo("PRINCIPAL"),
     bannerAtivo("FAIXA_MEIO"),
     // Marcados como líder primeiro; o resto completa a prateleira.
@@ -73,6 +76,7 @@ export default async function Home() {
         imagens: { where: { principal: true }, select: { url: true, alt: true }, take: 1 },
       },
     }),
+    modelosDaCalculadora(),
   ]);
 
   const site = {
@@ -186,6 +190,32 @@ export default async function Home() {
       </section>
 
 
+      {/* A calculadora sobe para a segunda posição.
+          Era uma página separada que quase ninguém achava. Aqui em cima ela
+          faz o trabalho que um catálogo não faz: transformar "não sei qual eu
+          preciso" em uma bomba com foto e preço, antes de o visitante ir
+          embora comparar em outro lugar. */}
+      <section className="border-b border-linha bg-superficie">
+        <div className="mx-auto max-w-7xl px-5 py-12">
+          <div className="max-w-2xl">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-marca">
+              Antes de escolher
+            </p>
+            <h2 className="revelar mt-2 text-3xl font-extrabold tracking-tight text-balance">
+              Qual bomba o seu poço precisa?
+            </h2>
+            <p className="revelar mt-3 text-[15px] leading-relaxed text-tinta-2">
+              Quatro perguntas e você vê a bomba certa, com foto e preço · e o número que o
+              catálogo não mostra: <strong className="font-bold text-tinta">quanto ela entrega na
+              sua instalação</strong>, não a vazão máxima medida a zero metro.
+            </p>
+          </div>
+          <div className="mt-7">
+            <Calculadora modelos={modelosCalc} />
+          </div>
+        </div>
+      </section>
+
       {/* O diâmetro do poço decide se a bomba serve · é a primeira pergunta da
           compra e a maior causa de devolução. Vira faixa própria, larga e
           clicável, em vez de uma caixinha espremida na lateral do herói. */}
@@ -232,6 +262,9 @@ export default async function Home() {
           proporcao="2219 / 709"
         />
       </section>
+
+      <SecaoTrocaExpressa />
+
 
       <SecaoVideos videos={videos} />
 
