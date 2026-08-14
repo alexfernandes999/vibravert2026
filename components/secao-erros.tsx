@@ -113,7 +113,7 @@ export function SecaoErros() {
             11
           </span>
           <div className="min-w-0">
-            <p className="inline-flex items-center gap-2 rounded-full bg-ouro/15 px-3 py-1 text-[10.5px] font-extrabold uppercase tracking-[0.14em] text-ouro-txt">
+            <p className="inline-flex items-center gap-2 rounded-full border border-ouro/50 bg-ouro/35 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-ouro-txt">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"
                 className="h-3.5 w-3.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 3.5L22 20H2z" />
@@ -127,7 +127,7 @@ export function SecaoErros() {
                 <span className="relative z-10">queimam</span>
                 <span
                   aria-hidden
-                  className="absolute inset-x-0 bottom-[0.1em] z-0 h-[0.34em] -skew-y-1 rounded-sm bg-ouro/45"
+                  className="absolute inset-x-0 bottom-[0.1em] z-0 h-[0.36em] -skew-y-1 rounded-sm bg-ouro/75"
                 />
               </span>{" "}
               uma bomba sapo

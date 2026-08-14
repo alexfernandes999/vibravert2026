@@ -418,6 +418,14 @@ model Pedido {
   utmMedium   String?
   utmCampaign String?
 
+  /// Recuperação de pedido parado.
+  ///
+  /// Conta quantos lembretes já foram enviados e quando foi o último. Sem
+  /// isso, a mesma pessoa recebe cobrança toda vez que alguém abre a tela ·
+  /// e insistir é o que transforma recuperação em spam.
+  lembretes  Int       @default(0)
+  lembreteEm DateTime?
+
   /// Qual serviço o cliente escolheu e pagou. Sem isto a expedição não sabe
   /// se posta em PAC ou SEDEX, e postar no errado é cobrar um e entregar
   /// outro — prejuízo se for para cima, reclamação se for para baixo.

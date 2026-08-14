@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { brl } from "@/lib/formato";
 import { configurado } from "@/lib/mercadopago";
+import { BotaoPagar } from "@/components/botao-pagar";
 
 import { TELEFONE } from "@/lib/contato";
 export const metadata: Metadata = { title: "Pedido", robots: { index: false, follow: false } };
@@ -40,6 +41,10 @@ export default async function Pedido({ params }: { params: Promise<{ numero: str
 
       {/* Sem credencial não houve cobrança. Dizer isso é melhor do que deixar o
           comprador esperando um PIX que nunca vai chegar. */}
+      {/* Pedido parado tem sempre por onde retomar. É para cá que aponta o
+          lembrete de carrinho abandonado. */}
+      {configurado && p.status === "AGUARDANDO_PAGAMENTO" && <BotaoPagar numero={p.numero} />}
+
       {!configurado && p.status === "AGUARDANDO_PAGAMENTO" && (
         <p className="mt-5 rounded-caixa border border-atencao/30 bg-atencao/5 px-4 py-3.5 text-[13px] leading-snug text-atencao">
           <strong className="font-extrabold">Ambiente de testes.</strong> O pedido foi registrado,
