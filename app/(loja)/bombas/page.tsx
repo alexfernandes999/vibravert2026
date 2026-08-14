@@ -6,7 +6,7 @@ import { CartaoProduto } from "@/components/cartao-produto";
 
 export const revalidate = 300;
 
-type Busca = { poco?: string; voltagem?: string; acompanha?: string; ordem?: string; lider?: string };
+type Busca = { poco?: string; voltagem?: string; acompanha?: string; ordem?: string; lider?: string; marca?: string };
 
 /**
  * Cada combinação com demanda de busca vira uma página própria, indexável.
@@ -44,6 +44,7 @@ function titulo(s: Busca) {
   const partes = ["Bombas submersas vibratórias"];
   if (s.poco) partes.push(`para poço de ${s.poco} polegadas`);
   if (s.voltagem) partes.push(s.voltagem);
+  if (s.marca) partes.push(`da linha ${s.marca}`);
   if (s.acompanha === "boia") partes.push("com boia de nível");
   if (s.acompanha === "kit") partes.push("com kit de manutenção");
   if (s.lider) partes.unshift("Mais vendidas:");
@@ -80,6 +81,7 @@ export default async function Listagem({ searchParams }: { searchParams: Promise
   if (s.acompanha === "boia") where.acompanhaBoia = true;
   if (s.acompanha === "kit") where.acompanhaKit = true;
   if (s.lider) where.destaque = true;
+  if (s.marca) where.marca = s.marca;
 
   const [produtos, porPoco, porVoltagem] = await Promise.all([
     prisma.produto.findMany({

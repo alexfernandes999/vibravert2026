@@ -9,6 +9,7 @@ import { bannerAtivo } from "@/lib/banners";
 import { Medir } from "@/components/medir";
 import { SecaoVideos } from "@/components/secao-videos";
 import { SecaoFabrica } from "@/components/secao-fabrica";
+import { SecaoErros } from "@/components/secao-erros";
 
 export const revalidate = 300;
 
@@ -46,9 +47,12 @@ export default async function Home() {
       take: 4,
       select: CAMPOS,
     }),
+    // A linha Rymer, e não "os quatro mais baratos": a Rymer é a marca mais
+    // conhecida do grupo e a mais vendida dos marketplaces. Ordenar por preço
+    // crescente a apresentava como a opção de segunda.
     prisma.produto.findMany({
-      where: { ativo: true },
-      orderBy: { preco: "asc" },
+      where: { ativo: true, marca: "Rymer", principalDaFamilia: true },
+      orderBy: { vazaoMaxima: "asc" },
       take: 4,
       select: CAMPOS,
     }),
@@ -267,7 +271,15 @@ export default async function Home() {
 
 
 
-      <Prateleira titulo="Preços imbatíveis" produtos={precos} verTudo="/bombas?ordem=preco" />
+      <Prateleira
+        titulo="Linha Rymer · a bomba mais vendida do Brasil"
+        subtitulo="Tradição desde 1958. Líder de vendas no Mercado Livre, Magazine Luiza, Amazon e Shopee."
+        produtos={precos}
+        verTudo="/bombas?marca=Rymer"
+      />
+
+      <SecaoErros />
+
 
       <SecaoFabrica />
 
@@ -382,21 +394,26 @@ export default async function Home() {
 
 function Prateleira({
   titulo,
+  subtitulo,
   produtos,
   verTudo = "/bombas",
 }: {
   titulo: string;
+  subtitulo?: string;
   produtos: React.ComponentProps<typeof CartaoProduto>["p"][];
   verTudo?: string;
 }) {
   if (!produtos.length) return null;
   return (
     <section className="revelar mx-auto max-w-7xl px-5 py-9">
-      <div className="mb-5 flex items-baseline gap-3">
-        <h2 className="text-xl font-extrabold tracking-tight">{titulo}</h2>
-        <Link href={verTudo} className="ml-auto text-[13px] font-bold text-marca">
+      <div className="mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <h2 className="text-xl font-extrabold tracking-tight text-balance">{titulo}</h2>
+        <Link href={verTudo} className="ml-auto shrink-0 text-[13px] font-bold text-marca">
           Ver todas →
         </Link>
+        {subtitulo && (
+          <p className="w-full text-[13.5px] leading-relaxed text-mudo">{subtitulo}</p>
+        )}
       </div>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {produtos.map((p) => (

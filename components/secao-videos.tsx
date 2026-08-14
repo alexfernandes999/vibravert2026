@@ -22,7 +22,7 @@ export function SecaoVideos({
   if (!videos.length) return null;
 
   return (
-    <section className="relative overflow-hidden bg-marca-escuro text-white">
+    <section id="videos" className="relative scroll-mt-16 overflow-hidden bg-marca-escuro text-white">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
