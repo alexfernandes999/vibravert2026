@@ -8,6 +8,7 @@ import { EspacoBanner } from "@/components/espaco-banner";
 import { bannerAtivo } from "@/lib/banners";
 import { Medir } from "@/components/medir";
 import { SecaoVideos } from "@/components/secao-videos";
+import { SecaoFabrica } from "@/components/secao-fabrica";
 
 export const revalidate = 300;
 
@@ -267,6 +268,9 @@ export default async function Home() {
 
 
       <Prateleira titulo="Preços imbatíveis" produtos={precos} verTudo="/bombas?ordem=preco" />
+
+      <SecaoFabrica />
+
 
       {/* A história fecha a página, mas em bloco com foto, não em linha de texto.
           É a última coisa que o visitante vê antes de decidir, e a credencial de

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Banner } from "@prisma/client";
 import { EspacoBanner } from "@/components/espaco-banner";
 
@@ -216,14 +217,13 @@ const PONTOS = [
     ),
   },
   {
-    t: "Garantia estendida",
-    d: "mais tempo de cobertura para quem compra aqui no site",
-    icone: (
-      <>
-        <path d="M12 3l8 3v6c0 5-3.4 8.1-8 9-4.6-.9-8-4-8-9V6z" />
-        <path d="M9 12l2 2 4-4" />
-      </>
-    ),
+    // "Garantia estendida" não dizia quanto tempo, e prazo sem número não
+    // convence ninguém. Dois anos é o dobro do que a categoria pratica, e é o
+    // argumento mais forte da linha — então entra com o selo, não com ícone.
+    t: "2 anos de garantia",
+    d: "de fábrica, nas bombas Vibra Vert. Ninguém no mercado dá mais",
+    selo: "/selo-2-anos.png",
+    icone: null,
   },
   {
     t: "27 estados",
@@ -248,11 +248,21 @@ export function FaixaConfianca() {
             key={p.t}
             className="revelar group w-[78vw] shrink-0 snap-center rounded-caixa border border-linha bg-superficie p-5 transition duration-300 hover:-translate-y-1 hover:border-marca hover:bg-marca-suave hover:shadow-lg hover:shadow-marca/10 sm:w-auto"
           >
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-marca-suave text-marca transition group-hover:bg-marca group-hover:text-white">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="h-6 w-6">
-                {p.icone}
-              </svg>
-            </span>
+            {p.selo ? (
+              <Image
+                src={p.selo}
+                alt=""
+                width={44}
+                height={44}
+                className="h-11 w-11 object-contain transition duration-300 group-hover:scale-110"
+              />
+            ) : (
+              <span className="grid h-11 w-11 place-items-center rounded-xl bg-marca-suave text-marca transition group-hover:bg-marca group-hover:text-white">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="h-6 w-6">
+                  {p.icone}
+                </svg>
+              </span>
+            )}
             <p className="mt-3.5 text-[15px] font-extrabold tracking-tight">{p.t}</p>
             <p className="mt-1 text-[13px] leading-snug text-mudo">{p.d}</p>
             <span
