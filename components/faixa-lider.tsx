@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { BandeiraBrasil } from "@/components/bandeira-brasil";
 import type { Banner } from "@prisma/client";
 import { EspacoBanner } from "@/components/espaco-banner";
 
@@ -226,16 +227,12 @@ const PONTOS = [
     icone: null,
   },
   {
+    // A bandeira no lugar do caminhão: o argumento aqui é cobrir o país
+    // inteiro, e as 27 estrelas dela são justamente os 26 estados mais o DF.
     t: "27 estados",
     d: "Grupo das Bombas ARF, 28 anos de distribuição",
-    icone: (
-      <>
-        <path d="M1.5 6.5h13v11h-13z" />
-        <path d="M14.5 10h4l3.5 3.5v4h-7.5z" />
-        <circle cx="6" cy="18.5" r="2" />
-        <circle cx="18" cy="18.5" r="2" />
-      </>
-    ),
+    bandeira: true,
+    icone: null,
   },
 ];
 
@@ -248,7 +245,11 @@ export function FaixaConfianca() {
             key={p.t}
             className="revelar group w-[78vw] shrink-0 snap-center rounded-caixa border border-linha bg-superficie p-5 transition duration-300 hover:-translate-y-1 hover:border-marca hover:bg-marca-suave hover:shadow-lg hover:shadow-marca/10 sm:w-auto"
           >
-            {p.selo ? (
+            {p.bandeira ? (
+              <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-xl bg-superficie-2 p-1.5 transition duration-300 group-hover:scale-110">
+                <BandeiraBrasil className="h-auto w-full rounded-[3px] shadow-sm" />
+              </span>
+            ) : p.selo ? (
               <Image
                 src={p.selo}
                 alt=""

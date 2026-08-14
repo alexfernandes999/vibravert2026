@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MATERIAS } from "@/lib/materias";
+import { FundoPoco } from "@/components/fundo-poco";
 
 /**
  * Matérias sobre água, no fim da home.
@@ -10,8 +11,13 @@ import { MATERIAS } from "@/lib/materias";
  */
 export function SecaoMaterias() {
   return (
-    <section className="border-t border-linha bg-superficie-2">
-      <div className="mx-auto max-w-7xl px-5 py-14">
+    <section className="relative overflow-hidden border-t border-linha bg-superficie-2">
+      {/* O desenho conta o que o texto diz: terreno, lençol, poço tubular e a
+          bomba no fundo, sobre a silhueta do país. Fica bem apagado · é
+          atmosfera, e não pode competir com a leitura. */}
+      <FundoPoco className="pointer-events-none absolute inset-0 h-full w-full opacity-60" />
+
+      <div className="relative mx-auto max-w-7xl px-5 py-14">
         <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-marca">
           Água no Brasil
         </p>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 /**
  * Os 11 erros que queimam uma bomba sapo.
@@ -100,16 +101,44 @@ export function SecaoErros() {
   return (
     <section id="erros" className="scroll-mt-16 border-t border-linha bg-superficie">
       <div className="mx-auto max-w-7xl px-5 py-14">
-        <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-marca">
-          Antes que aconteça
-        </p>
-        <h2 className="revelar mt-2 max-w-3xl text-3xl font-extrabold tracking-tight text-balance">
-          Os 11 erros que queimam uma bomba sapo
-        </h2>
-        <p className="revelar mt-3 max-w-2xl text-[15px] leading-relaxed text-tinta-2">
-          A maioria dos problemas que chega na nossa bancada não é defeito de fábrica · é
-          instalação. Veja o que evitar.
-        </p>
+        {/* O título estava com o mesmo peso das outras seções, e este bloco não
+            é mais uma prateleira: é o conteúdo que evita a bomba queimada e a
+            devolução indevida. O "11" entra como âncora gráfica, e "queimam" é
+            a palavra que faz parar de rolar — recebe o traço dourado. */}
+        <div className="flex items-start gap-5 sm:gap-7">
+          <span
+            aria-hidden
+            className="revelar num shrink-0 select-none text-[clamp(56px,11vw,112px)] font-extrabold leading-[0.78] tracking-[-0.06em] text-marca/15"
+          >
+            11
+          </span>
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-2 rounded-full bg-ouro/15 px-3 py-1 text-[10.5px] font-extrabold uppercase tracking-[0.14em] text-ouro-txt">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"
+                className="h-3.5 w-3.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 3.5L22 20H2z" />
+                <path d="M12 10v4M12 17h.01" />
+              </svg>
+              Antes que aconteça
+            </p>
+            <h2 className="revelar mt-2.5 max-w-3xl text-[clamp(26px,4.2vw,40px)] font-extrabold leading-[1.1] tracking-tight text-balance">
+              Os erros que{" "}
+              <span className="relative whitespace-nowrap">
+                <span className="relative z-10">queimam</span>
+                <span
+                  aria-hidden
+                  className="absolute inset-x-0 bottom-[0.1em] z-0 h-[0.34em] -skew-y-1 rounded-sm bg-ouro/45"
+                />
+              </span>{" "}
+              uma bomba sapo
+            </h2>
+            <p className="revelar mt-3.5 max-w-2xl text-[15.5px] leading-relaxed text-tinta-2">
+              A maioria dos problemas que chega na nossa bancada{" "}
+              <strong className="font-bold text-tinta">não é defeito de fábrica</strong> · é
+              instalação. Veja o que evitar antes de descer a bomba no poço.
+            </p>
+          </div>
+        </div>
 
         <ol className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {ERROS.map((e, i) => (
@@ -144,6 +173,22 @@ export function SecaoErros() {
         <div className="revelar mt-8 overflow-hidden rounded-caixa border border-marca/25 bg-marca-suave">
           <div className="grid gap-6 p-6 md:grid-cols-[1.4fr_1fr] md:p-8">
             <div>
+              {/* A foto mostra exatamente as quatro peças que o texto nomeia.
+                  Quem chegou aqui achando que a bomba morreu precisa ver que o
+                  que se desgasta é borracha, não motor · e borracha se troca. */}
+              <figure className="float-right ml-5 mb-3 w-[38%] max-w-[210px] overflow-hidden rounded-caixa border border-linha bg-superficie sm:w-[42%]">
+                <Image
+                  src="https://bcshyedkqssuzpucpkiy.supabase.co/storage/v1/object/public/produtos/bomba-submersa-de-poco-sapo-kit-de-manutencao-rymer-1500-125vrykit-15a-2.jpg"
+                  alt="Bomba submersa vibratória ao lado das peças de desgaste: anel de vedação, válvula, ventosa e canopla"
+                  width={460}
+                  height={460}
+                  className="h-auto w-full object-contain"
+                />
+                <figcaption className="border-t border-linha px-3 py-2 text-[11px] font-semibold leading-snug text-mudo">
+                  As peças que se desgastam · todas de borracha
+                </figcaption>
+              </figure>
+
               <h3 className="text-2xl font-extrabold tracking-tight text-marca">
                 Isso aqui não é defeito
               </h3>

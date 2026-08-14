@@ -1,3 +1,5 @@
+import { MarcaPix, BandeirasCartao } from "@/components/marcas-pagamento";
+
 /**
  * Meios de pagamento e atendimento, no rodapé.
  *
@@ -6,15 +8,6 @@
  * Uma linha de texto separada por ponto não faz esse trabalho.
  */
 const MEIOS = [
-  {
-    nome: "PIX",
-    nota: "10% off",
-    icone: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
-        <path d="M12 2.8l3.6 3.6a3 3 0 004.2 0l.6-.6a1 1 0 011.4 0l.8.8a1 1 0 010 1.4l-.6.6a3 3 0 000 4.2L12 21.2 2 12.8a3 3 0 000-4.2l-.6-.6a1 1 0 010-1.4l.8-.8a1 1 0 011.4 0l.6.6a3 3 0 004.2 0z" />
-      </svg>
-    ),
-  },
   {
     nome: "Cartão",
     nota: "até 10× sem juros",
@@ -43,6 +36,16 @@ export function RodapePagamento() {
         Formas de pagamento
       </h2>
 
+      {/* O Pix vem primeiro e com a marca, não com ícone: é o meio com 10% de
+          desconto, o mais barato para a loja e o que mais converte. */}
+      <div className="mb-2 flex items-center gap-3 rounded-lg border border-linha bg-superficie px-3.5 py-2.5">
+        <MarcaPix className="h-[26px] w-auto shrink-0" />
+        <span className="leading-tight">
+          <span className="block text-[12.5px] font-extrabold text-bom">10% de desconto</span>
+          <span className="block text-[10.5px] font-semibold text-mudo">aprovação na hora</span>
+        </span>
+      </div>
+
       <ul className="flex flex-wrap gap-2">
         {MEIOS.map((m) => (
           <li
@@ -57,6 +60,8 @@ export function RodapePagamento() {
           </li>
         ))}
       </ul>
+
+      <BandeirasCartao className="mt-2.5" />
 
       <div className="mt-5 flex items-start gap-2.5 rounded-lg bg-marca-suave px-3.5 py-3">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="mt-0.5 h-[18px] w-[18px] shrink-0 text-marca">
