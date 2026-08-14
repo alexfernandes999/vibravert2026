@@ -203,8 +203,11 @@ const PONTOS = [
     d: "a primeira fábrica de bombas submersas vibratórias do Brasil",
     icone: (
       <>
-        <path d="M3 21V9l6-4 6 4v12" />
-        <path d="M15 21V11h6v10M1 21h22M7 13h2M7 17h2" />
+        <path d="M2 21V11l5 3V11l5 3V11l5 3V21" />
+        <path d="M17 21V6h3v15" />
+        <path d="M18.5 6V3.5" />
+        <path d="M1 21h22" />
+        <path d="M5 17h2M10 17h2" />
       </>
     ),
   },
@@ -213,7 +216,8 @@ const PONTOS = [
     d: "quem conserta é a fábrica, não um posto terceirizado",
     icone: (
       <>
-        <path d="M14.7 6.3a4 4 0 01-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 015.4-5.4l-2.5 2.5-1.4-1.4 2.5-2.5z" />
+        <path d="M15.6 3.4a5 5 0 00-6.2 6.4l-6 6a2 2 0 102.8 2.8l6-6a5 5 0 006.4-6.2l-2.9 2.9a1.6 1.6 0 01-2.2 0l-.8-.8a1.6 1.6 0 010-2.2z" />
+        <circle cx="6.4" cy="17.6" r=".9" fill="currentColor" stroke="none" />
       </>
     ),
   },

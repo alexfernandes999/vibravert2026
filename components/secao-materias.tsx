@@ -15,16 +15,16 @@ export function SecaoMaterias() {
       {/* O desenho conta o que o texto diz: terreno, lençol, poço tubular e a
           bomba no fundo, sobre a silhueta do país. Fica bem apagado · é
           atmosfera, e não pode competir com a leitura. */}
-      <FundoPoco className="pointer-events-none absolute inset-0 h-full w-full opacity-60" />
+      <FundoPoco className="pointer-events-none absolute -right-10 top-0 hidden h-full w-[520px] opacity-90 lg:block" />
 
       <div className="relative mx-auto max-w-7xl px-5 py-14">
         <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-marca">
           Água no Brasil
         </p>
-        <h2 className="revelar mt-2 max-w-2xl text-3xl font-extrabold tracking-tight text-balance">
+        <h2 className="revelar mt-2 max-w-2xl text-[clamp(30px,5vw,48px)] font-extrabold leading-[1.06] tracking-tight text-balance">
           Por que tanta gente depende de poço
         </h2>
-        <p className="revelar mt-3 max-w-2xl text-[15px] leading-relaxed text-tinta-2">
+        <p className="revelar mt-4 max-w-xl text-[16px] leading-relaxed text-tinta-2">
           Três números que explicam o país em que a gente fabrica. Com fonte, e sem exagero.
         </p>
 

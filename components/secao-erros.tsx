@@ -176,15 +176,18 @@ export function SecaoErros() {
               {/* A foto mostra exatamente as quatro peças que o texto nomeia.
                   Quem chegou aqui achando que a bomba morreu precisa ver que o
                   que se desgasta é borracha, não motor · e borracha se troca. */}
-              <figure className="float-right ml-5 mb-3 w-[38%] max-w-[210px] overflow-hidden rounded-caixa border border-linha bg-superficie sm:w-[42%]">
+              <figure className="float-right ml-5 mb-2 w-[40%] max-w-[230px] sm:w-[44%]">
+                {/* A foto vem em JPEG com fundo branco. `mix-blend-multiply`
+                    faz o branco desaparecer no azul-claro do bloco, então a
+                    bomba e as borrachas ficam soltas, sem moldura de cartão. */}
                 <Image
                   src="https://bcshyedkqssuzpucpkiy.supabase.co/storage/v1/object/public/produtos/bomba-submersa-de-poco-sapo-kit-de-manutencao-rymer-1500-125vrykit-15a-2.jpg"
                   alt="Bomba submersa vibratória ao lado das peças de desgaste: anel de vedação, válvula, ventosa e canopla"
                   width={460}
                   height={460}
-                  className="h-auto w-full object-contain"
+                  className="h-auto w-full mix-blend-multiply"
                 />
-                <figcaption className="border-t border-linha px-3 py-2 text-[11px] font-semibold leading-snug text-mudo">
+                <figcaption className="mt-1 text-center text-[11px] font-semibold leading-snug text-mudo">
                   As peças que se desgastam · todas de borracha
                 </figcaption>
               </figure>

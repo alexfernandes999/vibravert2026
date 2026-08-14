@@ -8,47 +8,16 @@
  * Tudo desenhado aqui, e não em PNG: um logotipo em bitmap fica borrado na
  * tela retina, e cada arquivo é mais uma requisição na parte da página que
  * menos pode pesar.
- *
- * O símbolo do Pix é uma redesenho geométrico na cor oficial. Se a fábrica
- * quiser o arquivo exato do Banco Central, é só trocar o SVG daqui.
  */
 
-const PIX_TEAL = "#32BCAD";
-
-/** O losango do Pix: quatro pontas com os lados côncavos. */
+/**
+ * O logotipo oficial do Pix, do Banco Central. Vem como arquivo e não
+ * redesenhado: marca de terceiro se usa como ela é.
+ */
 export function MarcaPix({ className = "h-6 w-auto" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 116 32" className={className} role="img" aria-label="Pix">
-      <g transform="translate(2 1)">
-        <path
-          d="M15 0 21.6 6.6a5.5 5.5 0 0 0 3.9 1.6h1.3L20 15l-5-5-5 5-6.8-6.8h1.3a5.5 5.5 0 0 0 3.9-1.6Z"
-          fill={PIX_TEAL}
-        />
-        <path
-          d="M15 30 8.4 23.4a5.5 5.5 0 0 0-3.9-1.6H3.2L10 15l5 5 5-5 6.8 6.8h-1.3a5.5 5.5 0 0 0-3.9 1.6Z"
-          fill={PIX_TEAL}
-        />
-        <path
-          d="M28.4 9.2 32.6 13.4a2.3 2.3 0 0 1 0 3.2l-4.2 4.2-5.8-5.8Z"
-          fill={PIX_TEAL}
-        />
-        <path
-          d="M1.6 9.2 6.4 15l-4.8 5.8-1.4-1.4a2.3 2.3 0 0 1 0-3.2Z"
-          fill={PIX_TEAL}
-        />
-      </g>
-      <text
-        x="44"
-        y="23"
-        fontFamily="ui-sans-serif, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
-        fontSize="21"
-        fontWeight="700"
-        letterSpacing="-0.5"
-        fill={PIX_TEAL}
-      >
-        pix
-      </text>
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/pix.svg" alt="Pix" className={className} width={238} height={84} />
   );
 }
 
