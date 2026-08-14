@@ -2,6 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { usuarioAtual, sair } from "@/lib/admin-auth";
+import { prisma as db } from "@/lib/prisma";
+import { TourPainel } from "@/components/tour-painel";
+import { repetirTour } from "@/lib/acoes-tour";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +26,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!eu) redirect("/admin/entrar");
 
   const menu = MENU.filter((m) => !m.soDev || eu.papel === "DESENVOLVEDOR");
+
+  // O tour aparece na primeira entrada de cada pessoa, seja o dono, o
+  // escritório ou quem for criado depois.
+  const conta = await db.usuario.findUnique({ where: { id: eu.id }, select: { viuTour: true } });
 
   const [aSeparar, estoqueBaixo] = await Promise.all([
     prisma.pedido.count({ where: { status: { in: ["PAGO", "SEPARANDO"] } } }),
@@ -71,13 +78,20 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-mudo">
             {eu.papel === "DESENVOLVEDOR" ? "Desenvolvedor" : "Operador"}
           </p>
+          <form action={async () => { "use server"; await repetirTour(); redirect("/admin"); }}>
+            <button className="mt-2 block text-[12px] font-semibold text-mudo underline underline-offset-2">
+              Ver o tour de novo
+            </button>
+          </form>
           <form action={async () => { "use server"; await sair(); redirect("/admin/entrar"); }}>
-            <button className="mt-2 text-[12.5px] font-semibold text-mudo underline underline-offset-2">Sair</button>
+            <button className="mt-1.5 text-[12.5px] font-semibold text-mudo underline underline-offset-2">Sair</button>
           </form>
         </div>
       </aside>
 
       <main className="min-w-0 bg-fundo">{children}</main>
+
+      {!conta?.viuTour && <TourPainel />}
     </div>
   );
 }

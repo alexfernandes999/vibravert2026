@@ -488,6 +488,10 @@ model Usuario {
   papel PapelUsuario @default(OPERADOR)
   ativo Boolean      @default(true)
 
+  /// Se já viu o tour de boas-vindas. Fica no usuário, e não no navegador:
+  /// quem troca de computador não devia ver tudo de novo.
+  viuTour Boolean @default(false)
+
   ultimoAcesso DateTime?
   criadoEm     DateTime  @default(now())
   atualizadoEm DateTime  @updatedAt
