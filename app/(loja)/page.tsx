@@ -10,6 +10,7 @@ import { Medir } from "@/components/medir";
 import { SecaoVideos } from "@/components/secao-videos";
 import { SecaoFabrica } from "@/components/secao-fabrica";
 import { SecaoErros } from "@/components/secao-erros";
+import { SecaoMaterias } from "@/components/secao-materias";
 
 export const revalidate = 300;
 
@@ -282,6 +283,10 @@ export default async function Home() {
 
 
       <SecaoFabrica />
+
+
+      <SecaoMaterias />
+
 
 
       {/* A história fecha a página, mas em bloco com foto, não em linha de texto.

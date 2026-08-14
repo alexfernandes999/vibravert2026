@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
+import { MATERIAS } from "@/lib/materias";
 
 const base = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
 
@@ -31,6 +32,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // As institucionais entram porque o Decreto 7.962 exige que estejam
     // acessíveis, e porque o Google usa a presença delas como sinal de loja
     // séria ao avaliar confiabilidade.
+    // As matérias são as únicas páginas de conteúdo da loja: entram com
+    // prioridade de página institucional forte, não de rodapé.
+    ...MATERIAS.map((m) => ({
+      url: `${base}/agua/${m.slug}`,
+      lastModified: new Date(m.publicadaEm),
+      changeFrequency: "yearly" as const,
+      priority: 0.6,
+    })),
     ...["politica-de-entrega", "politica-de-troca", "politica-de-privacidade", "termos-de-uso"].map(
       (s) => ({ url: `${base}/${s}`, changeFrequency: "yearly" as const, priority: 0.3 }),
     ),
