@@ -1,14 +1,22 @@
 /** Formatações que se repetem em toda a loja. */
 
+import { DESCONTO_PIX as DESCONTO, PARCELAS_SEM_JUROS as PARCELAS } from "@/lib/loja";
+
 export const brl = (v: number | { toString(): string }) =>
   Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-/** O PIX é o meio mais barato para a loja e o que mais converte. */
-export const DESCONTO_PIX = 0.05;
-export const precoPix = (v: number | { toString(): string }) => Number(v) * (1 - DESCONTO_PIX);
+/**
+ * Desconto e parcelamento vêm de `lib/loja.ts`, e não daqui.
+ *
+ * Este arquivo tinha as próprias constantes, com outros valores. O resultado
+ * é o pior tipo de erro: a vitrine anunciava um desconto e o checkout cobrava
+ * outro, sem nenhum erro aparecer em lugar nenhum. Um número que decide preço
+ * só pode existir num lugar.
+ */
+export { DESCONTO_PIX, PARCELAS_SEM_JUROS as PARCELAS_MAX } from "@/lib/loja";
 
-export const PARCELAS_MAX = 6;
-export const parcela = (v: number | { toString(): string }) => Number(v) / PARCELAS_MAX;
+export const precoPix = (v: number | { toString(): string }) => Number(v) * (1 - DESCONTO);
+export const parcela = (v: number | { toString(): string }) => Number(v) / PARCELAS;
 
 export const litros = (n: number) => `${n.toLocaleString("pt-BR")} L/h`;
 
