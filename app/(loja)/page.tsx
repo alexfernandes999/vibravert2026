@@ -101,13 +101,17 @@ export default async function Home() {
             <p className="entrar text-[10.5px] font-extrabold uppercase tracking-[0.16em] text-marca">
               Loja Oficial · Fabricação própria
             </p>
+            {/* O título antigo — "Potência e qualidade para sua necessidade" —
+                serve para qualquer produto do mundo e não tem uma única palavra
+                que alguém digite no Google. Este é o texto que mais pesa na
+                busca, então carrega os termos que o cliente procura de verdade:
+                bomba sapo, submersa vibratória e poço. */}
             <h1 className="entrar entrar-2 mt-3 text-4xl font-extrabold leading-tight tracking-tight text-balance md:text-5xl">
-              Potência e qualidade para sua necessidade
+              Bomba sapo direto da fábrica, para poço de 6&quot; e 8&quot;
             </h1>
             <p className="mt-3 max-w-lg text-[15px] text-tinta-2">
-              Bombas submersas vibratórias para poço, das linhas Vibra Vert e Rymer.
-              Fabricação brasileira, assistência técnica própria e postos autorizados
-              em todo o país.
+              Bombas submersas vibratórias Vibra Vert e Rymer. Fabricação brasileira desde 1974,
+              assistência técnica própria e entrega nos 27 estados.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link

@@ -194,7 +194,7 @@ export const ROTEIRO: Record<string, No> = {
   frete: {
     fala: [
       "O frete é calculado pelo seu CEP e aparece no carrinho antes de você finalizar.",
-      "Entregamos nos 27 estados, e acima de R$ 399 o frete sai de graça.",
+      "Entregamos nos 27 estados, e o frete é grátis em todas as bombas · sem valor mínimo.",
       "O prazo também depende da região e aparece junto com o valor.",
     ],
     acao: { rotulo: "Ver a linha completa", href: "/bombas" },
@@ -202,7 +202,7 @@ export const ROTEIRO: Record<string, No> = {
   },
   pagamento: {
     fala: [
-      "PIX com 5% de desconto e aprovação na hora, cartão parcelado sem juros, ou boleto.",
+      "PIX com 10% de desconto e aprovação na hora, cartão em até 10× sem juros, ou boleto.",
       "No PIX o pedido entra em separação assim que o pagamento cai. No boleto, depois da compensação, que leva até dois dias úteis.",
     ],
     opcoes: [{ rotulo: "Voltar ao início", proximo: "menu" }],

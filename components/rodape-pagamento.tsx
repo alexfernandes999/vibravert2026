@@ -8,7 +8,7 @@
 const MEIOS = [
   {
     nome: "PIX",
-    nota: "5% off",
+    nota: "10% off",
     icone: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
         <path d="M12 2.8l3.6 3.6a3 3 0 004.2 0l.6-.6a1 1 0 011.4 0l.8.8a1 1 0 010 1.4l-.6.6a3 3 0 000 4.2L12 21.2 2 12.8a3 3 0 000-4.2l-.6-.6a1 1 0 010-1.4l.8-.8a1 1 0 011.4 0l.6.6a3 3 0 004.2 0z" />
@@ -17,7 +17,7 @@ const MEIOS = [
   },
   {
     nome: "Cartão",
-    nota: "até 6× sem juros",
+    nota: "até 10× sem juros",
     icone: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
         <rect x="2" y="5" width="20" height="14" rx="2.5" />

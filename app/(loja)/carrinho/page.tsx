@@ -3,7 +3,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { obterCarrinho, alterar, remover } from "@/lib/carrinho";
 import { brl } from "@/lib/formato";
-import { PARCELAS_SEM_JUROS, FRETE_GRATIS_ACIMA } from "@/lib/loja";
+import { PARCELAS_SEM_JUROS } from "@/lib/loja";
 
 export const metadata: Metadata = {
   title: "Carrinho",
@@ -78,12 +78,17 @@ export default async function Carrinho() {
           ))}
         </ul>
 
-        {/* Faltando pouco para o frete grátis, dizer quanto falta vende mais
-            do que só informar que existe a promoção. */}
-        {!c.freteGratis && c.faltaParaFreteGratis > 0 && (
-          <p className="mt-3 rounded-caixa border border-ouro/40 bg-ouro/10 px-4 py-3 text-[13px] font-semibold text-ouro-txt">
-            Faltam <span className="num font-extrabold">{brl(c.faltaParaFreteGratis)}</span> para o
-            frete sair de graça · acima de {brl(FRETE_GRATIS_ACIMA)} não se paga entrega.
+        {/* Não há mais barra de progresso para o frete grátis: bomba tem
+            frete grátis sempre. O que resta dizer é quando ele NÃO vale, e
+            por quê — descobrir isso só no checkout é o que faz desistir. */}
+        {c.freteGratis ? (
+          <p className="mt-3 rounded-caixa border border-bom/30 bg-bom-suave px-4 py-3 text-[13px] font-extrabold text-bom">
+            Frete grátis · toda bomba sai sem custo de entrega, para qualquer estado.
+          </p>
+        ) : (
+          <p className="mt-3 rounded-caixa border border-linha bg-superficie-2 px-4 py-3 text-[13px] font-semibold text-tinta-2">
+            O frete grátis vale para as bombas. Peças e kits avulsos têm entrega calculada pelo
+            seu CEP na próxima etapa.
           </p>
         )}
       </div>

@@ -1,4 +1,4 @@
-import { FRETE_GRATIS_ACIMA, FRETE_PADRAO } from "@/lib/loja";
+import { FRETE_GRATIS_EM_BOMBAS, FRETE_PADRAO } from "@/lib/loja";
 import * as superfrete from "@/lib/superfrete";
 import * as correios from "@/lib/correios";
 
@@ -83,9 +83,10 @@ export async function calcular(
   cepDestino: string,
   volumes: Volume[],
   subtotal: number,
+  soBombas = true,
 ): Promise<Opcao[]> {
   const cep = cepDestino.replace(/\D/g, "");
-  const gratis = subtotal >= FRETE_GRATIS_ACIMA;
+  const gratis = FRETE_GRATIS_EM_BOMBAS && soBombas;
 
   if (!configurado() || cep.length !== 8 || !volumes.length) return fixo(gratis);
 

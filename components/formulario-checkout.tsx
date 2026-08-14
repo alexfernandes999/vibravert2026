@@ -8,7 +8,7 @@ import { brl } from "@/lib/formato";
 import Image from "next/image";
 
 const METODOS = [
-  { v: "PIX", r: "PIX", nota: "5% de desconto · aprovação imediata" },
+  { v: "PIX", r: "PIX", nota: `${DESCONTO_PIX * 100}% de desconto · aprovação imediata` },
   { v: "CARTAO_CREDITO", r: "Cartão de crédito", nota: `até ${PARCELAS_SEM_JUROS}× sem juros` },
   { v: "BOLETO", r: "Boleto bancário", nota: "vence em 3 dias úteis" },
 ] as const;

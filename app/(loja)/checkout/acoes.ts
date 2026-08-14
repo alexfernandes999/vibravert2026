@@ -25,7 +25,7 @@ export async function consultarCep(cep: string) {
 export async function cotarFrete(cep: string): Promise<Opcao[]> {
   const c = await obterCarrinho();
   if (!c.itens.length) return [];
-  return calcular(cep, c.itens.map((i) => i.volume), c.subtotal);
+  return calcular(cep, c.itens.map((i) => i.volume), c.subtotal, c.soBombas);
 }
 
 const Formulario = z.object({

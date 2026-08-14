@@ -65,6 +65,10 @@ model Produto {
   /// 2500 da 2000 — a hidráulica das duas é idêntica.
   saiaProtecao  Boolean  @default(false)
 
+  /// Decide o frete grátis. Todo o catálogo de hoje é bomba; peças entram
+  /// depois e pagam frete.
+  tipo TipoProduto @default(BOMBA)
+
   /// Peso e medidas da CAIXA despachada, não da bomba nua: os Correios cobram
   /// por peso cubado, e uma caixa maior que o produto muda o frete. Onde o
   /// cadastro não tinha o dado, ele é estimado a partir do corpo da bomba mais
@@ -527,5 +531,20 @@ model RecuperacaoSenha {
   criadoEm  DateTime  @default(now())
 
   @@index([usuarioId, criadoEm])
+  @@schema("vibravert")
+}
+
+/// O que o item é, para a regra de frete.
+///
+/// Bomba tem frete grátis sempre, sem valor mínimo. Peça, kit avulso e
+/// acessório pagam frete calculado. Sem esta distinção, a promessa "frete
+/// grátis em todas as bombas" ou não se cumpre, ou passa a valer para uma
+/// ventosa de trinta reais — e aí o frete custa mais que o produto.
+enum TipoProduto {
+  BOMBA
+  PECA
+  KIT_AVULSO
+  ACESSORIO
+
   @@schema("vibravert")
 }

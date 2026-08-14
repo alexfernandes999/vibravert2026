@@ -1,22 +1,24 @@
 /**
- * Regras comerciais da loja.
- *
- * ⚠ Os valores marcados como PROVISÓRIO saíram do mockup, não de uma decisão
- * do cliente. Precisam ser confirmados antes de a loja receber o primeiro
- * pedido de verdade — frete e parcelamento saem direto da margem.
+ * Regras comerciais da loja. Vieram do briefing do Alex de 13/08/2026.
  */
 
-/** PROVISÓRIO — a partir de quanto o frete é grátis. */
-export const FRETE_GRATIS_ACIMA = 399;
+/**
+ * Frete grátis em toda bomba, sem valor mínimo.
+ *
+ * O piso de R$ 399 que existia aqui era inalcançável: nenhuma bomba passa de
+ * R$ 350, então a promessa da vitrine nunca se cumpria. Peça, kit avulso e
+ * qualquer item que não seja bomba pagam frete normal.
+ */
+export const FRETE_GRATIS_EM_BOMBAS = true;
 
-/** PROVISÓRIO — frete fixo enquanto não há integração com transportadora. */
+/** Frete fixo, só quando a transportadora não responde. */
 export const FRETE_PADRAO = 39.9;
 
 /** Desconto à vista no PIX. É o meio mais barato para a loja e o que mais converte. */
-export const DESCONTO_PIX = 0.05;
+export const DESCONTO_PIX = 0.1;
 
-/** PROVISÓRIO — parcelas sem juros. Cada parcela a mais custa taxa ao lojista. */
-export const PARCELAS_SEM_JUROS = 6;
+/** Parcelas sem juros. Cada parcela a mais custa taxa ao lojista. */
+export const PARCELAS_SEM_JUROS = 10;
 
 /**
  * A fábrica não controla quantidade por SKU: produz sob demanda, e o cadastro

@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { DESCONTO_PIX, FRETE_GRATIS_ACIMA, FRETE_PADRAO, CONTROLA_ESTOQUE } from "@/lib/loja";
+import { DESCONTO_PIX, FRETE_GRATIS_EM_BOMBAS, FRETE_PADRAO, CONTROLA_ESTOQUE } from "@/lib/loja";
 import { registrar } from "@/lib/analitica";
 
 /**
@@ -110,7 +110,7 @@ export async function obterCarrinho() {
       totalPix: 0,
       economiaPix: 0,
       freteGratis: false,
-      faltaParaFreteGratis: FRETE_GRATIS_ACIMA,
+      soBombas: true,
     };
   }
 
@@ -118,7 +118,7 @@ export async function obterCarrinho() {
     where: { id: { in: linhas.map((l) => l.id) }, ativo: true },
     select: {
       id: true, slug: true, nome: true, sku: true, preco: true, voltagem: true,
-      pocoPolegadas: true, estoque: { select: { quantidade: true } },
+      pocoPolegadas: true, tipo: true, estoque: { select: { quantidade: true } },
       pesoGramas: true, alturaCm: true, larguraCm: true, comprimentoCm: true,
       imagens: { where: { principal: true }, select: { url: true, alt: true }, take: 1 },
     },
@@ -135,6 +135,7 @@ export async function obterCarrinho() {
       sku: p.sku,
       voltagem: p.voltagem,
       pocoPolegadas: p.pocoPolegadas,
+      tipo: p.tipo,
       imagem: p.imagens[0] ?? null,
       preco: Number(p.preco),
       qtd,
@@ -151,7 +152,10 @@ export async function obterCarrinho() {
   });
 
   const subtotal = itens.reduce((s, i) => s + i.total, 0);
-  const freteGratis = subtotal >= FRETE_GRATIS_ACIMA;
+  // Frete grátis é da bomba, não do valor do pedido. Uma ventosa de trinta
+  // reais com frete grátis custaria mais em entrega do que em produto.
+  const soBombas = itens.every((i) => i.tipo === "BOMBA");
+  const freteGratis = FRETE_GRATIS_EM_BOMBAS && soBombas;
   const frete = freteGratis ? 0 : FRETE_PADRAO;
   const total = subtotal + frete;
   const totalPix = total * (1 - DESCONTO_PIX);
@@ -164,6 +168,6 @@ export async function obterCarrinho() {
     totalPix,
     economiaPix: total - totalPix,
     freteGratis,
-    faltaParaFreteGratis: freteGratis ? 0 : FRETE_GRATIS_ACIMA - subtotal,
+    soBombas,
   };
 }

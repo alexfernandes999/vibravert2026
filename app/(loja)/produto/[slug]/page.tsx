@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import { CONTROLA_ESTOQUE, FRETE_GRATIS_ACIMA, FRETE_PADRAO } from "@/lib/loja";
+import { CONTROLA_ESTOQUE, DESCONTO_PIX, FRETE_GRATIS_EM_BOMBAS, FRETE_PADRAO } from "@/lib/loja";
 import { SeletorVersao } from "@/components/seletor-versao";
 import { CartaoProduto } from "@/components/cartao-produto";
 import { Medir } from "@/components/medir";
@@ -137,7 +137,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
           <div className="mt-5 rounded-caixa border border-linha bg-superficie-2 p-5">
             <p className="num text-3xl font-extrabold tracking-tight">{brl(preco)}</p>
             <p className="num mt-2 text-[13px] font-extrabold text-bom">
-              {brl(precoPix(preco))} à vista no PIX · 5% de desconto
+              {brl(precoPix(preco))} à vista no PIX · {DESCONTO_PIX * 100}% de desconto
             </p>
             <p className="num mt-1 text-[13px] font-semibold text-tinta-2">
               ou até {PARCELAS_MAX}× de {brl(parcela(preco))} sem juros
@@ -247,7 +247,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
                 "@type": "OfferShippingDetails",
                 shippingRate: {
                   "@type": "MonetaryAmount",
-                  value: preco >= FRETE_GRATIS_ACIMA ? "0" : FRETE_PADRAO.toFixed(2),
+                  value: FRETE_GRATIS_EM_BOMBAS && p.tipo === "BOMBA" ? "0" : FRETE_PADRAO.toFixed(2),
                   currency: "BRL",
                 },
                 shippingDestination: { "@type": "DefinedRegion", addressCountry: "BR" },

@@ -11,7 +11,7 @@ import { RodapePagamento } from "@/components/rodape-pagamento";
 import { AcoesCabecalho } from "@/components/acoes-cabecalho";
 import "../globals.css";
 
-import { TELEFONE_LINK } from "@/lib/contato";
+import { TELEFONE, TELEFONE_LINK } from "@/lib/contato";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br"),
   title: {
@@ -169,7 +169,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Logotipo largura={158} />
               <p className="mt-3 max-w-xs text-[13px] leading-relaxed text-mudo">
                 Fábrica brasileira de bombas submersas vibratórias. Linhas Vibra Vert e Rymer,
-                com assistência técnica própria e rede de postos autorizados em todo o país.
+                com assistência técnica própria, feita na nossa fábrica em São Paulo.
               </p>
             </div>
             <div>
@@ -190,7 +190,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </h2>
               <ul className="space-y-1.5 text-[13px] font-medium text-tinta-2">
                 <li><Link href="/qual-bomba">Qual bomba eu preciso?</Link></li>
-                <li><Link href="/assistencia">Postos autorizados</Link></li>
+                <li><Link href="/assistencia">Assistência técnica</Link></li>
                 <li><Link href="/fale-conosco">Fale conosco</Link></li>
                 <li><Link href="/pedidos">Rastrear pedido</Link></li>
               </ul>
@@ -200,8 +200,32 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
           </div>
 
-          <div className="border-t border-linha px-5 py-4 text-center text-[11.5px] font-medium text-mudo">
-            © {new Date().getFullYear()} Vibra Vert Bombas Submersas Vibratórias · Indústria Brasileira
+          {/* Decreto 7.962/2013, art. 2º: razão social, CNPJ e endereço físico
+              são obrigatórios em local de destaque no comércio eletrônico.
+              Faltavam por inteiro.
+
+              O CNPJ é o da matriz (0001-32) — a A Casa São Paulo é filial, e
+              publicar o dela apontaria o consumidor para o estabelecimento
+              errado na hora de reclamar. */}
+          <div className="border-t border-linha px-5 py-5">
+            <address className="mx-auto max-w-7xl text-center text-[11.5px] font-medium not-italic leading-relaxed text-mudo">
+              <strong className="font-bold text-tinta-2">ARF Comércio de Bombas e Máquinas Ltda.</strong>
+              <br />
+              CNPJ 20.550.456/0001-32 · Inscrição Estadual 143.681.793.116
+              <br />
+              Rua Charles Darwin, 707 · Vila Santa Catarina · São Paulo/SP · CEP 04379-074 · Brasil
+              <br />
+              <a href="mailto:sac@vibravert.com.br" className="font-semibold text-marca">
+                sac@vibravert.com.br
+              </a>
+              {" · "}
+              <a href={`tel:${TELEFONE_LINK}`} className="font-semibold text-marca">
+                Vibra Phone {TELEFONE}
+              </a>
+            </address>
+            <p className="mt-3 text-center text-[11.5px] font-medium text-tenue">
+              © {new Date().getFullYear()} Vibra Vert Bombas Submersas Vibratórias · Indústria Brasileira
+            </p>
           </div>
         </footer>
       </body>

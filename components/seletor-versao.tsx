@@ -49,6 +49,12 @@ export function SeletorVersao({
   const base = Math.min(...versoes.map((v) => Number(v.preco)));
   const ordenadas = [...versoes].sort((a, b) => ORDEM.indexOf(a.versao) - ORDEM.indexOf(b.versao));
 
+  // Só avisa quando as duas montagens realmente empatam: se um dia o preço
+  // mudar, a frase some sozinha em vez de virar mentira na vitrine.
+  const boia = versoes.find((v) => v.versao === "BOIA");
+  const kit = versoes.find((v) => v.versao === "KIT");
+  const mesmoPreco = Boolean(boia && kit && Number(boia.preco) === Number(kit.preco));
+
   return (
     <section className="mt-5">
       <h2 className="text-[13px] font-extrabold tracking-tight">
@@ -85,6 +91,16 @@ export function SeletorVersao({
           );
         })}
       </ul>
+
+      {/* Boia e kit custam o mesmo, e preço igual em opções diferentes parece
+          erro de cadastro. Dizer que é de propósito evita a dúvida que trava a
+          compra — e ainda transforma a coincidência em argumento. */}
+      {mesmoPreco && (
+        <p className="mt-2.5 text-[12.3px] font-semibold text-tinta-2">
+          Boia <strong className="font-extrabold">ou</strong> kit de manutenção · mesmo preço,
+          escolha o seu.
+        </p>
+      )}
     </section>
   );
 }

@@ -22,7 +22,7 @@ const AVISOS = [
         <circle cx="18" cy="18.5" r="2" />
       </svg>
     ),
-    texto: "Entregamos nos 27 estados",
+    texto: "Frete grátis em todas as bombas · sem valor mínimo",
   },
   {
     icone: (
@@ -39,7 +39,7 @@ const AVISOS = [
         <path d="M15 21V11h6v10M1 21h22M7 13h2M7 17h2" />
       </svg>
     ),
-    texto: "Fábrica e assistência técnica própria em São Paulo",
+    texto: "Fábrica e assistência técnica própria em São Paulo · entrega nos 27 estados",
   },
   {
     icone: (
@@ -48,7 +48,7 @@ const AVISOS = [
         <path d="M9 12l2 2 4-4" />
       </svg>
     ),
-    texto: "Garantia de fábrica e peças de reposição sempre disponíveis",
+    texto: "10% de desconto no PIX · cartão em até 10× sem juros",
   },
 ];
 

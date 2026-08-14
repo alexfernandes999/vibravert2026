@@ -25,7 +25,7 @@ export default function ForaDeLinha() {
       <p className="mx-auto mt-4 max-w-lg text-[15px] text-tinta-2">
         Passamos a trabalhar somente com as linhas <strong>Vibra Vert</strong> e{" "}
         <strong>Rymer</strong>, fabricadas por nós, com assistência técnica própria e
-        rede de postos autorizados em todo o Brasil.
+        assistência técnica própria, feita na fábrica em São Paulo.
       </p>
 
       <div className="mt-7 flex flex-wrap justify-center gap-3">
