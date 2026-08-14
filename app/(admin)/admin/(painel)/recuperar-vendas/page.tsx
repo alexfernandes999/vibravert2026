@@ -17,10 +17,18 @@ export const metadata = { title: "Recuperar vendas" };
  * endereço e parou na hora de pagar. Já sabemos o nome, o telefone e o que ela
  * queria — só falta chamar.
  *
- * Aparecem depois de 30 minutos. Antes disso a pessoa provavelmente ainda está
- * pagando, e cobrar quem está no meio do PIX afasta.
+ * A espera muda conforme o meio de pagamento, e isso importa. PIX e cartão são
+ * imediatos: meia hora sem confirmação já é abandono. Boleto compensa em até
+ * três dias úteis — cobrar em meia hora é cobrar alguém que provavelmente já
+ * pagou e o banco ainda não repassou. Nada afasta mais um cliente do que ser
+ * cobrado por uma dívida que ele acabou de quitar.
  */
-const ESPERA_MIN = 30;
+const ESPERA_MIN: Record<string, number> = {
+  PIX: 30,
+  CARTAO_CREDITO: 30,
+  BOLETO: 60 * 24 * 4, // 4 dias, uma folga além dos 3 úteis
+};
+const ESPERA_PADRAO = 30;
 
 async function mandarEmail(id: string) {
   "use server";
@@ -65,14 +73,16 @@ async function marcarWhats(id: string) {
 const horas = (d: Date) => Math.round((Date.now() - d.getTime()) / 36e5);
 
 export default async function Recuperar() {
-  const corte = new Date(Date.now() - ESPERA_MIN * 60_000);
+  // O corte por método é feito depois da consulta: são poucos pedidos parados,
+  // e três condições OR no banco custam mais a ler do que a economizar.
+  const maisAntigo = new Date(Date.now() - Math.min(...Object.values(ESPERA_MIN)) * 60_000);
 
-  const [parados, anonimos, compraram] = await Promise.all([
+  const [todosParados, anonimos, compraram] = await Promise.all([
     prisma.pedido.findMany({
-      where: { status: "AGUARDANDO_PAGAMENTO", criadoEm: { lt: corte } },
+      where: { status: "AGUARDANDO_PAGAMENTO", criadoEm: { lt: maisAntigo } },
       orderBy: { criadoEm: "desc" },
       include: { cliente: true, itens: true, endereco: true },
-      take: 60,
+      take: 120,
     }),
     prisma.evento.findMany({
       where: { etapa: "CARRINHO", criadoEm: { gte: new Date(Date.now() - 30 * 864e5) } },
@@ -85,6 +95,12 @@ export default async function Recuperar() {
       distinct: ["sessao"],
     }),
   ]);
+
+  const maduro = (p: { metodo: string; criadoEm: Date }) =>
+    Date.now() - p.criadoEm.getTime() >= (ESPERA_MIN[p.metodo] ?? ESPERA_PADRAO) * 60_000;
+
+  const parados = todosParados.filter(maduro);
+  const esperando = todosParados.length - parados.length;
 
   const semContato = Math.max(0, anonimos.length - compraram.length - parados.length);
   const total = parados.reduce((s, p) => s + Number(p.total), 0);
@@ -103,6 +119,11 @@ export default async function Recuperar() {
         <div className="rounded-caixa border border-linha bg-superficie p-4">
           <dt className="text-[11.5px] font-bold uppercase tracking-wide text-mudo">Dá para chamar</dt>
           <dd className="num mt-1 text-2xl font-extrabold text-marca">{parados.length}</dd>
+          {esperando > 0 && (
+            <dd className="mt-1 text-[11.5px] leading-snug text-mudo">
+              {esperando} ainda no prazo de pagamento
+            </dd>
+          )}
         </div>
         <div className="rounded-caixa border border-linha bg-superficie p-4">
           <dt className="text-[11.5px] font-bold uppercase tracking-wide text-mudo">Valor parado</dt>
@@ -125,9 +146,16 @@ export default async function Recuperar() {
       )}
 
       {parados.length === 0 ? (
-        <p className="mt-5 rounded-caixa border border-linha bg-superficie p-6 text-[13.5px] text-mudo">
-          Nenhum pedido parado no pagamento. Aparecem aqui {ESPERA_MIN} minutos depois de fechados,
-          para não cobrar quem ainda está pagando.
+        <p className="mt-5 rounded-caixa border border-linha bg-superficie p-6 text-[13.5px] leading-relaxed text-mudo">
+          Nenhum pedido pronto para chamar. PIX e cartão entram aqui 30 minutos depois de
+          fechados; boleto só depois de 4 dias, porque compensa em até 3 dias úteis e cobrar antes
+          é cobrar quem já pagou.
+          {esperando > 0 && (
+            <span className="mt-1.5 block font-semibold text-tinta-2">
+              {esperando} {esperando === 1 ? "pedido está" : "pedidos estão"} dentro do prazo, ainda
+              esperando confirmação.
+            </span>
+          )}
         </p>
       ) : (
         <ul className="mt-5 space-y-3">
@@ -153,6 +181,11 @@ export default async function Recuperar() {
                   <span className="num text-[12.5px] text-mudo">
                     parado há {horas(p.criadoEm) < 1 ? "menos de 1 h" : `${horas(p.criadoEm)} h`}
                   </span>
+                  {p.metodo === "BOLETO" && (
+                    <span className="rounded bg-atencao/15 px-1.5 py-0.5 text-[11px] font-bold text-atencao">
+                      boleto · confira se não compensou
+                    </span>
+                  )}
                   {p.lembretes > 0 && (
                     <span className="rounded bg-marca-suave px-1.5 py-0.5 text-[11px] font-bold text-marca">
                       {p.lembretes} {p.lembretes === 1 ? "lembrete" : "lembretes"}
