@@ -15,7 +15,7 @@ export function SecaoMaterias() {
       {/* O desenho conta o que o texto diz: terreno, lençol, poço tubular e a
           bomba no fundo, sobre a silhueta do país. Fica bem apagado · é
           atmosfera, e não pode competir com a leitura. */}
-      <FundoPoco className="pointer-events-none absolute -right-10 top-0 hidden h-full w-[520px] opacity-90 lg:block" />
+      <FundoPoco className="pointer-events-none absolute -right-6 top-1/2 hidden h-[112%] w-[440px] -translate-y-1/2 opacity-95 lg:block" />
 
       <div className="relative mx-auto max-w-7xl px-5 py-14">
         <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-marca">
