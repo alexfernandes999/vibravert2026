@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { usuarioAtual } from "@/lib/admin-auth";
 import { Saudacao } from "@/components/saudacao";
 import { RelogioPainel } from "@/components/relogio-painel";
+import { VibrinhaPainel } from "@/components/vibrinha-painel";
 import { brl } from "@/lib/formato";
 import { configurado } from "@/lib/mercadopago";
 import { configurado as emailOk } from "@/lib/email";
@@ -100,14 +101,18 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
                 dias === d ? "bg-marca text-white" : "border border-linha bg-superficie text-tinta-2"
               }`}
             >
-              {d === 1 ? "hoje" : `${d} dias`}
+              {d === 1 ? "Hoje" : `${d} dias`}
             </Link>
           ))}
         </nav>
         </div>
       </div>
 
-      <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-4">
+        <VibrinhaPainel nome={eu.nome} />
+      </div>
+
+      <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi r="Faturamento" v={brl(fat)} />
         <Kpi r="Pedidos pagos" v={String(qtd)} />
         <Kpi r="Ticket médio" v={qtd ? brl(Number(agg._avg.total ?? 0)) : " "} />
