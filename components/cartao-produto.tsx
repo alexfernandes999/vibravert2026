@@ -31,15 +31,18 @@ export function CartaoProduto({ p }: { p: ProdutoVitrine }) {
 
   return (
     <article className="group revelar flex flex-col overflow-hidden rounded-caixa border border-linha bg-superficie transition duration-300 hover:-translate-y-1 hover:border-marca-linha hover:shadow-xl hover:shadow-marca/10">
-      {/* A foto preenche o cartão inteiro. Com object-contain sobrava fundo
-          cinza em volta e a grade parecia um catálogo de peças soltas. */}
-      <Link href={`/produto/${p.slug}`} className="relative block aspect-square overflow-hidden bg-superficie-2">
+      {/* As fotos novas são a bomba de pé, em fundo branco · quase o dobro de
+          altura que de largura. Com `object-cover` num quadrado, o corte comia
+          a saída de água em cima e a etiqueta embaixo, que é justamente onde
+          está o modelo. Com `contain` sobre fundo branco não sobra moldura
+          nenhuma: o branco da foto encosta no branco do cartão. */}
+      <Link href={`/produto/${p.slug}`} className="relative block aspect-square overflow-hidden bg-superficie">
         {capa ? (
           <Image
             src={capa.url}
             alt={capa.alt}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+            className="object-contain p-2 transition-transform duration-500 group-hover:scale-[1.06]"
             sizes="(max-width: 640px) 50vw, 300px"
           />
         ) : null}

@@ -104,6 +104,23 @@
 
   footer { margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--linha);
            font-size: 13.5px; color: var(--mudo); line-height: 1.65; }
+
+  .selo.arte { background: #efe6f7; color: #6b3fa0; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .selo.arte { background: #2a1f3a; color: #c9a7f0; }
+  }
+  .copy { margin-top: 12px; padding: 15px 18px; border-radius: 11px; background: var(--marca);
+          color: #fff; font-size: 15px; line-height: 1.5; }
+  .copy .l { display: block; }
+  .copy .g { font-size: 21px; font-weight: 800; letter-spacing: -.4px; }
+  .copy .p { font-size: 13px; color: rgba(255,255,255,.7); margin-top: 6px; }
+  .item { background: var(--superficie); border: 1px solid var(--linha); border-radius: 14px;
+          padding: 19px 21px; box-shadow: var(--sombra); margin-top: 13px; }
+  .item h3 { font-size: 16.5px; font-weight: 800; line-height: 1.32; }
+  .item p { margin-top: 8px; font-size: 14.6px; color: var(--tinta-2); line-height: 1.58; }
+  .item ul, .item ol { margin: 11px 0 0; padding-left: 19px; font-size: 14.6px; color: var(--tinta-2); }
+  .item li { margin-bottom: 6px; line-height: 1.55; }
+  .item li:last-child { margin-bottom: 0; }
 </style>
 
 <div class="env">
@@ -277,12 +294,16 @@
     <h3>SuperFrete · saldo e formato da etiqueta</h3>
     <ul>
       <li><b>Carregar saldo.</b> Está em R$ 0, e sem saldo a etiqueta não sai. O painel avisa abaixo de R$ 50.</li>
-      <li><b>Ativar o formato A6 (Zebra)</b> nos ajustes de impressão. Sem isso a etiqueta sai em A4 e a etiquetadora térmica não serve.</li>
     </ul>
+    <div class="aviso verde">
+      <b>O formato A6 (Zebra) já está resolvido.</b> A ajuda do SuperFrete diz que é um ajuste de
+      conta, mas testando a integração descobrimos que o formato é um parâmetro do próprio arquivo.
+      O sistema já força A6, que é o da etiquetadora térmica · você não precisa configurar nada.
+    </div>
   </div>
 
   <div class="bloco">
-    <span class="selo rapido">10 minutos</span>
+    <span class="selo espera">Quando o domínio fechar</span>
     <h3>Resend · os e-mails automáticos</h3>
     <p class="porque">
       Confirmação de pedido, pagamento aprovado, envio com rastreio, carrinho abandonado e troca
@@ -307,10 +328,10 @@
     <table>
       <thead><tr><th>Item</th><th>Para quê</th></tr></thead>
       <tbody>
-        <tr><td class="n">Arte da embalagem</td><td>Extrair os desenhos dos <b>11 erros</b>. Hoje estão com ícones desenhados por mim · funcionam, mas os da embalagem são melhores.</td></tr>
+        <tr><td class="n">Arte da embalagem</td><td>Para os desenhos dos <b>11 erros</b> · o pedido saiu do seu próprio briefing, item P1.7. Serve o arquivo aberto: <b>.ai</b>, <b>.pdf</b>, <b>.cdr</b> ou <b>.eps</b>. Foto da caixa não serve, porque não dá para recortar em vetor. Hoje estão com ícones que desenhamos aqui · funcionam, mas os da embalagem são os que o instalador reconhece.</td></tr>
         <tr><td class="n">Embalagem da 800</td><td>Curva de vazão e garantia dos 8 SKUs. <b>Também confirma o diâmetro do poço:</b> coloquei 8" deduzindo da nossa medição · a caixa da 800 é igual à da Vibrinha e da 900, que são 8".</td></tr>
         <tr><td class="n">Amanco e Fame</td><td>Logos em alta e os certificados de Assistente Técnico Autorizado, para a seção de parceria. A Franklin Electric não será citada.</td></tr>
-        <tr><td class="n">Banners A, B e C</td><td>Família completa, Rymer 1500 e avaliações. É arte, não código.</td></tr>
+        <tr><td class="n">Banners A, B e C</td><td>O roteiro completo de cada um está no fim deste documento, com texto pronto e medidas.</td></tr>
         <tr><td class="n">E-mail comercial</td><td>Além do sac@.</td></tr>
         <tr><td class="n">Anauger</td><td>Quais peças exatamente são compatíveis. Só publico o que for verdade.</td></tr>
       </tbody>
@@ -352,6 +373,21 @@
   </div>
 
   <div class="bloco">
+    <span class="selo espera">Decidir</span>
+    <h3>Peça barata com frete caro</h3>
+    <p class="porque">
+      As 37 peças já estão na loja, com preço e foto. Mas as pequenas ficam impossíveis de vender
+      sozinhas: uma arruela de <b>R$ 0,77</b> sai com <b>R$ 12,25</b> de frete.
+    </p>
+    <p class="porque">Três caminhos, e a escolha é sua:</p>
+    <ul>
+      <li>Pedido mínimo para peças, algo como R$ 60</li>
+      <li>Frete grátis também nas peças acima de um valor</li>
+      <li>Vender as pequenas só dentro de kits, e não avulsas</li>
+    </ul>
+  </div>
+
+  <div class="bloco">
     <span class="selo trava">Precisa alinhar</span>
     <h3>Garantia de 2 anos</h3>
     <p class="porque">
@@ -384,6 +420,74 @@
       <li><b>Banner "Somos os Nº 1":</b> ocupa a primeira tela inteira sem produto nem preço. Reduzir, tirar ou manter?</li>
       <li><b>Faixas duplas:</b> há dois espaços ativos e vazios na home. O briefing pediu para tirar · confirma?</li>
     </ul>
+  </div>
+</section>
+
+<section>
+  <h2>5 · Os três banners · roteiro para a arte</h2>
+  <p class="intro">
+    A Gabi faz a arte. Abaixo vai o que cada banner precisa dizer, com o texto pronto e o motivo de
+    cada escolha. Medida de todos: <b>2098 × 750 px</b> no computador e <b>1080 × 1080 px</b> no
+    celular.
+  </p>
+
+  <div class="item">
+    <span class="selo arte">Banner A</span>
+    <h3>A família completa</h3>
+    <p><b>O que mostra:</b> as 6 bombas lado a lado, da menor para a maior, com o selo de 2 anos de garantia.</p>
+    <p>
+      Ordem: Rymer 1500, Rymer 2000, Rymer 2500, Vibrinha, Vibra Vert 800, Vibra Vert 900. Crescendo
+      da esquerda para a direita · a linha inteira lida de uma vez é o argumento de fábrica, e a
+      ordem crescente faz o olho entender que existe uma para cada caso.
+    </p>
+    <div class="copy">
+      <span class="l g">Uma bomba para cada poço</span>
+      <span class="l">6 modelos · de 1.500 a 2.500 litros por hora</span>
+      <span class="l p">Fabricação própria desde 1974 · selo de 2 anos de garantia no canto</span>
+    </div>
+    <div class="aviso">
+      <b>Não aproveitar o cartaz antigo.</b> Ele tem espaço em branco de "REPRESENTANTE", endereços
+      desatualizados de Caruaru, São Luís e do escritório de Miami, e telefones antigos. Precisa ser
+      redesenhado do zero.
+    </div>
+  </div>
+
+  <div class="item">
+    <span class="selo arte">Banner B</span>
+    <h3>Rymer 1500</h3>
+    <p><b>O que mostra:</b> a Rymer 1500 sozinha e grande, com a caixa ao lado, sobre fundo azul da marca.</p>
+    <p>
+      É o produto mais vendido e o de entrada. Um banner só dele funciona porque quem chega
+      procurando "bomba sapo barata" precisa ver preço na primeira olhada.
+    </p>
+    <div class="copy">
+      <span class="l g">A bomba mais vendida do Brasil</span>
+      <span class="l">Rymer 1500 · a partir de R$ 199,90 no PIX</span>
+      <span class="l p">Líder no Mercado Livre, Magazine Luiza, Amazon e Shopee · tradição desde 1958</span>
+    </div>
+  </div>
+
+  <div class="item">
+    <span class="selo arte">Banner C</span>
+    <h3>Quem já comprou</h3>
+    <p><b>O que mostra:</b> a nota do Google em número grande, com as estrelas, sobre foto da fachada ou da expedição.</p>
+    <p>
+      Prova social é o único bloco em que quem fala não é a loja. Por isso o número precisa ser
+      maior que o texto · e a moldura do grupo precisa aparecer, senão o cliente vê outro nome e
+      desconfia.
+    </p>
+    <div class="copy">
+      <span class="l g">4,5 · 1.678 avaliações no Google</span>
+      <span class="l">Grupo das Bombas ARF · 28 anos de mercado</span>
+      <span class="l p">Estrelas em dourado, nota em número bem grande, logo da A Casa São Paulo no canto</span>
+    </div>
+  </div>
+
+  <div class="aviso azul">
+    <b>Para os três.</b> Espaço livre nas bordas de 120 px: o banner é cortado em telas estreitas, e
+    texto ou produto encostado na margem some no celular. Fundo no azul da marca (#14307a) ou no
+    azul escuro (#0a1b4d), com o dourado (#F5B921) só no que for oferta · dourado espalhado tira a
+    força de onde ele importa.
   </div>
 </section>
 

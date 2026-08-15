@@ -232,15 +232,18 @@ function Ficha({ item, hTotal }: { item: { m: ModeloCalc; vazao: number }; hTota
         </p>
       </div>
 
-      <div className="grid gap-6 p-5 sm:grid-cols-[220px_1fr]">
-        <div className="relative flex items-center justify-center rounded-lg border border-linha bg-superficie-2 p-4">
+      <div className="grid gap-6 p-5 sm:grid-cols-[280px_1fr]">
+        {/* A bomba grande: é o momento em que a pessoa vê o que vai comprar,
+            depois de responder quatro perguntas. Foto pequena aqui desperdiça
+            o único instante da página em que ela está olhando o produto. */}
+        <div className="relative flex items-center justify-center rounded-lg border border-linha bg-superficie p-4">
           {m.imagem && (
             <Image
               src={m.imagem.url}
               alt={m.imagem.alt}
-              width={320}
-              height={320}
-              className="h-48 w-auto object-contain"
+              width={560}
+              height={860}
+              className="h-[300px] w-auto object-contain sm:h-[380px]"
             />
           )}
           {/* Só acende quando a ficha do modelo diz dois anos. */}
