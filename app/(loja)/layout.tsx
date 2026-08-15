@@ -44,17 +44,27 @@ const DEPARTAMENTOS = [
 /**
  * A tarja é a primeira linha da loja e precisa ser lida de relance.
  *
- * O texto vem do painel como uma frase separada por "·". Aqui os números e os
- * termos que decidem a compra ganham o dourado, e o resto fica branco: assim a
+ * O texto vem do painel como uma frase separada por "·". Os trechos que
+ * decidem a compra ganham peso, e os demais ficam mais discretos · assim a
  * frase tem hierarquia sem exigir que o comercial escreva HTML.
+ *
+ * O dourado alterna entre os trechos fortes. Com todos dourados, "frete grátis"
+ * e "10% no PIX" ficavam colados na mesma cor e viravam uma mancha só: dois
+ * argumentos que competem entre si em vez de se somarem.
  */
 function destacar(texto: string) {
+  let fortes = 0;
   return texto.split("·").map((parte, i, todas) => {
     const t = parte.trim();
-    const forte = /(\d|grátis|gratis|desconto|off|frete)/i.test(t);
+    // Só a oferta é "forte". Com qualquer número contando, o "nº 1 dos
+    // marketplaces" roubava o dourado da promessa que de fato vende.
+    const forte = /(grátis|gratis|desconto|% |%$|off|sem juros|\d+×)/i.test(t);
+    const dourado = forte && fortes++ % 2 === 0;
     return (
       <span key={i}>
-        <span className={forte ? "text-ouro" : "text-white/85"}>{t}</span>
+        <span className={dourado ? "font-extrabold text-ouro" : forte ? "font-extrabold text-white" : "text-white/80"}>
+          {t}
+        </span>
         {i < todas.length - 1 && <span aria-hidden className="mx-2.5 text-white/25">•</span>}
       </span>
     );

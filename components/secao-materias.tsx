@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MATERIAS } from "@/lib/materias";
-import { FundoPoco } from "@/components/fundo-poco";
+import { FundoAgua } from "@/components/fundo-agua";
 
 /**
  * Matérias sobre água, no fim da home.
@@ -12,13 +12,12 @@ import { FundoPoco } from "@/components/fundo-poco";
 export function SecaoMaterias() {
   return (
     <section className="relative overflow-hidden border-t border-linha bg-superficie-2">
-      {/* O poço é fundo, mas com faixa reservada: no desktop o conteúdo recua e
-          deixa livre a coluna da direita. Como fundo solto, a bomba caía bem
-          embaixo dos cards e sumia · o que mais importava no desenho era
-          justamente o que menos se via. */}
-      <FundoPoco className="pointer-events-none absolute -right-4 top-1/2 hidden h-[340px] w-[300px] -translate-y-1/2 opacity-80 lg:block" />
+      {/* O corte técnico do poço pesava atrás do texto · era um diagrama de
+          manual disputando a leitura. A água como atmosfera diz a mesma coisa
+          e deixa a seção respirar. */}
+      <FundoAgua className="absolute inset-0" />
 
-      <div className="relative mx-auto max-w-7xl px-5 py-14 lg:pr-[330px]">
+      <div className="relative mx-auto max-w-7xl px-5 py-16">
         <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-marca">
           Água no Brasil
         </p>

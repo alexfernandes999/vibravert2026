@@ -149,3 +149,52 @@ body {
     animation: none;
   }
 }
+
+/* Fundo de água da seção de matérias.
+   A onda só desliza na horizontal e a bolha só sobe · duas propriedades que o
+   navegador anima sem tocar no layout. */
+.onda {
+  animation-name: correr;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+@keyframes correr {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.bolha {
+  bottom: -12%;
+  animation-name: subir-bolha;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+@keyframes subir-bolha {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-46vh);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onda,
+  .bolha {
+    animation: none;
+  }
+  .bolha {
+    display: none;
+  }
+}
