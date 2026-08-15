@@ -4,10 +4,20 @@ import { lerReviews } from "@/lib/reviews";
 /**
  * Prova social, com a moldura do grupo.
  *
- * A seção some sozinha enquanto não houver avaliação cadastrada: um bloco
- * "sem avaliações ainda" é pior que nenhum bloco.
+ * A primeira versão ficava em fundo branco, entre duas seções claras, e sumia:
+ * a única coisa que separava as avaliações do resto era uma borda cinza. Aqui
+ * a seção tem fundo próprio, a nota vira um bloco azul cheio e as estrelas
+ * ficam douradas de verdade · é o bloco que precisa parar o olho, porque é o
+ * único em que quem fala não somos nós.
+ *
+ * Três avaliações, e não seis. Escolhidas: quem compra bomba pela internet
+ * teme errar o modelo, não receber, e ficar na mão se der problema. As três
+ * respondem exatamente isso, nessa ordem.
+ *
+ * A moldura do Grupo ARF é obrigatória. Sem ela o cliente lê uma avaliação
+ * assinada por outra empresa e desconfia da loja inteira.
  */
-function Estrelas({ n, tamanho = 15 }: { n: number; tamanho?: number }) {
+function Estrelas({ n, tamanho = 16 }: { n: number; tamanho?: number }) {
   return (
     <span className="inline-flex gap-[2px]" aria-label={`${n} de 5 estrelas`}>
       {[1, 2, 3, 4, 5].map((i) => (
@@ -32,16 +42,28 @@ export function SecaoReviews() {
   if (!r.avaliacoes.length || r.nota == null) return null;
 
   return (
-    <section className="border-t border-linha bg-superficie">
+    <section className="border-y border-marca/15 bg-marca-suave">
       <div className="mx-auto max-w-7xl px-5 py-14">
-        <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-marca">
-          Quem já comprou com a gente
-        </p>
+        <div className="revelar flex flex-wrap items-center gap-x-6 gap-y-4">
+          {/* A nota em bloco cheio: é o número que dá autoridade, e em texto
+              solto ele se perde no meio do resto. */}
+          <div className="flex items-center gap-4 rounded-caixa bg-marca px-5 py-4 text-white shadow-xl shadow-marca/25">
+            <span className="num text-[42px] font-extrabold leading-none tracking-tight">
+              {r.nota.toFixed(1).replace(".", ",")}
+            </span>
+            <span>
+              <Estrelas n={r.nota} tamanho={18} />
+              <span className="num mt-1.5 block text-[12.5px] font-bold text-white/75">
+                {r.quantidade?.toLocaleString("pt-BR")} avaliações no Google
+              </span>
+            </span>
+          </div>
 
-        {/* A moldura explica a troca de nome antes de o cliente estranhar. */}
-        <div className="revelar mt-3 flex flex-wrap items-center gap-x-5 gap-y-3">
-          <div>
-            <h2 className="text-3xl font-extrabold tracking-tight text-balance">
+          <div className="min-w-0">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-marca">
+              Quem já comprou com a gente
+            </p>
+            <h2 className="mt-1.5 text-[clamp(24px,3.6vw,34px)] font-extrabold leading-tight tracking-tight text-balance">
               Grupo das Bombas ARF
             </h2>
             <p className="mt-1 text-[14.5px] text-tinta-2">
@@ -49,38 +71,24 @@ export function SecaoReviews() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 rounded-caixa border border-linha bg-superficie-2 px-4 py-3">
-            <span className="num text-3xl font-extrabold leading-none">
-              {r.nota.toFixed(1).replace(".", ",")}
-            </span>
-            <span>
-              <Estrelas n={r.nota} />
-              <span className="num mt-1 block text-[12px] font-semibold text-mudo">
-                {r.quantidade?.toLocaleString("pt-BR")} avaliações no Google
-              </span>
-            </span>
-          </div>
-
           <Image
             src="/lojas/casa-sao-paulo.png"
             alt="A Casa São Paulo"
-            width={150}
-            height={44}
-            className="h-9 w-auto object-contain opacity-80"
+            width={160}
+            height={48}
+            className="ml-auto hidden h-10 w-auto object-contain sm:block"
           />
         </div>
 
         <ul className="mt-8 grid gap-4 md:grid-cols-3">
-          {r.avaliacoes.slice(0, 6).map((a, i) => (
+          {r.avaliacoes.slice(0, 3).map((a, i) => (
             <li
               key={a.autor + i}
-              className="revelar flex h-full flex-col rounded-caixa border border-linha bg-superficie-2 p-5"
-              style={{ transitionDelay: `${(i % 3) * 70}ms` }}
+              className="revelar flex h-full flex-col rounded-caixa border-l-[3px] border-ouro bg-superficie p-5 shadow-lg shadow-marca/5"
+              style={{ transitionDelay: `${i * 70}ms` }}
             >
-              <Estrelas n={a.nota} tamanho={14} />
-              <p className="mt-3 flex-1 text-[13.5px] leading-relaxed text-tinta-2">
-                “{a.texto}”
-              </p>
+              <Estrelas n={a.nota} tamanho={15} />
+              <p className="mt-3 flex-1 text-[14px] leading-relaxed text-tinta-2">“{a.texto}”</p>
               <p className="mt-4 text-[12.5px] font-extrabold">
                 {a.autor}
                 {a.quando && <span className="ml-2 font-semibold text-mudo">{a.quando}</span>}
@@ -94,9 +102,10 @@ export function SecaoReviews() {
             href={r._fonte}
             target="_blank"
             rel="noopener"
-            className="revelar mt-5 inline-block text-[13px] font-bold text-marca underline underline-offset-2"
+            className="revelar mt-6 inline-flex items-center gap-2 rounded-lg border border-marca bg-superficie px-5 py-3 text-[13.5px] font-bold text-marca transition hover:bg-marca hover:text-white"
           >
-            Ver o perfil no Google →
+            Ler as {r.quantidade?.toLocaleString("pt-BR")} avaliações no Google
+            <span aria-hidden>→</span>
           </a>
         )}
       </div>

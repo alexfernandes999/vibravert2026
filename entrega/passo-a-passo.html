@@ -1,4 +1,4 @@
-<title>Loja Vibra Vert · estado e pendências</title>
+<title>Loja Vibra Vert · entrega</title>
 <style>
   :root {
     --tinta: #101623; --tinta-2: #3c4557; --mudo: #737d8f;
@@ -40,7 +40,7 @@
   code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .89em;
          background: var(--marca-suave); padding: 1px 5px; border-radius: 4px; }
 
-  header { padding: 58px 0 28px; }
+  header { padding: 56px 0 26px; }
   .eyebrow { font-size: 11.5px; font-weight: 800; letter-spacing: .13em;
              text-transform: uppercase; color: var(--marca); }
   h1 { font-size: clamp(29px, 5.2vw, 40px); font-weight: 800; line-height: 1.1; margin-top: 12px; }
@@ -55,12 +55,13 @@
               text-decoration: none; word-break: break-all; }
   .acesso .nota { margin-top: 6px; font-size: 12.5px; color: var(--mudo); }
 
-  section { margin-top: 48px; }
+  section { margin-top: 46px; }
   h2 { font-size: 13px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase;
        color: var(--marca); padding-bottom: 11px; border-bottom: 2px solid var(--marca); }
   .intro { margin-top: 18px; font-size: 16px; color: var(--tinta-2); max-width: 66ch; }
 
-  .pronto { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 2px; }
+  h3.grupo { margin-top: 26px; font-size: 15.5px; font-weight: 800; }
+  .pronto { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 2px; }
   .pronto li { display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: baseline;
                padding: 7px 0; border-bottom: 1px solid var(--linha); font-size: 14.5px; }
   .pronto li:last-child { border-bottom: 0; }
@@ -95,24 +96,24 @@
   tr:last-child td { border-bottom: 0; }
   td.n { white-space: nowrap; color: var(--mudo); font-weight: 700; }
 
-  .chave { display: grid; grid-template-columns: auto 1fr; gap: 4px 15px; align-items: baseline;
+  .chave { display: grid; grid-template-columns: auto 1fr; gap: 5px 15px; align-items: baseline;
            margin-top: 12px; padding: 14px 17px; border-radius: 11px;
            background: var(--marca-suave); border: 1px solid var(--linha); font-size: 14.4px; }
   .chave dt { font-weight: 700; color: var(--tinta-2); }
   .chave dd { margin: 0; font-weight: 700; }
 
-  footer { margin-top: 58px; padding-top: 22px; border-top: 1px solid var(--linha);
+  footer { margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--linha);
            font-size: 13.5px; color: var(--mudo); line-height: 1.65; }
 </style>
 
 <div class="env">
 
 <header>
-  <p class="eyebrow">Vibra Vert · Rymer · 14 de agosto</p>
+  <p class="eyebrow">Vibra Vert · Rymer · 15 de agosto</p>
   <h1>A loja está pronta. Falta liberar a cobrança.</h1>
   <p class="sub">
-    O briefing foi todo aplicado, o catálogo agora tem 85 produtos e o painel ganhou o que faltava
-    para operar sozinho. O que segue depende de você.
+    Todo o briefing foi aplicado, o catálogo passou de 48 para 85 produtos e o painel ganhou o que
+    faltava para vocês operarem sem depender de ninguém. O que segue depende de você.
   </p>
 
   <div class="acessos">
@@ -124,7 +125,12 @@
     <div class="acesso">
       <p class="rot">Painel</p>
       <a href="https://vibravert-loja.vercel.app/admin">vibravert-loja.vercel.app/admin</a>
-      <p class="nota">Na primeira entrada, a Vibrinha te apresenta as telas. Dá para pular.</p>
+      <p class="nota">Na primeira entrada a Vibrinha te apresenta as telas. Dá para pular.</p>
+    </div>
+    <div class="acesso">
+      <p class="rot">Acompanhar pedido</p>
+      <a href="https://vibravert-loja.vercel.app/pedidos">vibravert-loja.vercel.app/pedidos</a>
+      <p class="nota">O cliente busca por número e e-mail, sem criar conta.</p>
     </div>
   </div>
 </header>
@@ -134,21 +140,21 @@
   <dl class="chave">
     <dt>Usuário</dt><dd><code>alex</code></dd>
     <dt>Nível</dt><dd>Dono · você cria e remove os outros acessos</dd>
+    <dt>Senha</dt><dd>vai por mensagem, separada deste documento</dd>
   </dl>
   <p class="intro">
-    A senha vai por mensagem, separada deste documento. No primeiro acesso, cadastre o
-    autenticador no celular · leva um minuto, e é o que impede que uma senha descoberta vire
-    acesso ao painel.
+    No primeiro acesso, cadastre o autenticador no celular. Leva um minuto e é o que impede que
+    uma senha descoberta vire acesso ao painel. Já existe também uma conta <code>escritorio</code>,
+    com nível de operador.
   </p>
 
   <div class="bloco">
-    <h3>Como criar acesso para alguém</h3>
+    <h3>Como dar acesso para alguém</h3>
     <p class="porque">
       No painel, menu <b>Equipe e registros</b> → botão <b>Criar acesso</b>. A senha aparece uma
-      vez só, na tela · anote antes de fechar. Na mesma tela você troca o nível de acesso,
-      redefine senha e desliga o autenticador de quem perdeu o celular.
+      vez só, na tela · anote antes de fechar. Na mesma tela dá para trocar o nível, redefinir
+      senha e desligar o autenticador de quem perdeu o celular.
     </p>
-    <p class="porque">Já existe uma conta criada para o escritório, com nível de operador.</p>
     <div class="rolagem">
       <table>
         <thead><tr><th>Nível</th><th>O que pode fazer</th></tr></thead>
@@ -163,20 +169,57 @@
 </section>
 
 <section>
-  <h2>O que entrou depois do briefing</h2>
+  <h2>O que foi feito</h2>
+
+  <h3 class="grupo">Os oito bloqueadores do briefing</h3>
   <ul class="pronto">
-    <li><span class="tick">✓</span><div><b>Os 8 bloqueadores do P0</b> · telefone, PIX 10%, frete grátis, 10×, tabela de preços, acentuação, postos autorizados e dados legais no rodapé</div></li>
-    <li><span class="tick">✓</span><div><b>37 peças de reposição</b> no catálogo, com preço e foto · caneca, kit, ventosa, martelete, válvula e fixadores</div></li>
-    <li><span class="tick">✓</span><div><b>Seções novas na home</b> · calculadora no topo, Troca Expressa, os 11 erros com os 7 passos, linha Rymer, a fábrica, peças e três matérias sobre água</div></li>
-    <li><span class="tick">✓</span><div><b>Frete real</b> pelo SuperFrete, com etiqueta comprada direto do painel e rastreio automático para o cliente</div></li>
-    <li><span class="tick">✓</span><div><b>Recuperar vendas</b> · quem parou no pagamento, com WhatsApp e e-mail prontos para chamar</div></li>
+    <li><span class="tick">✓</span><div>Vibra Phone <b>11 5033-2828</b> em todo o site · o 4000-2440, que era da A Casa São Paulo, não aparece mais</div></li>
+    <li><span class="tick">✓</span><div>PIX com <b>10% de desconto</b> em toda a comunicação</div></li>
+    <li><span class="tick">✓</span><div><b>Frete grátis em todas as bombas</b>, sem valor mínimo · peças e kits avulsos pagam frete</div></li>
+    <li><span class="tick">✓</span><div>Parcelamento em <b>até 10× sem juros</b></div></li>
+    <li><span class="tick">✓</span><div>Os <b>48 SKUs</b> com a tabela nova, conferidos um a um</div></li>
+    <li><span class="tick">✓</span><div>"Vibratória" com acento · corrigido também na origem, para não voltar</div></li>
+    <li><span class="tick">✓</span><div>Nenhuma menção a postos autorizados</div></li>
+    <li><span class="tick">✓</span><div>Razão social, CNPJ da matriz, IE, endereço e SAC no rodapé, como o Decreto 7.962 exige</div></li>
+  </ul>
+
+  <h3 class="grupo">O que entrou de novo na loja</h3>
+  <ul class="pronto">
+    <li><span class="tick">✓</span><div><b>37 peças de reposição</b> · caneca, kit de manutenção, ventosa, martelete, válvula, canopla e fixadores, com preço e foto</div></li>
+    <li><span class="tick">✓</span><div><b>H1 novo</b>, com "bomba sapo", "submersa vibratória" e "poço" · as palavras que o cliente digita no Google</div></li>
+    <li><span class="tick">✓</span><div><b>Calculadora no topo</b> da home, com foto e preço da bomba indicada</div></li>
+    <li><span class="tick">✓</span><div><b>Troca Expressa em 30 dias</b>, com o espaço do Clube reservado</div></li>
+    <li><span class="tick">✓</span><div><b>Os 11 erros que queimam uma bomba</b>, com o bloco "isso não é defeito" e os 7 passos de instalação</div></li>
+    <li><span class="tick">✓</span><div><b>Linha Rymer</b> com título novo · não é mais "preços imbatíveis"</div></li>
+    <li><span class="tick">✓</span><div><b>A fábrica</b>, em carrossel: fachada, bobinadeira CNC, estoque e expedição</div></li>
+    <li><span class="tick">✓</span><div><b>Selo de 2 anos</b> nas bombas Vibra Vert</div></li>
+    <li><span class="tick">✓</span><div><b>Avaliações do Google</b>, com a moldura do Grupo das Bombas ARF</div></li>
+    <li><span class="tick">✓</span><div><b>Três matérias sobre água</b>, cada uma com página própria · as primeiras páginas de conteúdo da loja</div></li>
+    <li><span class="tick">✓</span><div><b>Rodapé completo</b> · newsletter, canais de atendimento com horário, endereço, redes e dados da empresa</div></li>
+  </ul>
+
+  <h3 class="grupo">O que entrou no painel</h3>
+  <ul class="pronto">
     <li><span class="tick">✓</span><div><b>Conta por pessoa</b>, com autenticador próprio e registro de quem fez o quê</div></li>
-    <li><span class="tick">✓</span><div><b>A Vibrinha no painel</b> · pergunte "como foram as vendas hoje" ou "quantos carrinhos abandonados" e ela responde com o número do sistema</div></li>
+    <li><span class="tick">✓</span><div><b>Frete real</b> por CEP, com PAC, SEDEX e Loggi lado a lado</div></li>
+    <li><span class="tick">✓</span><div><b>Etiqueta comprada no painel</b> · num clique compra, guarda o rastreio, marca como enviado e avisa o cliente</div></li>
+    <li><span class="tick">✓</span><div><b>Recuperar vendas</b> · quem parou no pagamento, com WhatsApp e e-mail prontos para chamar</div></li>
+    <li><span class="tick">✓</span><div><b>A Vibrinha responde</b> · pergunte "como foram as vendas hoje" ou "quantos carrinhos abandonados" e ela busca no sistema</div></li>
+    <li><span class="tick">✓</span><div><b>Tour de boas-vindas</b> na primeira entrada de cada pessoa</div></li>
+    <li><span class="tick">✓</span><div><b>Banners com upload de imagem</b> · antes só dava para trocar o texto, a arte não salvava</div></li>
   </ul>
 
   <div class="aviso verde">
     <b>O painel está zerado.</b> Os pedidos de demonstração foram apagados. Todo número que você
     vir daqui em diante é venda de verdade.
+  </div>
+
+  <div class="aviso azul">
+    <b>Uma coisa que encontrei e resolvi:</b> 110 imagens dentro da galeria dos produtos eram
+    páginas do catálogo do grupo, anunciando bombas Schneider, Famac e Thebe, citando a Franklin
+    Electric e com endereço e telefone antigos. Quem abria uma Vibra Vert e deslizava as fotos
+    acabava vendo um catálogo de outra marca dentro da nossa própria página de produto. Todas
+    removidas.
   </div>
 </section>
 
@@ -189,10 +232,10 @@
     <p class="porque">
       A loja <b>já fecha pedido</b>: encontramos um caminho que funciona com as credenciais que
       você mandou, e o cliente paga numa página do Mercado Pago. Está em ambiente de teste, para
-      você conferir sem mover dinheiro.
+      conferir sem mover dinheiro.
     </p>
     <p class="porque">
-      Para vender de verdade e para o cliente pagar sem sair da loja · que converte mais · a
+      Para vender de verdade · e para o cliente pagar sem sair da loja, que converte mais · a
       aplicação precisa ser ativada:
     </p>
     <ol>
@@ -257,21 +300,26 @@
 
 <section>
   <h2>3 · Material que ainda falta</h2>
-
   <div class="rolagem">
     <table>
       <thead><tr><th>Item</th><th>Para quê</th></tr></thead>
       <tbody>
         <tr><td class="n">Arte da embalagem</td><td>Extrair os desenhos dos <b>11 erros</b>. Hoje estão com ícones desenhados por mim · funcionam, mas os da embalagem são melhores.</td></tr>
-        <tr><td class="n">Embalagem da 800</td><td>Curva de vazão e garantia dos 8 SKUs dessa linha. <b>Também confirma o diâmetro do poço:</b> coloquei 8" deduzindo da nossa própria medição · a caixa da 800 é igual à da Vibrinha e da 900, que são 8".</td></tr>
+        <tr><td class="n">Embalagem da 800</td><td>Curva de vazão e garantia dos 8 SKUs. <b>Também confirma o diâmetro do poço:</b> coloquei 8" deduzindo da nossa medição · a caixa da 800 é igual à da Vibrinha e da 900, que são 8".</td></tr>
         <tr><td class="n">Amanco e Fame</td><td>Logos em alta e os certificados de Assistente Técnico Autorizado, para a seção de parceria. A Franklin Electric não será citada.</td></tr>
-        <tr><td class="n">Banners A, B e C</td><td>Família completa, Rymer 1500 e reviews. É arte, não código.</td></tr>
-        <tr><td class="n">Nota do Google</td><td>Nota e número de avaliações da A Casa São Paulo, para a moldura do bloco de reviews.</td></tr>
-        <tr><td class="n">Instagram e YouTube</td><td>Os ícones já estão montados no rodapé, esperando o endereço.</td></tr>
+        <tr><td class="n">Banners A, B e C</td><td>Família completa, Rymer 1500 e avaliações. É arte, não código.</td></tr>
+        <tr><td class="n">YouTube</td><td>O link do canal. O ícone já está montado no rodapé, esperando · o Instagram já está ligado.</td></tr>
         <tr><td class="n">E-mail comercial</td><td>Além do sac@.</td></tr>
         <tr><td class="n">Anauger</td><td>Quais peças exatamente são compatíveis. Só publico o que for verdade.</td></tr>
       </tbody>
     </table>
+  </div>
+
+  <div class="aviso">
+    <b>Sobre as avaliações publicadas.</b> Foram copiadas do perfil do Google e reconstituídas a
+    partir da tradução automática · o sentido é fiel, mas as palavras exatas podem diferir um
+    pouco do que a pessoa escreveu. Se alguém puder copiar o texto original em português direto do
+    perfil, eu troco.
   </div>
 </section>
 
@@ -302,7 +350,7 @@
   </div>
 
   <div class="bloco">
-    <span class="selo trava">Precisa confirmar</span>
+    <span class="selo trava">Precisa alinhar</span>
     <h3>Garantia de 2 anos</h3>
     <p class="porque">
       Apliquei os 2 anos na linha Vibra Vert, como o briefing pede, e o selo já aparece nesses
@@ -337,21 +385,10 @@
   </div>
 </section>
 
-<section>
-  <h2>Uma coisa que encontrei e resolvi</h2>
-  <div class="aviso azul">
-    <b>110 imagens na galeria dos produtos eram catálogo do grupo.</b> Cinco folhetos repetidos em
-    22 produtos, anunciando bombas Schneider, Famac e Thebe, citando a Franklin Electric e com
-    endereço e telefone antigos. Quem abria uma Vibra Vert e deslizava a galeria acabava vendo um
-    catálogo de outra marca · dentro da nossa própria página de produto. Todas removidas, e o
-    carregamento do catálogo já não as traz de volta.
-  </div>
-</section>
-
 <footer>
   <p>
     Assim que o Mercado Pago liberar a cobrança e a chave PIX existir, a loja pode abrir.<br>
-    O resto do material entra sem parar a operação.
+    O resto do material entra depois, sem parar a operação.
   </p>
 </footer>
 
