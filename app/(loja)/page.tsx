@@ -12,6 +12,8 @@ import { SecaoFabrica } from "@/components/secao-fabrica";
 import { SecaoErros } from "@/components/secao-erros";
 import { SecaoPecas } from "@/components/secao-pecas";
 import { SecaoMaterias } from "@/components/secao-materias";
+import { SecaoReviews } from "@/components/secao-reviews";
+import { BandeiraBrasil } from "@/components/bandeira-brasil";
 import { SecaoTrocaExpressa } from "@/components/secao-troca-expressa";
 import { Calculadora } from "@/components/calculadora";
 import { modelosDaCalculadora } from "@/lib/modelos-calculadora";
@@ -324,6 +326,10 @@ export default async function Home() {
       <SecaoFabrica />
 
 
+      <SecaoReviews />
+
+
+
       <SecaoMaterias />
 
 
@@ -382,25 +388,29 @@ export default async function Home() {
                   ),
                 },
                 {
+                  // O globo genérico não dizia "Brasil". A bandeira diz, e as
+                  // 27 estrelas dela são justamente os 26 estados mais o DF.
                   v: "27",
                   r: "estados atendidos",
-                  i: (
-                    <>
-                      <circle cx="12" cy="12" r="9" />
-                      <path d="M3 12h18M12 3a15 15 0 010 18a15 15 0 010-18" />
-                    </>
-                  ),
+                  bandeira: true,
+                  i: null,
                 },
               ].map((n) => (
                 <div
                   key={n.r}
                   className="rounded-caixa border border-white/10 bg-white/[.04] p-4 transition hover:border-ouro/40 hover:bg-white/[.07]"
                 >
-                  <span className="grid h-9 w-9 place-items-center rounded-lg bg-ouro/15 text-ouro">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
-                      {n.i}
-                    </svg>
-                  </span>
+                  {"bandeira" in n && n.bandeira ? (
+                    <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-lg bg-white/10 p-1">
+                      <BandeiraBrasil className="h-auto w-full rounded-[2px]" />
+                    </span>
+                  ) : (
+                    <span className="grid h-9 w-9 place-items-center rounded-lg bg-ouro/15 text-ouro">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
+                        {n.i}
+                      </svg>
+                    </span>
+                  )}
                   <dd className="num mt-3 text-2xl font-extrabold leading-none tracking-tight text-ouro">
                     {n.v}
                   </dd>

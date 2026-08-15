@@ -11,13 +11,14 @@ import { FundoPoco } from "@/components/fundo-poco";
  */
 export function SecaoMaterias() {
   return (
-    <section className="border-t border-linha bg-superficie-2">
-      <div className="mx-auto max-w-7xl px-5 py-14">
-        {/* O desenho tem coluna própria, e não fica atrás do texto.
-            Como fundo, a bomba e a mangueira caíam justamente embaixo dos
-            cards · o que mais importa no desenho era o que menos se via. */}
-        <div className="grid items-center gap-8 lg:grid-cols-[1fr_400px]">
-          <div>
+    <section className="relative overflow-hidden border-t border-linha bg-superficie-2">
+      {/* O poço é fundo, mas com faixa reservada: no desktop o conteúdo recua e
+          deixa livre a coluna da direita. Como fundo solto, a bomba caía bem
+          embaixo dos cards e sumia · o que mais importava no desenho era
+          justamente o que menos se via. */}
+      <FundoPoco className="pointer-events-none absolute -right-4 top-1/2 hidden h-[340px] w-[300px] -translate-y-1/2 opacity-80 lg:block" />
+
+      <div className="relative mx-auto max-w-7xl px-5 py-14 lg:pr-[330px]">
         <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-marca">
           Água no Brasil
         </p>
@@ -28,12 +29,7 @@ export function SecaoMaterias() {
           Três números que explicam o país em que a gente fabrica. Com fonte, e sem exagero.
         </p>
 
-          </div>
-
-          <FundoPoco className="mx-auto hidden h-[440px] w-full max-w-[400px] lg:block" />
-        </div>
-
-        <ul className="mt-10 grid gap-4 md:grid-cols-3">
+        <ul className="mt-9 grid gap-4 md:grid-cols-3">
           {MATERIAS.map((m, i) => (
             <li key={m.slug} className="revelar" style={{ transitionDelay: `${i * 70}ms` }}>
               <Link
