@@ -109,7 +109,7 @@ export default async function Home() {
 
       {/* O slogan é o oficial da marca, o mesmo da embalagem. */}
       <section className="border-b border-linha bg-gradient-to-br from-marca-suave via-superficie-2 to-superficie">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 py-12 md:grid-cols-[1.25fr_1fr]">
+        <div className="mx-auto max-w-7xl px-5 py-14">
           <div>
             <p className="entrar text-[10.5px] font-extrabold uppercase tracking-[0.16em] text-marca">
               Loja Oficial · Fabricação própria
@@ -155,44 +155,10 @@ export default async function Home() {
             </dl>
           </div>
 
-          {/* Uma coisa só de cada lado: texto à esquerda, produto à direita.
-              A foto e uma caixa de texto lado a lado partiam a coluna em dois
-              blocos pequenos, e nenhum dos dois liderava. */}
-          <div className="entrar entrar-3">
-            {destaque?.imagens[0] && (
-              <Link
-                href={`/produto/${destaque.slug}`}
-                className="group relative block overflow-hidden rounded-caixa border border-marca-linha bg-superficie shadow-xl shadow-marca/10"
-              >
-                {/* A moldura era larga e o recorte cortava a bomba em uma tira
-                    do meio · sumia a saída de água em cima e a etiqueta
-                    embaixo. A bomba é alta, então a moldura também é, e a foto
-                    aparece inteira em vez de preenchida à força. */}
-                <span className="relative block aspect-[4/5] bg-gradient-to-b from-superficie to-marca-suave">
-                  <Image
-                    src={destaque.imagens[0].url}
-                    alt={destaque.imagens[0].alt}
-                    fill
-                    priority
-                    sizes="(max-width: 768px) 90vw, 440px"
-                    className="object-contain p-6 transition-transform duration-700 group-hover:scale-105"
-                  />
-                </span>
-                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-marca-escuro/90 to-transparent p-3.5 pt-10">
-                  <span className="block text-[10px] font-extrabold uppercase tracking-[0.14em] text-ouro">
-                    Maior vazão da linha
-                  </span>
-                  <span className="num mt-0.5 block text-[15px] font-extrabold text-white">
-                    {destaque.vazaoMaxima?.toLocaleString("pt-BR")} L/h
-                    {destaque.pocoPolegadas && (
-                      <span className="font-bold text-white/70"> · poço {destaque.pocoPolegadas}&quot;</span>
-                    )}
-                  </span>
-                </span>
-              </Link>
-            )}
-
-          </div>
+          {/* O produto saiu do topo. A foto da bomba isolada num quadro grande
+              competia com o título e não vendia nada · quem chega ainda não
+              sabe qual modelo quer, e é a calculadora logo abaixo que responde
+              isso, com foto e preço. */}
         </div>
       </section>
 
