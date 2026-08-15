@@ -562,3 +562,48 @@ enum TipoProduto {
 
   @@schema("vibravert")
 }
+
+/// Cadastro de revenda.
+///
+/// O revendedor não digita nada que a Receita já sabe: informa o CNPJ e o
+/// resto vem preenchido. Só confere e corrige o que precisar.
+model Revendedor {
+  id   String @id @default(cuid())
+  cnpj String @unique
+
+  razaoSocial  String
+  nomeFantasia String?
+  inscricaoEstadual String?
+  cnae         String?
+  situacao     String?
+  abertura     DateTime?
+
+  logradouro String?
+  numero     String?
+  bairro     String?
+  cidade     String?
+  uf         String?
+  cep        String?
+
+  responsavel String
+  email       String
+  whatsapp    String
+
+  status   StatusRevenda @default(PENDENTE)
+  faixa    String?
+  detalhe  String?
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@index([status, criadoEm])
+  @@schema("vibravert")
+}
+
+enum StatusRevenda {
+  PENDENTE
+  APROVADO
+  RECUSADO
+
+  @@schema("vibravert")
+}

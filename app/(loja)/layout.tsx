@@ -45,6 +45,7 @@ const DEPARTAMENTOS = [
   // Aponta para a seção da home enquanto as peças não têm página própria:
   // um item de menu que leva a lugar nenhum é pior que não ter o item.
   { href: "/#pecas", rotulo: "Peças Originais" },
+  { href: "/revenda", rotulo: "Revenda" },
   { href: "/qual-bomba", rotulo: "Qual bomba eu preciso?" },
   { href: "/assistencia", rotulo: "Assistência técnica" },
 ];

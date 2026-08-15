@@ -31,6 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/bombas`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/bombas?tipo=peca`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/assistencia`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/revenda`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/sobre`, changeFrequency: "yearly", priority: 0.5 },
     { url: `${base}/fale-conosco`, changeFrequency: "yearly", priority: 0.5 },
     // As institucionais entram porque o Decreto 7.962 exige que estejam
