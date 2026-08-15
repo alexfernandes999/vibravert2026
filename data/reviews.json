@@ -1,8 +1,46 @@
 {
-  "_comentario": "Avaliações do Google do perfil da A Casa São Paulo. Copiadas à mão de propósito: o widget oficial do Google foi descontinuado e os de terceiros são pagos. A moldura do Grupo ARF é obrigatória · sem ela o cliente vê outro nome e desconfia.",
-  "_fonte": "https://share.google/QY6J8iaKlLJttsjEM",
+  "_comentario": "Avaliações do perfil da A Casa São Paulo no Google. Copiadas à mão: o widget oficial do Google foi descontinuado e os de terceiros são pagos. A moldura do Grupo ARF é obrigatória · sem ela o cliente vê outro nome e desconfia.",
+  "_atencao": "Os textos foram reconstituídos a partir da tradução automática do Google. O sentido é fiel, mas as palavras exatas do autor podem diferir. Trocar pelo texto original em português quando alguém puder copiar do perfil.",
+  "_fonte": "https://www.google.com/maps/place/A+Casa+S%C3%A3o+Paulo",
   "perfil": "A Casa São Paulo · A Maior Loja de Bombas de Água do Brasil",
-  "nota": null,
-  "quantidade": null,
-  "avaliacoes": []
+  "nota": 4.5,
+  "quantidade": 1678,
+  "avaliacoes": [
+    {
+      "autor": "Gabriel C.",
+      "nota": 5,
+      "quando": "há 1 mês",
+      "texto": "Comprei duas bombas de 1 HP, são realmente boas. Fui muito bem atendido desde o começo, para entenderem o que eu precisava de verdade. Fiquei muito satisfeito com o atendimento e com o produto. Recomendo!"
+    },
+    {
+      "autor": "Tiffany S.",
+      "nota": 5,
+      "quando": "há 1 ano",
+      "texto": "Fui muito bem atendida, me orientaram rapidinho para comprar a bomba certa e a entrega foi no prazo. Deu tudo certo. Nota 10 para a empresa."
+    },
+    {
+      "autor": "Adriano D.",
+      "nota": 5,
+      "quando": "há 4 meses",
+      "texto": "Tive um probleminha, mas a equipe resolveu rápido e deu o melhor acompanhamento possível. Equipe excelente!"
+    },
+    {
+      "autor": "Iraci J.",
+      "nota": 5,
+      "quando": "há 3 semanas",
+      "texto": "A gentileza e o cuidado nas explicações. Falei com o Gustavo e fiquei encantada com o atendimento."
+    },
+    {
+      "autor": "MegaVolt Eletrotécnica",
+      "nota": 5,
+      "quando": "há 3 meses",
+      "texto": "Atendimento gentil, rápido e certeiro. O custo-benefício foi explicado com clareza. Aqui o cliente vem em primeiro lugar."
+    },
+    {
+      "autor": "Marco Aurélio C.",
+      "nota": 5,
+      "quando": "há 2 meses",
+      "texto": "Atendimento rápido e cheio de informação. Recomendo a empresa."
+    }
+  ]
 }
