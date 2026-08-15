@@ -77,7 +77,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="mt-6 border-t border-linha pt-4">
           <p className="text-[12.5px] font-bold leading-tight">{eu.nome}</p>
           <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-mudo">
-            {eu.papel === "DESENVOLVEDOR" ? "Desenvolvedor" : "Operador"}
+            {{ OPERADOR: "Operador", MASTER: "Dono", DESENVOLVEDOR: "Desenvolvedor" }[eu.papel]}
           </p>
           <form action={async () => { "use server"; await repetirTour(); redirect("/admin"); }}>
             <button className="mt-2 block text-[12px] font-semibold text-mudo underline underline-offset-2">

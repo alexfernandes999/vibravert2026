@@ -492,6 +492,14 @@ model Usuario {
   /// Segredo TOTP, um por pessoa. Perder o celular afeta só quem o perdeu.
   segredo2FA String?
 
+  /// Segredo mostrado no QR e ainda não confirmado.
+  ///
+  /// Precisa viver no banco, e não em memória: cada requisição pode cair numa
+  /// instância diferente do servidor, e o segredo gerado numa não existe na
+  /// outra · o cadastro falhava dizendo que a tela tinha expirado.
+  segredo2FAPendente String?
+  pendente2FAAte     DateTime?
+
   papel PapelUsuario @default(OPERADOR)
   ativo Boolean      @default(true)
 

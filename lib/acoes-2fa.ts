@@ -17,6 +17,13 @@ import { conferir, gerarSegredo, uriDeCadastro } from "@/lib/dois-fatores";
  * gerando o código certo. Gravar antes trancaria a conta se a câmera não
  * pegasse o QR.
  */
+/**
+ * Freio de tentativas, em memória.
+ *
+ * Diferente do segredo, aqui uma instância nova só significa contador zerado ·
+ * o freio fica mais frouxo, nunca quebrado. Guardar no banco custaria uma
+ * escrita por senha errada, e o ganho não compensa.
+ */
 const tentativas = new Map<string, { n: number; ate: number }>();
 const LIMITE = 5;
 const CASTIGO = 10 * 60 * 1000;
@@ -33,8 +40,8 @@ function errou(chave: string) {
   tentativas.set(chave, { n: (t && Date.now() < t.ate ? t.n : 0) + 1, ate: Date.now() + CASTIGO });
 }
 
-/** Guarda o segredo pendente entre ver o QR e confirmar o primeiro código. */
-const pendentes = new Map<string, { segredo: string; ate: number }>();
+/** Quanto tempo o QR mostrado continua válido para confirmação. */
+const VALIDADE = 15 * 60 * 1000;
 
 export type Cadastro =
   | { ok: true; qr: string; segredo: string; conta: string; jaTinha: boolean }
@@ -62,7 +69,10 @@ export async function revelarQr(senha: string): Promise<Cadastro> {
   // invalidaria o aplicativo que já está funcionando no celular.
   const segredo = atual?.segredo2FA ?? gerarSegredo();
   if (!atual?.segredo2FA) {
-    pendentes.set(eu.id, { segredo, ate: Date.now() + 15 * 60 * 1000 });
+    await prisma.usuario.update({
+      where: { id: eu.id },
+      data: { segredo2FAPendente: segredo, pendente2FAAte: new Date(Date.now() + VALIDADE) },
+    });
   }
 
   const conta = `${eu.nome} · Vibra Vert`;
@@ -97,14 +107,17 @@ export async function testarCodigo(codigo: string): Promise<{ ok: boolean; erro?
   const limpo = codigo.replace(/\D/g, "");
   if (limpo.length !== 6) return { ok: false, erro: "O código tem 6 dígitos." };
 
-  const pendente = pendentes.get(eu.id);
   const guardado = await prisma.usuario.findUnique({
     where: { id: eu.id },
-    select: { segredo2FA: true },
+    select: { segredo2FA: true, segredo2FAPendente: true, pendente2FAAte: true },
   });
 
-  const segredo =
-    pendente && pendente.ate > Date.now() ? pendente.segredo : guardado?.segredo2FA;
+  const pendenteVale =
+    guardado?.segredo2FAPendente &&
+    guardado.pendente2FAAte &&
+    guardado.pendente2FAAte.getTime() > Date.now();
+
+  const segredo = pendenteVale ? guardado!.segredo2FAPendente! : guardado?.segredo2FA;
   if (!segredo) return { ok: false, erro: "Peça o QR de novo: a tela expirou." };
 
   if (!conferir(limpo, segredo)) {
@@ -115,8 +128,10 @@ export async function testarCodigo(codigo: string): Promise<{ ok: boolean; erro?
   }
 
   if (!guardado?.segredo2FA) {
-    await prisma.usuario.update({ where: { id: eu.id }, data: { segredo2FA: segredo } });
-    pendentes.delete(eu.id);
+    await prisma.usuario.update({
+      where: { id: eu.id },
+      data: { segredo2FA: segredo, segredo2FAPendente: null, pendente2FAAte: null },
+    });
   }
   return { ok: true };
 }

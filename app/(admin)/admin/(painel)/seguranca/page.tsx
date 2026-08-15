@@ -5,6 +5,12 @@ import { Cadastro2FA } from "@/components/cadastro-2fa";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Segurança" };
 
+const PAPEL: Record<string, string> = {
+  OPERADOR: "operador",
+  MASTER: "dono",
+  DESENVOLVEDOR: "desenvolvedor",
+};
+
 export default async function Seguranca({
   searchParams,
 }: {
@@ -23,7 +29,7 @@ export default async function Seguranca({
       <h1 className="text-xl font-extrabold tracking-tight">Segurança</h1>
       <p className="mt-1.5 text-[13.5px] leading-relaxed text-tinta-2">
         Sua conta é <strong className="font-bold">{eu.login}</strong>, com acesso de{" "}
-        {eu.papel === "DESENVOLVEDOR" ? "desenvolvedor" : "operador"}. O painel pede a sua senha e um
+        {PAPEL[eu.papel]}. O painel pede a sua senha e um
         código de 6 dígitos que muda a cada 30 segundos, gerado no seu celular. Assim, senha
         descoberta não é suficiente para entrar.
       </p>
