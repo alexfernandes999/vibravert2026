@@ -15,7 +15,9 @@
 export function FundoPoco({ className = "" }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 460 520"
+      /* Recorte fechado no poço: com a moldura inteira a bomba saía com vinte
+         pixels e o desenho virava enfeite ilegível. */
+      viewBox="96 46 288 452"
       aria-hidden
       focusable="false"
       className={className}
@@ -44,9 +46,9 @@ export function FundoPoco({ className = "" }: { className?: string }) {
       <path
         d="M243 40c16 7 24 25 41 28 15 4 30-4 43 5 10 8 9 24 18 33 11 11 30 8 39 21 7 13 0 28 5 42 6 17 24 25 24 43 0 19-20 30-27 48-7 16-1 35-10 50-10 16-35 14-49 26-13 12-13 32-26 42-15 13-38 6-52 17-15 11-18 31-36 37-17 6-34-8-51-6-18 2-31 19-48 16-18-3-25-23-39-34-15-12-36-5-48-18-11-13-7-32-15-47-10-17-33-20-37-40-5-18 10-34 8-52-2-18-22-34-16-52 6-17 27-22 38-38 10-15 7-35 20-47 13-11 34-7 49-16 14-9 19-30 36-35 15-6 31 6 47 1 15-4 23-24 40-24Z"
         fill="var(--color-marca)"
-        fillOpacity="0.07"
+        fillOpacity="0.06"
         stroke="var(--color-marca)"
-        strokeOpacity="0.22"
+        strokeOpacity="0.12"
         strokeWidth="2"
       />
 

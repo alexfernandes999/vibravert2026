@@ -11,13 +11,13 @@ import { FundoPoco } from "@/components/fundo-poco";
  */
 export function SecaoMaterias() {
   return (
-    <section className="relative overflow-hidden border-t border-linha bg-superficie-2">
-      {/* O desenho conta o que o texto diz: terreno, lençol, poço tubular e a
-          bomba no fundo, sobre a silhueta do país. Fica bem apagado · é
-          atmosfera, e não pode competir com a leitura. */}
-      <FundoPoco className="pointer-events-none absolute -right-6 top-1/2 hidden h-[118%] w-[470px] -translate-y-1/2 opacity-100 lg:block" />
-
-      <div className="relative mx-auto max-w-7xl px-5 py-14">
+    <section className="border-t border-linha bg-superficie-2">
+      <div className="mx-auto max-w-7xl px-5 py-14">
+        {/* O desenho tem coluna própria, e não fica atrás do texto.
+            Como fundo, a bomba e a mangueira caíam justamente embaixo dos
+            cards · o que mais importa no desenho era o que menos se via. */}
+        <div className="grid items-center gap-8 lg:grid-cols-[1fr_400px]">
+          <div>
         <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-marca">
           Água no Brasil
         </p>
@@ -28,7 +28,12 @@ export function SecaoMaterias() {
           Três números que explicam o país em que a gente fabrica. Com fonte, e sem exagero.
         </p>
 
-        <ul className="mt-8 grid gap-4 md:grid-cols-3">
+          </div>
+
+          <FundoPoco className="mx-auto hidden h-[440px] w-full max-w-[400px] lg:block" />
+        </div>
+
+        <ul className="mt-10 grid gap-4 md:grid-cols-3">
           {MATERIAS.map((m, i) => (
             <li key={m.slug} className="revelar" style={{ transitionDelay: `${i * 70}ms` }}>
               <Link
