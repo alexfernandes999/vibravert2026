@@ -54,10 +54,13 @@ export async function generateMetadata({
     // A URL indexada é a da versão principal: quatro páginas quase idênticas
     // disputando a mesma busca é o que diluía a força do produto.
     alternates: { canonical: `/produto/${(await irmas(p.familia, p.slug)).find((i) => i.principalDaFamilia)?.slug ?? p.slug}` },
+    // Sem `images` aqui: quem gera a miniatura é a opengraph-image.tsx ao
+    // lado. Apontar para a foto crua devolvia a bomba em pé, que o WhatsApp
+    // recorta em uma tira ilegível.
     openGraph: {
       title: p.nome,
       description: p.metaDescricao ?? undefined,
-      images: p.imagens[0] ? [p.imagens[0].url] : undefined,
+      type: "website",
     },
   };
 }
