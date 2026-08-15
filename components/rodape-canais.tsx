@@ -14,7 +14,7 @@ const CANAIS = [
   {
     rot: "Vibra Phone",
     valor: TELEFONE,
-    nota: "falamos de bomba, não é SAC",
+    nota: "de segunda a sexta, das 8h às 18h",
     href: `tel:${TELEFONE_LINK}`,
     icone: (
       <path d="M4 4h4l2 5-2.5 1.5a12 12 0 006 6L15 14l5 2v4a1 1 0 01-1.1 1A17 17 0 013 5.1 1 1 0 014 4z" />
@@ -33,25 +33,26 @@ const CANAIS = [
     ),
   },
   {
+    rot: "Pedidos",
+    valor: "pedido@vibravert.com.br",
+    nota: "dúvida sobre uma compra",
+    href: "mailto:pedido@vibravert.com.br",
+    icone: (
+      <>
+        <path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z" />
+        <path d="M3.5 7.5 12 12l8.5-4.5M12 12v9" />
+      </>
+    ),
+  },
+  {
     rot: "SAC",
     valor: "sac@vibravert.com.br",
-    nota: "resposta em até 1 dia útil",
+    nota: "assistência e garantia",
     href: "mailto:sac@vibravert.com.br",
     icone: (
       <>
         <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
         <path d="M3 7l9 6 9-6" />
-      </>
-    ),
-  },
-  {
-    rot: "Horário",
-    valor: "8h às 18h",
-    nota: "de segunda a sexta",
-    icone: (
-      <>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 7v5.2l3.4 2" />
       </>
     ),
   },

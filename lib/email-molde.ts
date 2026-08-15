@@ -117,7 +117,7 @@ export function montar(m: Molde) {
           <td style="padding-top:18px;font:13.5px/1.55 ${F};color:${TINTA_2}">
             <strong style="color:${TINTA}">Vibrinha</strong>
             <span style="color:${MUDO}"> · atendimento Vibra Vert</span><br>
-            Qualquer dúvida é só responder este e-mail, ou chamar no
+            Qualquer dúvida é só responder este e-mail · ele chega em pedido@vibravert.com.br · ou chamar no
             <a href="tel:${TELEFONE_LINK}" style="color:${AZUL};text-decoration:none;font-weight:600">${TELEFONE}</a>.
             Falamos de bomba, não é SAC.
           </td>
