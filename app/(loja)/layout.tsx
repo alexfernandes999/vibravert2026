@@ -218,12 +218,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               publicar o dela apontaria o consumidor para o estabelecimento
               errado na hora de reclamar. */}
           <div className="border-t border-linha">
-            <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-5 py-5">
-              <p className="text-[12.5px] leading-snug text-mudo">
-                <strong className="font-bold text-tinta-2">Rua Charles Darwin, 707</strong>
-                <span className="block">Vila Santa Catarina · São Paulo/SP · CEP 04379-074</span>
-              </p>
-              <div className="ml-auto flex items-center gap-3">
+            {/* O endereço aparecia aqui e de novo no bloco legal logo abaixo.
+                Repetido em duas linhas seguidas parece erro de montagem · fica
+                só no bloco obrigatório, que é onde a lei exige. */}
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4">
+              <div className="flex items-center gap-3">
                 <span className="text-[11px] font-extrabold uppercase tracking-[0.13em] text-mudo">
                   Redes
                 </span>

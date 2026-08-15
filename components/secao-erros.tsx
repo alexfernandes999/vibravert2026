@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { ListaErros } from "@/components/lista-erros";
 
 /**
  * Os 11 erros que queimam uma bomba sapo.
@@ -140,11 +141,11 @@ export function SecaoErros() {
           </div>
         </div>
 
-        <ol className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ListaErros>
           {ERROS.map((e, i) => (
-            <li
+            <div
               key={e.t}
-              className="revelar group flex gap-3 rounded-caixa border border-linha bg-superficie-2 p-4 transition duration-300 hover:-translate-y-0.5 hover:border-marca hover:shadow-lg hover:shadow-marca/10"
+              className="revelar group flex h-full gap-3 rounded-caixa border border-linha bg-superficie-2 p-4 transition duration-300 hover:-translate-y-0.5 hover:border-marca hover:shadow-lg hover:shadow-marca/10"
               style={{ transitionDelay: `${(i % 3) * 50}ms` }}
             >
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-superficie text-marca transition group-hover:bg-marca group-hover:text-white">
@@ -165,9 +166,9 @@ export function SecaoErros() {
                   “{e.sintoma}”
                 </span>
               </span>
-            </li>
+            </div>
           ))}
-        </ol>
+        </ListaErros>
 
         {/* ── isso não é defeito ─────────────────────────────────── */}
         <div className="revelar mt-8 overflow-hidden rounded-caixa border border-marca/25 bg-marca-suave">
