@@ -110,7 +110,27 @@ export function FormularioCheckout({
             <Campo nome="uf" rotulo="UF" erro={err.uf} valor={end.uf} className="sm:col-span-1" />
           </div>
 
-          {fretes && fretes.length > 0 && (
+          {/* Bomba tem frete grátis: mostrar PAC, SEDEX e Loggi ao lado de uma
+              opção que custa zero só dá trabalho de escolher. A lista fica
+              para as peças, onde o cliente paga e a escolha importa. */}
+          {fretes && fretes.length > 0 && fretes[0].valor === 0 && (
+            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-caixa border border-bom/30 bg-bom-suave px-4 py-3.5">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"
+                className="h-5 w-5 shrink-0 text-bom">
+                <path d="M4 12.5l5 5L20 6.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="text-[14px] font-extrabold text-bom">Frete grátis</span>
+              {fretes[0].prazoDias > 0 && (
+                <span className="text-[13px] font-semibold text-tinta-2">
+                  chega em {fretes[0].prazoDias}{" "}
+                  {fretes[0].prazoDias === 1 ? "dia útil" : "dias úteis"} · via {fretes[0].transportadora}
+                </span>
+              )}
+              <input type="hidden" name="servicoFrete" value={fretes[0].servico} />
+            </div>
+          )}
+
+          {fretes && fretes.length > 0 && fretes[0].valor > 0 && (
             <div className="mt-4 overflow-hidden rounded-caixa border border-linha">
               {fretes.map((o) => (
                 <label

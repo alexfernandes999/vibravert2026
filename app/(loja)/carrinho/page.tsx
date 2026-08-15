@@ -81,6 +81,16 @@ export default async function Carrinho() {
         {/* Não há mais barra de progresso para o frete grátis: bomba tem
             frete grátis sempre. O que resta dizer é quando ele NÃO vale, e
             por quê — descobrir isso só no checkout é o que faz desistir. */}
+        {c.abaixoDoMinimo && (
+          <p className="mt-3 rounded-caixa border border-atencao/40 bg-atencao/10 px-4 py-3 text-[13px] font-semibold text-tinta-2">
+            <strong className="font-extrabold text-atencao">
+              Pedido mínimo de {brl(c.minimoPecas)} para peças.
+            </strong>{" "}
+            Faltam <span className="num font-extrabold">{brl(c.faltaParaMinimo)}</span> · abaixo
+            disso o frete sai mais caro que a própria peça. Aproveite e leve o kit completo.
+          </p>
+        )}
+
         {c.freteGratis ? (
           <p className="mt-3 rounded-caixa border border-bom/30 bg-bom-suave px-4 py-3 text-[13px] font-extrabold text-bom">
             Frete grátis · toda bomba sai sem custo de entrega, para qualquer estado.

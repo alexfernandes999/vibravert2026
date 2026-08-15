@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { DESCONTO_PIX, FRETE_GRATIS_EM_BOMBAS, FRETE_PADRAO, CONTROLA_ESTOQUE } from "@/lib/loja";
+import { MINIMO_PECAS } from "@/lib/revenda";
 import { registrar } from "@/lib/analitica";
 
 /**
@@ -111,6 +112,9 @@ export async function obterCarrinho() {
       economiaPix: 0,
       freteGratis: false,
       soBombas: true,
+      abaixoDoMinimo: false,
+      faltaParaMinimo: 0,
+      minimoPecas: MINIMO_PECAS,
     };
   }
 
@@ -156,6 +160,12 @@ export async function obterCarrinho() {
   // reais com frete grátis custaria mais em entrega do que em produto.
   const soBombas = itens.every((i) => i.tipo === "BOMBA");
   const freteGratis = FRETE_GRATIS_EM_BOMBAS && soBombas;
+
+  // Pedido só de peça tem mínimo: abaixo dele o frete custa mais que a peça,
+  // e a loja gasta uma etiqueta inteira para vender uma arruela.
+  const soPecas = itens.length > 0 && itens.every((i) => i.tipo !== "BOMBA");
+  const abaixoDoMinimo = soPecas && subtotal < MINIMO_PECAS;
+  const faltaParaMinimo = abaixoDoMinimo ? MINIMO_PECAS - subtotal : 0;
   const frete = freteGratis ? 0 : FRETE_PADRAO;
   const total = subtotal + frete;
   const totalPix = total * (1 - DESCONTO_PIX);
@@ -169,5 +179,8 @@ export async function obterCarrinho() {
     economiaPix: total - totalPix,
     freteGratis,
     soBombas,
+    abaixoDoMinimo,
+    faltaParaMinimo,
+    minimoPecas: MINIMO_PECAS,
   };
 }

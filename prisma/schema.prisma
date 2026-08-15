@@ -600,6 +600,11 @@ model Revendedor {
   faixa    String?
   detalhe  String?
 
+  /// Quer boleto faturado, e por isso passa por análise de crédito.
+  querFaturado Boolean @default(false)
+  /// Endereços dos documentos enviados para a análise.
+  documentos   String[]
+
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 

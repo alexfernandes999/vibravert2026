@@ -68,6 +68,11 @@ export async function finalizar(_estado: EstadoCheckout, dados: FormData): Promi
 
   const carrinho = await obterCarrinho();
   if (!carrinho.itens.length) return { erro: "Seu carrinho está vazio." };
+  // A trava vale no servidor também: o aviso do carrinho é para orientar, e
+  // quem manda o formulário à mão passaria por cima dele.
+  if (carrinho.abaixoDoMinimo) {
+    return { erro: `Pedido mínimo de peças é ${carrinho.minimoPecas.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}. Faltam ${carrinho.faltaParaMinimo.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}.` };
+  }
 
   const d = v.data;
 

@@ -25,8 +25,11 @@ const POR_FAMILIA: { prefixo: RegExp; arquivo: string; alt: string }[] = [
 
 (async () => {
   const aplicar = process.argv.includes("--aplicar");
+  // Só a bomba avulsa. Nas versões com boia ou com kit, a foto antiga mostra
+  // justamente o acessório que vem junto · trocar por uma bomba nua ali
+  // esconde exatamente aquilo que a pessoa está pagando a mais.
   const produtos = await prisma.produto.findMany({
-    where: { ativo: true, tipo: "BOMBA" },
+    where: { ativo: true, tipo: "BOMBA", versao: "BOMBA" },
     select: { id: true, sku: true, imagens: { select: { id: true, url: true, principal: true }, orderBy: { ordem: "asc" } } },
     orderBy: { sku: "asc" },
   });

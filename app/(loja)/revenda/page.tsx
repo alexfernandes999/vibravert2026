@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { FormRevenda } from "@/components/form-revenda";
-import { FAIXAS, MINIMO, DESCONTO_SOBRE_PIX, B2B_FRETE_GRATIS } from "@/lib/revenda";
+import { FAIXAS, MINIMO, DESCONTO_SOBRE_PIX, B2B_FRETE_GRATIS, PRAZOS, B2B_ACEITA_CARTAO } from "@/lib/revenda";
 
 export const metadata: Metadata = {
   title: "Revenda Vibra Vert · preço de revendedor a partir de 6 bombas",
@@ -59,8 +59,47 @@ export default function Revenda() {
           <p className="mt-3 text-[12.5px] text-mudo">
             Desconto sobre o preço {DESCONTO_SOBRE_PIX ? "à vista no PIX" : "cheio"}.
             {B2B_FRETE_GRATIS
-              ? " Frete grátis também na revenda."
+              ? " Frete grátis em toda a revenda."
               : " O frete da revenda é calculado pelo CEP, como no varejo."}
+          </p>
+
+          {/* O prazo é o que separa a revenda do varejo: quem revende compra
+              hoje e paga depois de vender. Por isso vem logo abaixo do
+              desconto, e não escondido no rodapé. */}
+          <h2 className="mt-9 text-[19px] font-extrabold tracking-tight">Compre agora, pague depois</h2>
+          <p className="mt-1.5 max-w-xl text-[14.5px] leading-relaxed text-tinta-2">
+            Boleto faturado, com o prazo crescendo junto com o pedido.
+          </p>
+
+          <div className="mt-4 overflow-x-auto rounded-caixa border border-linha">
+            <table className="w-full border-collapse bg-superficie text-[14px]">
+              <thead>
+                <tr className="text-[11px] uppercase tracking-wide text-mudo">
+                  <th className="border-b border-linha px-4 py-3 text-left font-extrabold">Pedido</th>
+                  <th className="border-b border-linha px-4 py-3 text-left font-extrabold">Boleto faturado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...PRAZOS].reverse().map((p) => (
+                  <tr key={p.acima}>
+                    <td className="num border-b border-linha px-4 py-3 font-extrabold">
+                      Acima de {p.acima.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </td>
+                    <td className="num border-b border-linha px-4 py-3 text-tinta-2">
+                      {p.parcelas.length === 1
+                        ? `${p.parcelas[0]} dias`
+                        : `${p.parcelas.join("/")} dias · ${p.parcelas.length} parcelas`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="mt-3 text-[12.5px] leading-relaxed text-mudo">
+            Faturar é crédito, então passa por análise · pedimos duas notas fiscais de compra
+            recente, comprovante de endereço e contrato social.
+            {!B2B_ACEITA_CARTAO && " Na revenda não trabalhamos com cartão de crédito."}
           </p>
 
           <ul className="mt-8 grid gap-3 sm:grid-cols-3">
