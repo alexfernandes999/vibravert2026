@@ -19,14 +19,17 @@ const MENU = [
   { href: "/admin/banners", r: "Banners e vitrine", grupo: "Loja" },
   { href: "/admin/videos", r: "Vídeos", grupo: "Loja" },
   { href: "/admin/seguranca", r: "Segurança", grupo: "Conta" },
-  { href: "/admin/equipe", r: "Equipe e registros", grupo: "Conta", soDev: true },
+  // Quem dá e tira acesso é o dono e quem cuida do sistema. O operador não vê
+  // esta tela: não precisa criar conta, e cada pessoa a mais com esse poder é
+  // uma porta a mais para deixar aberta.
+  { href: "/admin/equipe", r: "Equipe e acessos", grupo: "Conta", papeis: ["MASTER", "DESENVOLVEDOR"] },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const eu = await usuarioAtual();
   if (!eu) redirect("/admin/entrar");
 
-  const menu = MENU.filter((m) => !m.soDev || eu.papel === "DESENVOLVEDOR");
+  const menu = MENU.filter((m) => !m.papeis || m.papeis.includes(eu.papel));
 
   // O tour aparece na primeira entrada de cada pessoa, seja o dono, o
   // escritório ou quem for criado depois.
