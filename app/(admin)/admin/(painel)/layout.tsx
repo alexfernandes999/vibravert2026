@@ -16,7 +16,8 @@ const MENU = [
   { href: "/admin/estoque", r: "Estoque", grupo: "" },
   { href: "/admin/recuperar-vendas", r: "Recuperar vendas", grupo: "" },
   { href: "/admin/revenda", r: "Revenda", grupo: "" },
-  { href: "/admin/banners", r: "Banners e vitrine", grupo: "Loja" },
+  { href: "/admin/vitrine", r: "Vitrine da home", grupo: "Loja" },
+  { href: "/admin/banners", r: "Banners", grupo: "Loja" },
   { href: "/admin/videos", r: "Vídeos", grupo: "Loja" },
   { href: "/admin/seguranca", r: "Segurança", grupo: "Conta" },
   // Quem dá e tira acesso é o dono e quem cuida do sistema. O operador não vê
