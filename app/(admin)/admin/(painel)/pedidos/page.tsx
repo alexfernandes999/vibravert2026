@@ -7,7 +7,7 @@ import type { PedidoStatus } from "@prisma/client";
 import Link from "next/link";
 import { Selo } from "@/components/selo-pedido";
 import { pedidoEnviado } from "@/lib/email";
-import { comprarEtiqueta, saldo } from "@/lib/superfrete";
+import { comprarEtiqueta, saldo, comFormato } from "@/lib/superfrete";
 import { consolidar } from "@/lib/frete";
 
 export const dynamic = "force-dynamic";
@@ -231,7 +231,7 @@ export default async function Pedidos({ searchParams }: { searchParams: Promise<
                     )}
                     {p.etiquetaUrl && (
                       <a
-                        href={p.etiquetaUrl}
+                        href={comFormato(p.etiquetaUrl)}
                         target="_blank"
                         rel="noopener"
                         className="font-bold text-marca underline underline-offset-2"

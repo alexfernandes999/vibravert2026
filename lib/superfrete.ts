@@ -165,9 +165,10 @@ async function chamar(caminho: string, corpo: unknown) {
  * etiqueta pendente, o checkout debita do saldo e libera o rastreio, e só
  * então o PDF existe.
  *
- * O formato A6 (Zebra), que é o da etiquetadora térmica, é escolhido uma vez
- * na conta do SuperFrete e não vai em cada chamada. Se sair A4 na impressora,
- * é lá que se resolve, não aqui.
+ * O formato da etiqueta é um parâmetro na URL do PDF, e não um ajuste de
+ * conta como a ajuda sugere: o endereço devolvido vem com `?format=A4`. Aqui
+ * ele é trocado para A6, que é o da etiquetadora térmica · assim ninguém
+ * precisa lembrar de configurar nada no painel do SuperFrete.
  */
 export async function comprarEtiqueta(dados: {
   servico: string;
@@ -234,6 +235,7 @@ export async function comprarEtiqueta(dados: {
     const impressao = await chamar("/tag/print", { orders: [pedido.id] });
     url = impressao?.url ?? null;
   }
+  if (url) url = comFormato(url);
 
   return {
     id: String(pedido.id),
@@ -241,6 +243,29 @@ export async function comprarEtiqueta(dados: {
     url,
     valor: Number(comprado.price ?? pedido.price ?? 0),
   };
+}
+
+/**
+ * Força o formato da etiqueta na URL do PDF.
+ *
+ * A6 é o tamanho da etiquetadora térmica. Em A4 a etiqueta sai no meio de uma
+ * folha em branco e a térmica não imprime · quem despacha teria que recortar
+ * cada uma à mão.
+ *
+ * Fica em variável para o caso de alguém preferir A4 numa impressora comum,
+ * sem precisar mexer no código.
+ */
+export function comFormato(url: string) {
+  const formato = process.env.SUPERFRETE_FORMATO_ETIQUETA || "A6";
+  try {
+    const u = new URL(url);
+    u.searchParams.set("format", formato);
+    return u.toString();
+  } catch {
+    return url.includes("format=")
+      ? url.replace(/format=[^&]*/, `format=${formato}`)
+      : `${url}${url.includes("?") ? "&" : "?"}format=${formato}`;
+  }
 }
 
 /** Saldo da conta. O painel avisa antes de a expedição descobrir na hora. */
