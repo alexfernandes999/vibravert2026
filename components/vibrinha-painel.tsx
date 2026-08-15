@@ -50,18 +50,53 @@ export function VibrinhaPainel({ nome }: { nome: string }) {
     return (
       <button
         onClick={() => setAberto(true)}
-        className="flex w-full items-center gap-3 rounded-caixa border border-linha bg-superficie p-3.5 text-left transition hover:border-marca hover:bg-marca-suave"
+        className="group flex w-full items-center gap-4 rounded-caixa border border-marca/25 bg-marca-suave p-4 text-left shadow-sm transition hover:border-marca hover:shadow-md"
       >
-        <Image src="/vibrinha.png" alt="" width={38} height={38} className="h-[38px] w-[38px] shrink-0 rounded-full bg-marca-suave" />
-        <span className="min-w-0">
-          <span className="block text-[13.5px] font-extrabold leading-tight">
-            Bater um papo com a Vibrinha
+        {/* A Vibrinha com o balão e o ponto verde: o painel inteiro é número e
+            tabela, e sem um sinal de "tem alguém aqui" ninguém descobre que dá
+            para perguntar. O verde é a convenção de disponível · não precisa
+            de legenda. */}
+        <span className="relative shrink-0">
+          <Image
+            src="/vibrinha.png"
+            alt=""
+            width={48}
+            height={48}
+            className="h-12 w-12 rounded-full bg-superficie ring-2 ring-marca/25"
+          />
+          <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-marca text-white shadow ring-2 ring-marca-suave">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5">
+              <path d="M12 3C7 3 3 6.3 3 10.4c0 2.3 1.3 4.4 3.3 5.8l-.7 3.3a.6.6 0 00.9.6l3.6-2a11 11 0 001.9.2c5 0 9-3.3 9-7.4S17 3 12 3z" />
+            </svg>
           </span>
-          <span className="block text-[12px] text-mudo">
-            Pergunte sobre vendas, carrinhos parados, estoque ou funil
+          <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-bom opacity-70" />
+            <span className="relative inline-flex h-3 w-3 rounded-full bg-bom ring-2 ring-marca-suave" />
           </span>
         </span>
-        <span aria-hidden className="ml-auto text-[18px] text-marca">›</span>
+
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-2">
+            <span className="text-[14.5px] font-extrabold leading-tight">
+              Bater um papo com a Vibrinha
+            </span>
+            <span className="rounded-full bg-bom/15 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-bom">
+              online
+            </span>
+          </span>
+          <span className="mt-0.5 block text-[12.5px] text-tinta-2">
+            Pergunte sobre vendas, carrinhos parados, estoque ou funil · ela busca no sistema
+          </span>
+        </span>
+
+        <span
+          aria-hidden
+          className="ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-full bg-marca text-white transition group-hover:translate-x-0.5"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" className="h-4 w-4">
+            <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
       </button>
     );
   }
@@ -69,7 +104,10 @@ export function VibrinhaPainel({ nome }: { nome: string }) {
   return (
     <div className="rounded-caixa border border-marca/25 bg-superficie">
       <div className="flex items-center gap-3 border-b border-linha p-3.5">
-        <Image src="/vibrinha.png" alt="" width={36} height={36} className="h-9 w-9 rounded-full bg-marca-suave" />
+        <span className="relative shrink-0">
+          <Image src="/vibrinha.png" alt="" width={38} height={38} className="h-[38px] w-[38px] rounded-full bg-marca-suave" />
+          <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-bom ring-2 ring-superficie" />
+        </span>
         <div className="min-w-0 flex-1">
           <p className="text-[13.5px] font-extrabold leading-tight">Vibrinha</p>
           <p className="text-[11.5px] text-mudo">respondo com o número que está no sistema</p>

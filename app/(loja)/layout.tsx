@@ -174,7 +174,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 areaServed: "BR",
                 availableLanguage: "Portuguese",
               },
-              sameAs: ["https://www.youtube.com/@vibravertbombassubmersasvi9020"],
+              sameAs: [
+                process.env.NEXT_PUBLIC_YOUTUBE || "https://www.youtube.com/@vibravertbombassubmersasvi1934",
+                process.env.NEXT_PUBLIC_INSTAGRAM,
+              ].filter(Boolean),
             }),
           }}
         />
