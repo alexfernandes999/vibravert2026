@@ -109,7 +109,7 @@ export default async function Home() {
 
       {/* O slogan é o oficial da marca, o mesmo da embalagem. */}
       <section className="border-b border-linha bg-gradient-to-br from-marca-suave via-superficie-2 to-superficie">
-        <div className="mx-auto grid max-w-7xl items-center gap-8 px-5 py-12 md:grid-cols-2">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 py-12 md:grid-cols-[1.25fr_1fr]">
           <div>
             <p className="entrar text-[10.5px] font-extrabold uppercase tracking-[0.16em] text-marca">
               Loja Oficial · Fabricação própria
@@ -164,14 +164,18 @@ export default async function Home() {
                 href={`/produto/${destaque.slug}`}
                 className="group relative block overflow-hidden rounded-caixa border border-marca-linha bg-superficie shadow-xl shadow-marca/10"
               >
-                <span className="relative block aspect-[5/4]">
+                {/* A moldura era larga e o recorte cortava a bomba em uma tira
+                    do meio · sumia a saída de água em cima e a etiqueta
+                    embaixo. A bomba é alta, então a moldura também é, e a foto
+                    aparece inteira em vez de preenchida à força. */}
+                <span className="relative block aspect-[4/5] bg-gradient-to-b from-superficie to-marca-suave">
                   <Image
                     src={destaque.imagens[0].url}
                     alt={destaque.imagens[0].alt}
                     fill
                     priority
-                    sizes="(max-width: 768px) 100vw, 560px"
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    sizes="(max-width: 768px) 90vw, 440px"
+                    className="object-contain p-6 transition-transform duration-700 group-hover:scale-105"
                   />
                 </span>
                 <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-marca-escuro/90 to-transparent p-3.5 pt-10">
