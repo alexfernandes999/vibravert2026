@@ -28,6 +28,14 @@ export const metadata: Metadata = {
     siteName: "Loja Oficial Vibra Vert",
   },
   robots: { index: true, follow: true },
+  // O X/Twitter ignora as tags og: e usa as próprias. Sem isto, o link
+  // compartilhado lá aparece sem imagem.
+  twitter: {
+    card: "summary_large_image",
+    title: "Bomba sapo direto da fábrica · Vibra Vert e Rymer",
+    description:
+      "Bombas submersas vibratórias para poço de 6\" e 8\", direto de quem fabrica desde 1974. Frete grátis em todas as bombas e 10% no PIX.",
+  },
 };
 
 const DEPARTAMENTOS = [
