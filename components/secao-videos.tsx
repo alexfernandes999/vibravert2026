@@ -14,7 +14,9 @@ import { Video } from "@/components/video";
  */
 export function SecaoVideos({
   videos,
-  canal = "https://www.youtube.com/@vibravertbombassubmersasvi9020",
+  // O endereço vinha escrito à mão aqui, com um identificador errado · dava
+  // 404. Agora sai da mesma variável do ícone do rodapé: um canal, um lugar.
+  canal = process.env.NEXT_PUBLIC_YOUTUBE || "https://www.youtube.com/@vibravertbombassubmersasvi1934",
 }: {
   videos: { youtubeId: string; titulo: string; resumo: string | null }[];
   canal?: string;
