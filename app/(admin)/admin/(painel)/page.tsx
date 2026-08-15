@@ -40,8 +40,17 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
     prisma.pedido.count({ where: pagos }),
     prisma.pedido.findMany({ orderBy: { criadoEm: "desc" }, take: 6, include: { cliente: { select: { nome: true } } } }),
     prisma.estoque.findMany({ where: { quantidade: { lte: 5 } }, take: 4, include: { produto: { select: { nome: true, sku: true } } } }),
-    prisma.produto.count({ where: { ativo: true, especificacoes: { none: { nome: "Garantia" } } } }),
-    prisma.produto.count({ where: { ativo: true, curvaVazao: { isEmpty: true } } }),
+    // Só bomba. Peça de reposição não tem prazo de garantia, e contá-las
+    // fazia o painel acusar 37 pendências que não existem.
+    prisma.produto.findMany({
+      where: { ativo: true, tipo: "BOMBA", especificacoes: { none: { nome: "Garantia" } } },
+      select: { sku: true },
+    }),
+    prisma.produto.findMany({
+      where: { ativo: true, tipo: "BOMBA", curvaVazao: { isEmpty: true } },
+      select: { sku: true },
+      orderBy: { sku: "asc" },
+    }),
     // funil: sessões distintas por etapa, não eventos — quem volta ao carrinho
     // três vezes não é três pessoas
     prisma.evento.groupBy({ by: ["etapa"], where: { criadoEm: { gte: desde } }, _count: { sessao: true } }),
@@ -78,12 +87,18 @@ export default async function Painel({ searchParams }: { searchParams: Promise<{
   }
   const serie = [...porDia.entries()].map(([k, v]) => ({ dia: `${k.slice(8, 10)}/${k.slice(5, 7)}`, total: v }));
 
+  /** Lista os SKUs no próprio aviso: "8 produtos" não diz quais são. */
+  const quais = (l: { sku: string }[]) =>
+    l.length <= 8 ? l.map((x) => x.sku).join(", ") : `${l.slice(0, 8).map((x) => x.sku).join(", ")} e mais ${l.length - 8}`;
+
   const pendencias = [
     !configurado && "Mercado Pago sem credencial · nenhum pedido pode ser cobrado.",
     !emailOk && "E-mail não configurado · o comprador não recebe confirmação nem rastreio.",
     !freteConfigurado() && `${nomeDoProvedor()} sem credencial · o frete usa valor fixo em vez de calcular por CEP.`,
-    semGarantia > 0 && `${semGarantia} produto(s) sem prazo de garantia publicado.`,
-    semCurva > 0 && `${semCurva} produto(s) sem curva de vazão · ficam fora da calculadora.`,
+    semGarantia.length > 0 &&
+      `${semGarantia.length} bomba(s) sem prazo de garantia: ${quais(semGarantia)}.`,
+    semCurva.length > 0 &&
+      `${semCurva.length} bomba(s) sem curva de vazão · ficam fora da calculadora: ${quais(semCurva)}.`,
   ].filter(Boolean) as string[];
 
   return (
