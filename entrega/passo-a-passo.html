@@ -1,4 +1,4 @@
-<title>Loja Vibra Vert · o que falta</title>
+<title>Loja Vibra Vert · estado e pendências</title>
 <style>
   :root {
     --tinta: #101623; --tinta-2: #3c4557; --mudo: #737d8f;
@@ -33,39 +33,38 @@
     font: 400 16px/1.62 ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums;
   }
-  .env { max-width: 812px; margin: 0 auto; padding: 0 24px 96px; }
+  .env { max-width: 820px; margin: 0 auto; padding: 0 24px 96px; }
   h1, h2, h3 { text-wrap: balance; letter-spacing: -.021em; margin: 0; }
   p { margin: 0; }
   a { color: var(--marca); }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .89em;
          background: var(--marca-suave); padding: 1px 5px; border-radius: 4px; }
 
-  header { padding: 60px 0 30px; }
+  header { padding: 58px 0 28px; }
   .eyebrow { font-size: 11.5px; font-weight: 800; letter-spacing: .13em;
              text-transform: uppercase; color: var(--marca); }
   h1 { font-size: clamp(29px, 5.2vw, 40px); font-weight: 800; line-height: 1.1; margin-top: 12px; }
-  .sub { margin-top: 14px; font-size: 17px; line-height: 1.6; color: var(--tinta-2); max-width: 60ch; }
+  .sub { margin-top: 14px; font-size: 17px; line-height: 1.6; color: var(--tinta-2); max-width: 62ch; }
 
-  .link {
-    display: inline-block; margin-top: 22px; background: var(--superficie);
-    border: 1px solid var(--linha); border-radius: 12px; padding: 14px 18px; box-shadow: var(--sombra);
-  }
-  .link .rot { font-size: 11.5px; font-weight: 800; letter-spacing: .1em;
-               text-transform: uppercase; color: var(--mudo); }
-  .link a { display: block; margin-top: 4px; font-size: 15.5px; font-weight: 700;
-            text-decoration: none; word-break: break-all; }
+  .acessos { display: grid; gap: 12px; margin-top: 26px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+  .acesso { background: var(--superficie); border: 1px solid var(--linha);
+            border-radius: 13px; padding: 16px 18px; box-shadow: var(--sombra); }
+  .acesso .rot { font-size: 11px; font-weight: 800; letter-spacing: .1em;
+                 text-transform: uppercase; color: var(--mudo); }
+  .acesso a { display: block; margin-top: 4px; font-size: 15px; font-weight: 700;
+              text-decoration: none; word-break: break-all; }
+  .acesso .nota { margin-top: 6px; font-size: 12.5px; color: var(--mudo); }
 
-  section { margin-top: 50px; }
+  section { margin-top: 48px; }
   h2 { font-size: 13px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase;
        color: var(--marca); padding-bottom: 11px; border-bottom: 2px solid var(--marca); }
   .intro { margin-top: 18px; font-size: 16px; color: var(--tinta-2); max-width: 66ch; }
 
   .pronto { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 2px; }
   .pronto li { display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: baseline;
-               padding: 7px 0; border-bottom: 1px solid var(--linha); font-size: 14.6px; }
+               padding: 7px 0; border-bottom: 1px solid var(--linha); font-size: 14.5px; }
   .pronto li:last-child { border-bottom: 0; }
   .tick { color: var(--bom); font-weight: 800; }
-  .pronto .cod { color: var(--mudo); font-weight: 700; }
 
   .bloco { background: var(--superficie); border: 1px solid var(--linha); border-radius: 14px;
            padding: 20px 22px; box-shadow: var(--sombra); margin-top: 14px; }
@@ -73,7 +72,6 @@
   .bloco .porque { margin-top: 8px; font-size: 14.8px; color: var(--tinta-2); line-height: 1.58; }
   .bloco ul, .bloco ol { margin: 12px 0 0; padding-left: 19px; font-size: 14.8px; color: var(--tinta-2); }
   .bloco li { margin-bottom: 6px; line-height: 1.55; }
-  .bloco li:last-child { margin-bottom: 0; }
 
   .selo { display: inline-block; margin-bottom: 9px; padding: 3px 9px; border-radius: 6px;
           font-size: 10.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
@@ -87,266 +85,273 @@
   .aviso b { color: var(--ouro); }
   .aviso.azul { background: var(--marca-suave); border-left-color: var(--marca); }
   .aviso.azul b { color: var(--marca); }
+  .aviso.verde { background: var(--bom-suave); border-left-color: var(--bom); }
+  .aviso.verde b { color: var(--bom); }
 
   .rolagem { overflow-x: auto; margin-top: 16px; border-radius: 11px; border: 1px solid var(--linha); }
-  table { width: 100%; border-collapse: collapse; background: var(--superficie); font-size: 14.5px; }
+  table { width: 100%; border-collapse: collapse; background: var(--superficie); font-size: 14.4px; }
   th, td { padding: 10px 15px; text-align: left; border-bottom: 1px solid var(--linha); vertical-align: top; }
   th { font-size: 11.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--mudo); }
   tr:last-child td { border-bottom: 0; }
-  td b { font-weight: 700; }
   td.n { white-space: nowrap; color: var(--mudo); font-weight: 700; }
 
-  footer { margin-top: 60px; padding-top: 22px; border-top: 1px solid var(--linha);
+  .chave { display: grid; grid-template-columns: auto 1fr; gap: 4px 15px; align-items: baseline;
+           margin-top: 12px; padding: 14px 17px; border-radius: 11px;
+           background: var(--marca-suave); border: 1px solid var(--linha); font-size: 14.4px; }
+  .chave dt { font-weight: 700; color: var(--tinta-2); }
+  .chave dd { margin: 0; font-weight: 700; }
+
+  footer { margin-top: 58px; padding-top: 22px; border-top: 1px solid var(--linha);
            font-size: 13.5px; color: var(--mudo); line-height: 1.65; }
 </style>
 
 <div class="env">
 
 <header>
-  <p class="eyebrow">Vibra Vert · resposta ao briefing de 13/08</p>
-  <h1>Os 8 bloqueadores estão resolvidos. Agora preciso de material seu.</h1>
+  <p class="eyebrow">Vibra Vert · Rymer · 14 de agosto</p>
+  <h1>A loja está pronta. Falta liberar a cobrança.</h1>
   <p class="sub">
-    Tudo que estava marcado como P0 já está no ar e conferido. O que segue é o que depende de
-    você para eu continuar: arquivos, dados e algumas decisões. Está na ordem em que trava o
-    trabalho.
+    O briefing foi todo aplicado, o catálogo agora tem 85 produtos e o painel ganhou o que faltava
+    para operar sozinho. O que segue depende de você.
   </p>
 
-  <div class="link">
-    <p class="rot">Ver no ar</p>
-    <a href="https://vibravert-loja.vercel.app">vibravert-loja.vercel.app</a>
+  <div class="acessos">
+    <div class="acesso">
+      <p class="rot">Loja</p>
+      <a href="https://vibravert-loja.vercel.app">vibravert-loja.vercel.app</a>
+      <p class="nota">Invisível para o Google de propósito enquanto for endereço de teste.</p>
+    </div>
+    <div class="acesso">
+      <p class="rot">Painel</p>
+      <a href="https://vibravert-loja.vercel.app/admin">vibravert-loja.vercel.app/admin</a>
+      <p class="nota">Na primeira entrada, a Vibrinha te apresenta as telas. Dá para pular.</p>
+    </div>
   </div>
 </header>
 
 <section>
-  <h2>Já está no ar</h2>
-  <ul class="pronto">
-    <li><span class="tick">✓</span><div><span class="cod">P0.1</span> Vibra Phone 11 5033-2828 em todo o site · o 4000-2440 não aparece mais em lugar nenhum</div></li>
-    <li><span class="tick">✓</span><div><span class="cod">P0.2</span> PIX com 10% de desconto em toda a comunicação</div></li>
-    <li><span class="tick">✓</span><div><span class="cod">P0.3</span> Frete grátis em todas as bombas, sem valor mínimo · peças e kits avulsos ficam de fora da regra</div></li>
-    <li><span class="tick">✓</span><div><span class="cod">P0.4</span> Parcelamento em até 10× sem juros</div></li>
-    <li><span class="tick">✓</span><div><span class="cod">P0.5</span> Os 48 SKUs com a tabela nova, conferidos um a um contra o briefing</div></li>
-    <li><span class="tick">✓</span><div><span class="cod">P0.6</span> "Vibratória" com acento · corrigido também na origem, para não voltar</div></li>
-    <li><span class="tick">✓</span><div><span class="cod">P0.7</span> Nenhuma menção a postos autorizados</div></li>
-    <li><span class="tick">✓</span><div><span class="cod">P0.8</span> Razão social, CNPJ da matriz, IE, endereço e SAC no rodapé</div></li>
-    <li><span class="tick">✓</span><div><span class="cod">P1.2</span> H1 novo, com "bomba sapo", "submersa vibratória" e "poço"</div></li>
-  </ul>
-
-  <div class="aviso azul">
-    <b>Duas coisas que apareceram no caminho.</b> A <b>Rymer 1500 em 220V</b> estava fora do ar com
-    preço zerado desde a migração — o briefing dá preço a ela, então voltou: eram 47 produtos
-    vendáveis, agora são 48. E o site tinha <b>dois lugares diferentes guardando o desconto do
-    PIX</b>: a vitrine lia um e o checkout lia outro. Depois da troca para 10%, a loja anunciava 5%
-    e cobrava 10%, sem erro aparecer em lugar nenhum. Já é um número só.
-  </div>
-</section>
-
-<section>
-  <h2>1 · Arquivos que preciso receber</h2>
+  <h2>Seu acesso</h2>
+  <dl class="chave">
+    <dt>Usuário</dt><dd><code>alex</code></dd>
+    <dt>Nível</dt><dd>Dono · você cria e remove os outros acessos</dd>
+  </dl>
   <p class="intro">
-    Sem estes, as seções novas não têm como ser montadas. É o que mais trava.
-  </p>
-
-  <div class="rolagem">
-    <table>
-      <thead><tr><th>Item</th><th>Para quê</th></tr></thead>
-      <tbody>
-        <tr><td class="n">P1.4</td><td><b>Selo circular "2 ANOS GARANTIA"</b> · a arte já existe. Vai no card de diferencial, na página de cada produto e no banner da família.</td></tr>
-        <tr><td class="n">P1.7</td><td><b>Arquivo de arte da embalagem</b> · é de lá que saem os vetores dos 11 erros. Vou redesenhar com a identidade Vibra Vert, sem a marca que está na embalagem original.</td></tr>
-        <tr><td class="n">P1.9</td><td><b>Logos Amanco e Fame</b> em alta, e os <b>certificados de Assistente Técnico Autorizado Amanco</b>. A Franklin Electric não vai ser citada.</td></tr>
-        <tr><td class="n">P1.10</td><td><b>Fotos da fábrica</b> · fachada com a placa, galpão por dentro, <b>bobinadeira CNC</b> e a expedição carregando. A da bobinadeira é a mais importante: ninguém do setor mostra isso.</td></tr>
-        <tr><td class="n">P1.8</td><td><b>Foto da prateleira do estoque</b>, aquela onde dá para ler CANECA 900, CANECA 800 e CANECA VIBRINHA.</td></tr>
-        <tr><td class="n">P1.8</td><td><b>Fotos das 6 peças</b> · caneca, kit de manutenção, ventosa, martelete, válvula e kit de instalação.</td></tr>
-        <tr><td class="n">—</td><td><b>Embalagem da Vibra Vert 800</b> · 8 produtos ainda sem curva de vazão e sem prazo de garantia impresso. É o que a calculadora não consegue responder hoje.</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="aviso">
-    <b>Uma foto que não vou usar:</b> a do galpão com as placas "MERCADO LIVRE" à mostra. Não faz
-    sentido lembrar o cliente do marketplace justamente quando ele já está no nosso site.
-  </div>
-</section>
-
-<section>
-  <h2>2 · Dados e textos</h2>
-
-  <div class="rolagem">
-    <table>
-      <thead><tr><th>Item</th><th>O que preciso</th></tr></thead>
-      <tbody>
-        <tr><td class="n">P1.8</td><td>Nomes exatos e <b>preços das 6 peças</b>. Sem eles a prateleira sobe com selo "Em breve".</td></tr>
-        <tr><td class="n">P1.11</td><td><b>Nota e número de avaliações</b> do Google da A Casa São Paulo, para o texto da moldura.</td></tr>
-        <tr><td class="n">P1.13</td><td><b>Links de Instagram e YouTube</b> da Vibra Vert. Deixo os ícones montados e o espaço reservado até lá.</td></tr>
-        <tr><td class="n">P1.13</td><td><b>E-mail comercial</b>, além do sac@.</td></tr>
-        <tr><td class="n">P1.6</td><td><b>Compatibilidade com Anauger</b> · quais peças exatamente. Vou escrever só o que for verdade.</td></tr>
-        <tr><td class="n">—</td><td><b>Depoimentos reais</b> · quais e de onde vieram.</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<section>
-  <h2>3 · Decisões suas</h2>
-  <p class="intro">
-    Estas eu não posso tomar. Enquanto não vierem, sigo com o resto e deixo o espaço reservado.
+    A senha vai por mensagem, separada deste documento. No primeiro acesso, cadastre o
+    autenticador no celular · leva um minuto, e é o que impede que uma senha descoberta vire
+    acesso ao painel.
   </p>
 
   <div class="bloco">
-    <span class="selo trava">Mexe no lucro</span>
-    <h3>Frete grátis: quanto isso custa por venda</h3>
+    <h3>Como criar acesso para alguém</h3>
     <p class="porque">
-      A regra nova está no ar como pedida. Mas agora que o frete é calculado de verdade, dá para
-      medir: sai entre <b>R$ 30 e R$ 53</b> por envio, e sem valor mínimo isso vem inteiro do
-      lucro em toda venda.
+      No painel, menu <b>Equipe e registros</b> → botão <b>Criar acesso</b>. A senha aparece uma
+      vez só, na tela · anote antes de fechar. Na mesma tela você troca o nível de acesso,
+      redefine senha e desliga o autenticador de quem perdeu o celular.
     </p>
+    <p class="porque">Já existe uma conta criada para o escritório, com nível de operador.</p>
     <div class="rolagem">
       <table>
-        <thead><tr><th>Bomba</th><th>Destino</th><th>Frete</th><th>Do preço</th></tr></thead>
+        <thead><tr><th>Nível</th><th>O que pode fazer</th></tr></thead>
         <tbody>
-          <tr><td>Rymer 1500 · R$ 199,90</td><td>São Paulo</td><td><b>R$ 30,52</b></td><td>15%</td></tr>
-          <tr><td>Rymer 1500 · R$ 199,90</td><td>Acre</td><td><b>R$ 53,36</b></td><td>27%</td></tr>
-          <tr><td>Vibra Vert 900 · R$ 349,90</td><td>São Paulo</td><td><b>R$ 30,52</b></td><td>9%</td></tr>
-          <tr><td>Vibra Vert 900 · R$ 349,90</td><td>Acre</td><td><b>R$ 53,36</b></td><td>15%</td></tr>
+          <tr><td class="n">Operador</td><td>Pedidos, estoque, produtos, banners e recuperação de vendas. É o dia a dia.</td></tr>
+          <tr><td class="n">Dono</td><td>Tudo do operador, mais criar e remover acessos.</td></tr>
+          <tr><td class="n">Desenvolvedor</td><td>Tudo, mais integrações e diagnóstico técnico.</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="porque">
-      Não é erro do briefing: o piso de R$ 399 era pior, porque nunca se cumpria. Mas o número
-      muda conforme o modelo e o destino, e é bom você ver antes de abrir. Me diga a sua margem
-      nessas bombas e eu digo se fecha, ou se vale embutir parte do frete no preço.
-    </p>
-  </div>
-
-  <div class="bloco">
-    <span class="selo espera">Trava a seção B2B</span>
-    <h3>Revenda: três perguntas em aberto</h3>
-    <ul>
-      <li>O B2B tem <b>frete grátis</b> também?</li>
-      <li>O desconto de 5% a 12,5% incide sobre o <b>preço PIX</b> ou sobre o <b>preço cheio</b>?</li>
-      <li>A liberação do cadastro é <b>automática</b> assim que o CNPJ é validado, ou depende de <b>aprovação manual</b> de vocês?</li>
-    </ul>
-    <p class="porque">
-      O fluxo de 4 telas com preenchimento automático pelo CNPJ eu já consigo montar — a consulta
-      é gratuita, pela BrasilAPI. O que falta é a regra comercial.
-    </p>
-  </div>
-
-  <div class="bloco">
-    <span class="selo espera">Trava a capa</span>
-    <h3>Clube Vibra Vert e o banner "Somos os Nº 1"</h3>
-    <ul>
-      <li><b>Clube Vibra Vert:</b> formato e vantagens. Por enquanto entra só a menção, amarrada à Troca Expressa, com espaço reservado.</li>
-      <li><b>Banner "Somos os Nº 1":</b> hoje ocupa a primeira tela inteira sem produto nem preço. Reduzir, tirar ou manter?</li>
-    </ul>
   </div>
 </section>
 
 <section>
-  <h2>4 · Pagamento · ainda travado</h2>
-  <p class="intro">
-    Este é o único ponto que impede a loja de receber dinheiro, e já vai pela terceira tentativa.
-    Vale ler com calma, porque é uma confusão fácil de cometer.
-  </p>
+  <h2>O que entrou depois do briefing</h2>
+  <ul class="pronto">
+    <li><span class="tick">✓</span><div><b>Os 8 bloqueadores do P0</b> · telefone, PIX 10%, frete grátis, 10×, tabela de preços, acentuação, postos autorizados e dados legais no rodapé</div></li>
+    <li><span class="tick">✓</span><div><b>37 peças de reposição</b> no catálogo, com preço e foto · caneca, kit, ventosa, martelete, válvula e fixadores</div></li>
+    <li><span class="tick">✓</span><div><b>Seções novas na home</b> · calculadora no topo, Troca Expressa, os 11 erros com os 7 passos, linha Rymer, a fábrica, peças e três matérias sobre água</div></li>
+    <li><span class="tick">✓</span><div><b>Frete real</b> pelo SuperFrete, com etiqueta comprada direto do painel e rastreio automático para o cliente</div></li>
+    <li><span class="tick">✓</span><div><b>Recuperar vendas</b> · quem parou no pagamento, com WhatsApp e e-mail prontos para chamar</div></li>
+    <li><span class="tick">✓</span><div><b>Conta por pessoa</b>, com autenticador próprio e registro de quem fez o quê</div></li>
+    <li><span class="tick">✓</span><div><b>A Vibrinha no painel</b> · pergunte "como foram as vendas hoje" ou "quantos carrinhos abandonados" e ela responde com o número do sistema</div></li>
+  </ul>
+
+  <div class="aviso verde">
+    <b>O painel está zerado.</b> Os pedidos de demonstração foram apagados. Todo número que você
+    vir daqui em diante é venda de verdade.
+  </div>
+</section>
+
+<section>
+  <h2>1 · O que impede de vender hoje</h2>
 
   <div class="bloco">
-    <span class="selo trava">Bloqueia a venda</span>
-    <h3>As credenciais enviadas são de um usuário de teste, não da conta</h3>
+    <span class="selo trava">Bloqueia</span>
+    <h3>Mercado Pago · liberar a cobrança direta</h3>
     <p class="porque">
-      As três chaves que chegaram até agora pertencem à conta fictícia
-      <code>TESTUSER7887429332306181660</code>. Dá para conferir sem testar nada: o e-mail dessa
-      conta termina em <code>@testuser.com</code>. Ao tentar criar uma cobrança, o Mercado Pago
-      responde <code>401 Unauthorized use of live credentials</code> — para PIX, boleto e cartão
-      igualmente.
+      A loja <b>já fecha pedido</b>: encontramos um caminho que funciona com as credenciais que
+      você mandou, e o cliente paga numa página do Mercado Pago. Está em ambiente de teste, para
+      você conferir sem mover dinheiro.
     </p>
     <p class="porque">
-      O motivo é o prefixo. Chaves que começam com <code>APP_USR-</code> dizem ao Mercado Pago
-      "isto é produção", mesmo quando a conta por trás é fictícia. E produção exige que a
-      aplicação esteja liberada para cobrar — a aplicação <code>8938184772304884</code> não está.
+      Para vender de verdade e para o cliente pagar sem sair da loja · que converte mais · a
+      aplicação precisa ser ativada:
     </p>
-    <p class="porque"><b>Há dois caminhos, e qualquer um resolve:</b></p>
     <ol>
-      <li>
-        <b>Para testar hoje:</b> abra a aplicação da loja no painel e vá em
-        <b>Credenciais de teste</b> — não "de produção". Copie a Public Key e o Access Token dessa
-        aba: eles começam com <code>TEST-</code>. Essas funcionam sem a aplicação estar aprovada.
-      </li>
-      <li>
-        <b>Para vender de verdade:</b> ative a aplicação. Se aparecer aviso pedindo para
-        <b>completar as informações do negócio</b>, é exatamente isso que está travando tudo.
-      </li>
+      <li>Painel do Mercado Pago → <b>Suas integrações</b> → a aplicação da loja</li>
+      <li>Se houver aviso pedindo para <b>completar as informações do negócio</b>, complete. É isso que está travando</li>
+      <li>Me avise quando aprovar</li>
     </ol>
-    <div class="aviso azul">
-      <b>O código da loja está certo.</b> Testamos o mesmo checkout com credenciais de outra conta
-      e ele criou a cobrança, gerou o QR do PIX e aceitou o cancelamento, sem um erro. O que falta
-      está do lado da conta, não da integração.
-    </div>
   </div>
 
   <div class="bloco">
     <span class="selo trava">Bloqueia o desconto anunciado</span>
     <h3>Cadastrar a chave PIX</h3>
     <p class="porque">
-      Consultando os meios de pagamento ativos da conta aparecem cartão, boleto e saldo — mas
-      <b>não aparece PIX</b>. O site inteiro anuncia 10% de desconto no PIX, e sem a chave essa
-      promessa não se cumpre.
+      Consultando os meios ativos da conta aparecem cartão, boleto e saldo · <b>o PIX não
+      aparece</b>. O site inteiro anuncia 10% de desconto no PIX: na tarja do topo, nos cards, no
+      rodapé e no checkout. Hoje é uma promessa que a conta não consegue cumprir.
     </p>
-    <ul><li>No app ou site do Mercado Pago: <b>Seu negócio → Configurações → PIX</b> → criar chave. Não precisa me mandar nada.</li></ul>
+    <ul><li>Mercado Pago → <b>Seu negócio → Configurações → PIX</b> → criar chave. Não precisa me mandar nada.</li></ul>
+  </div>
+
+  <div class="bloco">
+    <span class="selo trava">Bloqueio legal</span>
+    <h3>Nota fiscal · qual sistema a fábrica usa</h3>
+    <p class="porque">
+      Preciso só do nome: <b>Bling</b>, <b>Tiny</b>, <b>Omie</b>, emissor da prefeitura ou outro.
+      Se for um desses, a loja se conecta e a nota sai sozinha quando o pagamento cai.
+    </p>
   </div>
 </section>
 
 <section>
-  <h2>5 · Coisas rápidas, de poucos minutos</h2>
+  <h2>2 · Coisas rápidas</h2>
 
   <div class="bloco">
     <span class="selo rapido">2 minutos</span>
-    <h3>SuperFrete: saldo e formato de etiqueta</h3>
-    <p class="porque">
-      O frete já está ligado e o painel compra a etiqueta num clique, com rastreio e e-mail
-      automático para o cliente. Faltam duas configurações na conta:
-    </p>
+    <h3>SuperFrete · saldo e formato da etiqueta</h3>
     <ul>
-      <li><b>Carregar saldo.</b> Está em R$ 0, e sem saldo a etiqueta não sai. O painel avisa quando estiver abaixo de R$ 50.</li>
+      <li><b>Carregar saldo.</b> Está em R$ 0, e sem saldo a etiqueta não sai. O painel avisa abaixo de R$ 50.</li>
       <li><b>Ativar o formato A6 (Zebra)</b> nos ajustes de impressão. Sem isso a etiqueta sai em A4 e a etiquetadora térmica não serve.</li>
     </ul>
   </div>
 
   <div class="bloco">
     <span class="selo rapido">10 minutos</span>
-    <h3>Resend: os e-mails automáticos</h3>
+    <h3>Resend · os e-mails automáticos</h3>
     <p class="porque">
-      Confirmação de pedido, pagamento aprovado, envio com rastreio, recuperação de carrinho e
-      troca de senha do painel. Os cinco já estão prontos, com o logotipo e a Vibrinha. Falta só a
-      chave.
+      Confirmação de pedido, pagamento aprovado, envio com rastreio, carrinho abandonado e troca
+      de senha do painel. Os cinco estão prontos, com o logotipo e a Vibrinha.
     </p>
     <ol>
       <li>Conta grátis em <b>resend.com</b>, adicionando o domínio vibravert.com.br</li>
-      <li>Copiar os registros de <b>SPF</b> e <b>DKIM</b> que ele mostrar, para o DNS</li>
+      <li>Copiar os registros de <b>SPF</b> e <b>DKIM</b> para o DNS</li>
       <li>Me mandar a <b>API key</b> e o remetente, por exemplo <code>pedidos@vibravert.com.br</code></li>
     </ol>
     <div class="aviso">
-      <b>Cuidado no DNS.</b> O e-mail da empresa está na Locaweb e já existe um SPF lá. Os
-      registros novos entram <b>ao lado</b> dos que existem. Se alguém substituir em vez de
-      acrescentar, o e-mail da empresa inteira para de ser entregue no mesmo dia.
+      <b>Cuidado no DNS.</b> O e-mail da empresa está na Locaweb e já existe um SPF. Os registros
+      novos entram <b>ao lado</b> dos que existem. Substituir derruba o e-mail da empresa inteira
+      no mesmo dia.
     </div>
+  </div>
+</section>
+
+<section>
+  <h2>3 · Material que ainda falta</h2>
+
+  <div class="rolagem">
+    <table>
+      <thead><tr><th>Item</th><th>Para quê</th></tr></thead>
+      <tbody>
+        <tr><td class="n">Arte da embalagem</td><td>Extrair os desenhos dos <b>11 erros</b>. Hoje estão com ícones desenhados por mim · funcionam, mas os da embalagem são melhores.</td></tr>
+        <tr><td class="n">Embalagem da 800</td><td>Curva de vazão e garantia dos 8 SKUs dessa linha. <b>Também confirma o diâmetro do poço:</b> coloquei 8" deduzindo da nossa própria medição · a caixa da 800 é igual à da Vibrinha e da 900, que são 8".</td></tr>
+        <tr><td class="n">Amanco e Fame</td><td>Logos em alta e os certificados de Assistente Técnico Autorizado, para a seção de parceria. A Franklin Electric não será citada.</td></tr>
+        <tr><td class="n">Banners A, B e C</td><td>Família completa, Rymer 1500 e reviews. É arte, não código.</td></tr>
+        <tr><td class="n">Nota do Google</td><td>Nota e número de avaliações da A Casa São Paulo, para a moldura do bloco de reviews.</td></tr>
+        <tr><td class="n">Instagram e YouTube</td><td>Os ícones já estão montados no rodapé, esperando o endereço.</td></tr>
+        <tr><td class="n">E-mail comercial</td><td>Além do sac@.</td></tr>
+        <tr><td class="n">Anauger</td><td>Quais peças exatamente são compatíveis. Só publico o que for verdade.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>4 · Decisões suas</h2>
+
+  <div class="bloco">
+    <span class="selo trava">Mexe no lucro</span>
+    <h3>Quanto custa o frete grátis</h3>
+    <p class="porque">
+      A regra está no ar como pedida. Com frete calculado de verdade, o custo real é de
+      <b>R$ 30 a R$ 53</b> por envio, e sem valor mínimo isso sai inteiro do lucro.
+    </p>
+    <div class="rolagem">
+      <table>
+        <thead><tr><th>Pedido</th><th>Destino</th><th>Frete</th><th>Do preço</th></tr></thead>
+        <tbody>
+          <tr><td>Rymer 1500 · R$ 199,90</td><td>São Paulo</td><td><b>R$ 30,52</b></td><td>15%</td></tr>
+          <tr><td>Rymer 1500 · R$ 199,90</td><td>Acre</td><td><b>R$ 53,36</b></td><td>27%</td></tr>
+          <tr><td>Vibra Vert 900 · R$ 349,90</td><td>Acre</td><td><b>R$ 53,36</b></td><td>15%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="porque">
+      Me diga a sua margem nessas bombas e eu digo se fecha, ou se vale embutir parte do frete no
+      preço. As peças já ficam fora da regra e pagam frete normal.
+    </p>
   </div>
 
   <div class="bloco">
-    <span class="selo trava">Bloqueio legal</span>
-    <h3>Nota fiscal: qual sistema a fábrica usa</h3>
+    <span class="selo trava">Precisa confirmar</span>
+    <h3>Garantia de 2 anos</h3>
     <p class="porque">
-      É o único impedimento legal que resta para vender pela internet. Preciso saber apenas o
-      nome: <b>Bling</b>, <b>Tiny</b>, <b>Omie</b>, emissor da prefeitura, ou outro. Se for um
-      desses, a loja se conecta e a nota sai sozinha quando o pagamento cai.
+      Apliquei os 2 anos na linha Vibra Vert, como o briefing pede, e o selo já aparece nesses
+      produtos. A Rymer ficou como está na embalagem.
     </p>
+    <p class="porque">
+      O ponto de atenção: <b>as embalagens em circulação dizem 1 ano</b>. Foi de lá que os prazos
+      antigos saíram. Prazo anunciado obriga a ser honrado, então vale alinhar a embalagem com o
+      que o site promete.
+    </p>
+  </div>
+
+  <div class="bloco">
+    <span class="selo espera">Trava a seção B2B</span>
+    <h3>Revenda · três perguntas</h3>
+    <ul>
+      <li>O B2B tem <b>frete grátis</b>?</li>
+      <li>O desconto incide sobre o <b>preço PIX</b> ou sobre o <b>preço cheio</b>?</li>
+      <li>A liberação é <b>automática</b> após validar o CNPJ, ou depende de <b>aprovação manual</b>?</li>
+    </ul>
+    <p class="porque">O fluxo de 4 telas com preenchimento pela Receita eu monto assim que a regra estiver fechada.</p>
+  </div>
+
+  <div class="bloco">
+    <span class="selo espera">Trava a capa</span>
+    <h3>Clube Vibra Vert e o banner de abertura</h3>
+    <ul>
+      <li><b>Clube:</b> formato e vantagens. Hoje entra só a menção, amarrada à Troca Expressa.</li>
+      <li><b>Banner "Somos os Nº 1":</b> ocupa a primeira tela inteira sem produto nem preço. Reduzir, tirar ou manter?</li>
+      <li><b>Faixas duplas:</b> há dois espaços ativos e vazios na home. O briefing pediu para tirar · confirma?</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <h2>Uma coisa que encontrei e resolvi</h2>
+  <div class="aviso azul">
+    <b>110 imagens na galeria dos produtos eram catálogo do grupo.</b> Cinco folhetos repetidos em
+    22 produtos, anunciando bombas Schneider, Famac e Thebe, citando a Franklin Electric e com
+    endereço e telefone antigos. Quem abria uma Vibra Vert e deslizava a galeria acabava vendo um
+    catálogo de outra marca · dentro da nossa própria página de produto. Todas removidas, e o
+    carregamento do catálogo já não as traz de volta.
   </div>
 </section>
 
 <footer>
   <p>
-    Assim que os arquivos e as decisões chegarem, sigo com a estrutura nova da home: Troca
-    Expressa, os 11 erros de instalação, Peças Originais, a área de revenda, a fábrica, os reviews
-    e as três matérias.<br>
-    Enquanto isso, adianto tudo que não depende de material seu.
+    Assim que o Mercado Pago liberar a cobrança e a chave PIX existir, a loja pode abrir.<br>
+    O resto do material entra sem parar a operação.
   </p>
 </footer>
 

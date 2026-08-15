@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { CarrosselFabrica, type FotoFabrica } from "@/components/carrossel-fabrica";
 
 /**
  * A fábrica, em foto de verdade e na ordem em que a bomba nasce.
@@ -8,10 +8,11 @@ import Image from "next/image";
  * grid de blocos grandes mostrava quatro fotos soltas; a tira numerada conta
  * de onde sai a bomba que chega na casa do cliente.
  *
- * Vira carrossel com encaixe no celular e no desktop. Foto grande demais aqui
- * competia com o produto · o que interessa é o conjunto, não cada imagem.
+ * Vira um carrossel em profundidade: a foto do meio de frente, as vizinhas
+ * recuadas e giradas. Anda sozinho, porque esta seção é prova e não catálogo ·
+ * ninguém clica para ver a fábrica, mas todo mundo repara quando ela se mexe.
  */
-const PASSOS = [
+const PASSOS: FotoFabrica[] = [
   {
     src: "/fabrica/fachada.jpg",
     alt: "Fachada da fábrica Vibra Vert na Rua Charles Darwin, 707, em São Paulo",
@@ -59,36 +60,7 @@ export function SecaoFabrica() {
           São Paulo.
         </p>
 
-        {/* A tira desliza com encaixe e sangra até a borda no celular, para
-            deixar claro que há mais de um passo à direita. */}
-        <ol className="-mx-5 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 [scrollbar-width:thin] md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0">
-          {PASSOS.map((p, i) => (
-            <li
-              key={p.src}
-              className="revelar group w-[76vw] shrink-0 snap-center sm:w-[46vw] md:w-auto"
-              style={{ transitionDelay: `${i * 70}ms` }}
-            >
-              <figure className="h-full overflow-hidden rounded-caixa border border-linha bg-superficie transition duration-300 hover:-translate-y-1 hover:border-marca hover:shadow-lg hover:shadow-marca/10">
-                <span className="relative block aspect-[4/3] overflow-hidden">
-                  <Image
-                    src={p.src}
-                    alt={p.alt}
-                    fill
-                    sizes="(min-width:768px) 25vw, 76vw"
-                    className={`object-cover ${p.posicao} transition-transform duration-500 group-hover:scale-[1.04]`}
-                  />
-                  <span className="num absolute left-3 top-3 grid h-8 w-8 place-items-center rounded-lg bg-marca text-[13px] font-extrabold text-white shadow-lg shadow-black/25">
-                    {i + 1}
-                  </span>
-                </span>
-                <figcaption className="p-4">
-                  <p className="text-[14px] font-extrabold leading-tight">{p.titulo}</p>
-                  <p className="mt-1 text-[12.5px] leading-relaxed text-mudo">{p.texto}</p>
-                </figcaption>
-              </figure>
-            </li>
-          ))}
-        </ol>
+        <CarrosselFabrica fotos={PASSOS} />
       </div>
     </section>
   );
