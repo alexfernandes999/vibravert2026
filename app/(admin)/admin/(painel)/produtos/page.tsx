@@ -21,6 +21,21 @@ async function alternarAtivo(id: string, ativo: boolean) {
  * está parado no estoque, e quem sabe disso é quem toca a loja. Por isso é um
  * botão aqui, e não uma regra escondida no código.
  */
+/**
+ * Escolher o que aparece na prateleira da home.
+ *
+ * Separado do selo de líder: dar saída ao que está parado não é a mesma coisa
+ * que dizer que é o mais vendido. Com um campo só, arrumar a vitrine obrigava
+ * a mentir no selo.
+ */
+async function alternarVitrine(id: string, naVitrine: boolean) {
+  "use server";
+  await prisma.produto.update({ where: { id }, data: { naVitrine } });
+  await registrarAcao(naVitrine ? "colocou na vitrine" : "tirou da vitrine");
+  revalidatePath("/admin/produtos");
+  revalidatePath("/", "layout");
+}
+
 async function alternarDestaque(id: string, destaque: boolean) {
   "use server";
   await prisma.produto.update({ where: { id }, data: { destaque } });
@@ -32,7 +47,7 @@ export default async function Produtos() {
   const produtos = await prisma.produto.findMany({
     orderBy: [{ marca: "asc" }, { preco: "asc" }],
     select: {
-      id: true, slug: true, nome: true, sku: true, marca: true, preco: true, ativo: true, destaque: true,
+      id: true, slug: true, nome: true, sku: true, marca: true, preco: true, ativo: true, destaque: true, naVitrine: true,
       voltagem: true, pocoPolegadas: true, versao: true, principalDaFamilia: true,
       _count: { select: { imagens: true, especificacoes: true } },
       imagens: { where: { principal: true }, select: { url: true }, take: 1 },
@@ -54,7 +69,8 @@ export default async function Produtos() {
               <th className="px-2 py-2.5 font-bold">SKU</th>
               <th className="px-2 py-2.5 font-bold">Versão</th>
               <th className="px-2 py-2.5 text-right font-bold">Preço</th>
-              <th className="px-2 py-2.5 text-center font-bold">Líder</th>
+              <th className="px-2 py-2.5 text-center font-bold" title="Aparece na prateleira da home">Vitrine</th>
+              <th className="px-2 py-2.5 text-center font-bold" title="Selo de líder em vendas no cartão">Líder</th>
               <th className="px-4 py-2.5 font-bold">Situação</th>
             </tr>
           </thead>
@@ -86,6 +102,18 @@ export default async function Produtos() {
                 <td className="num px-2 py-2 text-mudo">{p.sku}</td>
                 <td className="px-2 py-2 text-mudo">{p.versao.replace("_", " + ")}</td>
                 <td className="num px-2 py-2 text-right font-bold">{brl(Number(p.preco))}</td>
+                <td className="px-2 py-2 text-center">
+                  <form action={alternarVitrine.bind(null, p.id, !p.naVitrine)}>
+                    <button
+                      title={p.naVitrine ? "Tirar da prateleira da home" : "Mostrar na prateleira da home"}
+                      className={`rounded-md px-1.5 py-1 text-[15px] leading-none transition ${
+                        p.naVitrine ? "text-marca" : "text-linha-2 hover:text-marca"
+                      }`}
+                    >
+                      ▦
+                    </button>
+                  </form>
+                </td>
                 <td className="px-2 py-2 text-center">
                   <form action={alternarDestaque.bind(null, p.id, !p.destaque)}>
                     <button

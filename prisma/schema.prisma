@@ -69,6 +69,13 @@ model Produto {
   /// depois e pagam frete.
   tipo TipoProduto @default(BOMBA)
 
+  /// Escolhido para aparecer na prateleira da home.
+  ///
+  /// Separado de `destaque`, que é o selo de líder em vendas: dar saída ao que
+  /// está parado na vitrine não é a mesma coisa que dizer que é o mais
+  /// vendido. Misturar os dois obrigava a mentir num para arrumar o outro.
+  naVitrine Boolean @default(false)
+
   /// Peso e medidas da CAIXA despachada, não da bomba nua: os Correios cobram
   /// por peso cubado, e uma caixa maior que o produto muda o frete. Onde o
   /// cadastro não tinha o dado, ele é estimado a partir do corpo da bomba mais

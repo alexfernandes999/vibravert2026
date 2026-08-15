@@ -87,10 +87,12 @@ const PECAS = [
 export async function SecaoPecas() {
   // As peças agora existem de verdade no catálogo. A grade de "Em breve" fica
   // como reserva: se um dia não houver peça ativa, a seção não some da home.
+  // As escolhidas primeiro; as demais completam a prateleira. Assim a seção
+  // nunca fica vazia enquanto ninguém escolheu nada.
   const pecas = await prisma.produto.findMany({
     where: { ativo: true, tipo: "PECA" },
-    orderBy: { preco: "desc" },
-    take: 6,
+    orderBy: [{ naVitrine: "desc" }, { preco: "desc" }],
+    take: 8,
     select: {
       slug: true, nome: true, preco: true, modelo: true,
       imagens: { where: { principal: true }, select: { url: true, alt: true }, take: 1 },
@@ -112,9 +114,9 @@ export async function SecaoPecas() {
         </p>
 
         {pecas.length > 0 ? (
-          <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <ul className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {pecas.map((p, i) => (
-              <li key={p.slug} className="revelar" style={{ transitionDelay: `${(i % 6) * 45}ms` }}>
+              <li key={p.slug} className="revelar" style={{ transitionDelay: `${(i % 4) * 55}ms` }}>
                 <Link
                   href={`/produto/${p.slug}`}
                   className="group flex h-full flex-col overflow-hidden rounded-caixa border border-linha bg-superficie-2 transition duration-300 hover:-translate-y-1 hover:border-marca hover:shadow-lg hover:shadow-marca/10"
@@ -136,10 +138,10 @@ export async function SecaoPecas() {
                         {p.modelo}
                       </span>
                     )}
-                    <span className="mt-1 line-clamp-2 text-[12px] font-bold leading-snug">
+                    <span className="mt-1 line-clamp-2 text-[13px] font-bold leading-snug">
                       {p.nome}
                     </span>
-                    <span className="num mt-auto pt-2 text-[15px] font-extrabold text-bom">
+                    <span className="num mt-auto pt-2 text-[17px] font-extrabold text-bom">
                       {brl(precoPix(Number(p.preco)))}
                     </span>
                     <span className="text-[10.5px] font-bold uppercase tracking-wide text-bom">
@@ -156,7 +158,7 @@ export async function SecaoPecas() {
             <li
               key={p.nome}
               className="revelar group relative flex flex-col items-center rounded-caixa border border-linha bg-superficie-2 p-4 text-center"
-              style={{ transitionDelay: `${(i % 6) * 45}ms` }}
+              style={{ transitionDelay: `${(i % 4) * 55}ms` }}
             >
               <span className="absolute right-2 top-2 rounded bg-marca-suave px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-marca">
                 Em breve
