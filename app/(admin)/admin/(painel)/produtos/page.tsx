@@ -51,14 +51,44 @@ export default async function Produtos() {
       voltagem: true, pocoPolegadas: true, versao: true, principalDaFamilia: true,
       _count: { select: { imagens: true, especificacoes: true } },
       imagens: { where: { principal: true }, select: { url: true }, take: 1 },
+      tipo: true, vazaoMaxima: true,
     },
   });
+
+  /**
+   * Em que posição cada marcado aparece na loja.
+   *
+   * O número importa porque a prateleira tem tamanho: "Mais vendidas" mostra
+   * 4 e a de peças mostra 8. Sem ele, quem marca o quinto produto não descobre
+   * que ele não vai aparecer · e fica achando que o painel não salvou.
+   *
+   * A ordem aqui é a mesma que a loja usa, senão o número mentiria.
+   */
+  const LIMITE_LIDER = 4;
+  const LIMITE_VITRINE = 8;
+
+  const posicao = (lista: typeof produtos) =>
+    new Map(lista.map((p, i) => [p.id, i + 1]));
+
+  const lider = posicao(
+    produtos
+      .filter((p) => p.ativo && p.destaque && p.tipo === "BOMBA")
+      .sort((a, b) => (b.vazaoMaxima ?? 0) - (a.vazaoMaxima ?? 0)),
+  );
+
+  const vitrine = posicao(
+    produtos
+      .filter((p) => p.ativo && p.naVitrine && p.tipo === "PECA")
+      .sort((a, b) => Number(b.preco) - Number(a.preco)),
+  );
 
   return (
     <div className="p-6">
       <h1 className="text-xl font-extrabold tracking-tight">Produtos</h1>
       <p className="mt-0.5 text-[13px] text-mudo">
-        {produtos.filter((p) => p.ativo).length} ativos de {produtos.length} · a estrela marca líder em vendas, e o selo aparece na loja
+        {produtos.filter((p) => p.ativo).length} ativos de {produtos.length} · o número diz em que
+        posição o produto aparece na loja. A prateleira de bombas mostra {LIMITE_LIDER} e a de peças
+        mostra {LIMITE_VITRINE} · quem passar disso fica marcado, mas não aparece
       </p>
 
       <div className="mt-5 overflow-x-auto rounded-caixa border border-linha bg-superficie">
@@ -104,26 +134,22 @@ export default async function Produtos() {
                 <td className="num px-2 py-2 text-right font-bold">{brl(Number(p.preco))}</td>
                 <td className="px-2 py-2 text-center">
                   <form action={alternarVitrine.bind(null, p.id, !p.naVitrine)}>
-                    <button
-                      title={p.naVitrine ? "Tirar da prateleira da home" : "Mostrar na prateleira da home"}
-                      className={`rounded-md px-1.5 py-1 text-[15px] leading-none transition ${
-                        p.naVitrine ? "text-marca" : "text-linha-2 hover:text-marca"
-                      }`}
-                    >
-                      ▦
-                    </button>
+                    <Posicao
+                      n={vitrine.get(p.id)}
+                      limite={LIMITE_VITRINE}
+                      cor="marca"
+                      titulo={p.naVitrine ? "Tirar da prateleira da home" : "Mostrar na prateleira da home"}
+                    />
                   </form>
                 </td>
                 <td className="px-2 py-2 text-center">
                   <form action={alternarDestaque.bind(null, p.id, !p.destaque)}>
-                    <button
-                      title={p.destaque ? "Tirar o selo de líder em vendas" : "Marcar como líder em vendas"}
-                      className={`rounded-md px-1.5 py-1 text-[15px] leading-none transition ${
-                        p.destaque ? "text-ouro" : "text-linha-2 hover:text-ouro"
-                      }`}
-                    >
-                      ★
-                    </button>
+                    <Posicao
+                      n={lider.get(p.id)}
+                      limite={LIMITE_LIDER}
+                      cor="ouro"
+                      titulo={p.destaque ? "Tirar o selo de líder em vendas" : "Marcar como líder em vendas"}
+                    />
                   </form>
                 </td>
                 <td className="px-4 py-2">
@@ -143,5 +169,50 @@ export default async function Produtos() {
         </table>
       </div>
     </div>
+  );
+}
+
+/**
+ * O botão que liga e desliga, mostrando a posição na loja.
+ *
+ * Marcado e dentro do limite: número em cor cheia · é o que se vê no site.
+ * Marcado e fora do limite: número riscado, porque a prateleira acabou.
+ * Não marcado: traço, que convida a clicar sem parecer erro.
+ */
+function Posicao({
+  n,
+  limite,
+  cor,
+  titulo,
+}: {
+  n?: number;
+  limite: number;
+  cor: "ouro" | "marca";
+  titulo: string;
+}) {
+  const dentro = n !== undefined && n <= limite;
+  const fora = n !== undefined && n > limite;
+
+  return (
+    <button
+      title={
+        fora
+          ? `Marcado, mas a prateleira mostra só ${limite} · este é o ${n}º`
+          : dentro
+            ? `Aparece na posição ${n} da prateleira`
+            : titulo
+      }
+      className={`num grid h-6 w-6 place-items-center rounded-md text-[11.5px] font-extrabold transition ${
+        dentro
+          ? cor === "ouro"
+            ? "bg-ouro text-ouro-txt"
+            : "bg-marca text-white"
+          : fora
+            ? "border border-dashed border-linha-2 text-mudo line-through"
+            : "text-linha-2 hover:bg-superficie-2 hover:text-tinta-2"
+      }`}
+    >
+      {n ?? "–"}
+    </button>
   );
 }
