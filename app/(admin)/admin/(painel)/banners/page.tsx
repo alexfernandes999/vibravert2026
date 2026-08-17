@@ -7,10 +7,10 @@ import type { BannerPosicao } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 const POSICOES: { v: BannerPosicao; r: string; d: string; m?: string }[] = [
-  { v: "TARJA_TOPO", r: "Tarja do topo", d: "A faixa acima do cabeçalho. É o espaço mais visto da loja.", m: "só texto" },
+  { v: "TARJA_TOPO", r: "Tarja do topo", d: "A faixa acima do cabeçalho. É o espaço mais visto da loja.", m: "só texto, sem imagem" },
   { v: "PRINCIPAL", r: "Banner principal", d: "O bloco grande da página inicial.", m: "2098 × 750 px" },
-  { v: "FAIXA_MEIO", r: "Faixa do meio", d: "O bloco largo entre as prateleiras.", m: "2098 × 520 px" },
-  { v: "FAIXA_DUPLA", r: "Faixas duplas", d: "Os dois blocos lado a lado, no meio da home.", m: "1040 × 520 px" },
+  { v: "FAIXA_MEIO", r: "Faixa do meio", d: "O bloco largo entre as prateleiras.", m: "2098 × 750 px" },
+  { v: "FAIXA_DUPLA", r: "Faixas duplas", d: "Os dois blocos lado a lado, no meio da home.", m: "2098 × 750 px" },
 ];
 
 async function alternar(id: string, ativo: boolean) {
@@ -62,8 +62,9 @@ export default async function Banners() {
     <div className="p-6">
       <h1 className="text-xl font-extrabold tracking-tight">Banners e vitrine</h1>
       <p className="mt-1 max-w-2xl text-[13px] text-mudo">
-        Trocar banner não exige programador. Com data de início e fim, a promoção sobe sozinha na
-        data marcada · dá para deixar tudo pronto antes e não depender de alguém lembrar de ligar.
+        Trocar banner não exige programador. <strong className="font-bold">Todos os espaços usam a
+        mesma medida: 2098 × 750 px</strong> · a mesma arte serve em qualquer posição. Com data de
+        início e fim, a promoção sobe sozinha na data marcada.
       </p>
 
       {POSICOES.map((pos) => {
@@ -118,7 +119,7 @@ export default async function Banners() {
                           nome="imagemMobile"
                           rotulo="Imagem para celular"
                           valor={b.imagemMobile}
-                          medida="opcional · usa a de computador se faltar"
+                          medida="opcional · 1080 × 1080 px, se quiser caprichar"
                           marca={`${pos.v.toLowerCase()}-mobile`}
                         />
                       </div>
@@ -153,7 +154,7 @@ export default async function Banners() {
                     <CampoImagem
                       nome="imagemMobile"
                       rotulo="Imagem para celular"
-                      medida="opcional"
+                      medida="opcional · 1080 × 1080 px"
                       marca={`${pos.v.toLowerCase()}-mobile`}
                     />
                   </div>

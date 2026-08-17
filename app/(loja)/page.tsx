@@ -104,7 +104,7 @@ export default async function Home() {
           arredondados ele virava um cartão flutuando acima do herói, e a
           página passava a ter duas aberturas disputando a mesma atenção. */}
       <section className="[&_.rounded-caixa]:rounded-none">
-        <EspacoBanner banner={principal} medida="2098 × 750 px · desktop" rotulo="Banner principal" />
+        <EspacoBanner banner={principal} medida="2098 × 750 px" rotulo="Banner principal" />
       </section>
 
       {/* O slogan é o oficial da marca, o mesmo da embalagem. */}

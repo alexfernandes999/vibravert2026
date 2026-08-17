@@ -12,6 +12,13 @@ import type { Banner } from "@prisma/client";
  *
  * Assim que a imagem for enviada pelo painel, o aviso dá lugar à arte sem que
  * nada mude de lugar.
+ *
+ * Uma medida só para todos os espaços: 2098 × 750. Quem faz a arte não precisa
+ * decidir nada, e a mesma peça serve em qualquer posição da home.
+ *
+ * A imagem de celular é opcional e existe para quem quiser caprichar: numa
+ * tela estreita, 2098 × 750 vira uma tira de pouco mais de cem pixels de
+ * altura. Sem ela, a de computador é usada do mesmo jeito · nunca fica buraco.
  */
 export function EspacoBanner({
   banner,
@@ -32,6 +39,8 @@ export function EspacoBanner({
     <div
       style={{ aspectRatio: proporcao }}
       className={`relative w-full overflow-hidden rounded-caixa ${
+        banner?.imagemMobile ? "aspect-[4/3] sm:aspect-auto" : ""
+      } ${
         banner?.imagemDesktop
           ? ""
           : escuro
@@ -40,14 +49,26 @@ export function EspacoBanner({
       }`}
     >
       {banner?.imagemDesktop ? (
-        <Image
-          src={banner.imagemDesktop}
-          alt={banner.alt}
-          fill
-          sizes="(max-width: 1180px) 100vw, 1180px"
-          className="object-cover"
-          priority
-        />
+        <>
+          <Image
+            src={banner.imagemDesktop}
+            alt={banner.alt}
+            fill
+            sizes="(max-width: 1180px) 100vw, 1180px"
+            className={`object-cover ${banner.imagemMobile ? "hidden sm:block" : ""}`}
+            priority
+          />
+          {banner.imagemMobile && (
+            <Image
+              src={banner.imagemMobile}
+              alt=""
+              fill
+              sizes="100vw"
+              className="object-cover sm:hidden"
+              priority
+            />
+          )}
+        </>
       ) : (
         <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
           <span className={`rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.14em] ${escuro ? "bg-ouro text-ouro-txt" : "bg-marca text-white"}`}>
