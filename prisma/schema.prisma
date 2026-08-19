@@ -446,6 +446,15 @@ model Pedido {
   etiquetaUrl String?
   etiquetaEm  DateTime?
 
+  /// Nota fiscal, emitida no Bling.
+  ///
+  /// Guardamos o id do pedido lá para não emitir duas vezes o mesmo, e o link
+  /// do DANFE para o cliente baixar sem pedir por e-mail.
+  blingPedidoId String?   @unique
+  notaNumero    String?
+  notaUrl       String?
+  notaEm        DateTime?
+
   rastreio     String?
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -625,5 +634,35 @@ enum StatusRevenda {
   APROVADO
   RECUSADO
 
+  @@schema("vibravert")
+}
+
+/// Conexão com um serviço de fora que exige OAuth.
+///
+/// Existe porque o Bling não dá uma chave fixa: dá um token que vale seis
+/// horas e um refresh que vale trinta dias. Guardar isso em variável de
+/// ambiente não funciona · o valor muda sozinho várias vezes por dia, e uma
+/// variável nova exige um deploy novo.
+///
+/// Uma linha por serviço. Se o refresh vencer sem ninguém usar, a conexão cai
+/// e alguém precisa autorizar de novo pelo painel · por isso `expiraEm` e
+/// `renovadoEm` ficam visíveis lá, em vez de morrerem num log.
+model Integracao {
+  id   String @id @default(cuid())
+  nome String @unique                  // "bling"
+
+  accessToken  String
+  refreshToken String
+  /// Quando o access_token vence. Renovamos antes, nunca no erro.
+  expiraEm     DateTime
+  /// Quando o refresh_token deixa de valer · depois disso é reautorizar na mão.
+  refreshAte   DateTime?
+  escopos      String?
+
+  renovadoEm   DateTime @default(now())
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@map("integracoes")
   @@schema("vibravert")
 }

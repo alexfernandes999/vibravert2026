@@ -24,6 +24,9 @@ const MENU = [
   // esta tela: não precisa criar conta, e cada pessoa a mais com esse poder é
   // uma porta a mais para deixar aberta.
   { href: "/admin/equipe", r: "Equipe e acessos", grupo: "Conta", papeis: ["MASTER", "DESENVOLVEDOR"] },
+  // Quem liga e religa serviço de fora é quem responde pela conta · o operador
+  // não precisa ver token nenhum.
+  { href: "/admin/integracoes", r: "Integrações", grupo: "Conta", papeis: ["MASTER", "DESENVOLVEDOR"] },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
