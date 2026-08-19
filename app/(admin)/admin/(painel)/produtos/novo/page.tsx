@@ -158,9 +158,22 @@ export default async function NovoProduto({
         <Campo nome="nome" rotulo="Nome do produto" obrigatorio dica="como aparece na loja" />
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Campo nome="sku" rotulo="SKU" obrigatorio dica="o mesmo código do Bling" />
+          <Campo nome="sku" rotulo="SKU" obrigatorio dica="igual ao do Bling" />
           <Campo nome="marca" rotulo="Marca" valor="Vibra Vert" />
         </div>
+
+        <p className="rounded-lg border-l-[3px] border-atencao bg-atencao/[0.07] px-4 py-3 text-[13px] leading-relaxed text-tinta-2">
+          <b className="text-atencao">O SKU precisa ser exatamente o mesmo código do Bling.</b>{" "}
+          É por ele que a loja acha o produto lá na hora de mandar o pedido, e é do cadastro do
+          Bling que vêm o NCM e o CFOP da nota. Se o código não bater, o pedido não sobe e a nota
+          não sai · e ninguém percebe até o cliente cobrar a nota fiscal.
+          <br />
+          <span className="mt-1.5 block text-[12.5px] text-mudo">
+            Atenção à pontuação: o Bling costuma usar ponto no meio do número.{" "}
+            <span className="num">3.001</span> e <span className="num">3001</span> são códigos
+            diferentes para ele.
+          </span>
+        </p>
 
         <label className="block">
           <span className="mb-1.5 block text-[12.5px] font-bold">Tipo</span>

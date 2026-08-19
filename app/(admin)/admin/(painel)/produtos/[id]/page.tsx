@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { GaleriaProduto } from "@/components/galeria-produto";
+import { Suspense } from "react";
+import { SeloBling } from "@/components/selo-bling";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -75,10 +77,17 @@ export default async function EditarProduto({ params }: { params: Promise<{ id: 
       </div>
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,420px)_1fr]">
-        <GaleriaProduto
-          produtoId={p.id}
-          fotos={p.imagens.map((i) => ({ id: i.id, url: i.url, alt: i.alt, principal: i.principal }))}
-        />
+        <div>
+          <GaleriaProduto
+            produtoId={p.id}
+            fotos={p.imagens.map((i) => ({ id: i.id, url: i.url, alt: i.alt, principal: i.principal }))}
+          />
+          {/* A conferência sai do Bling e não pode segurar a tela · quem abriu
+              veio editar o produto, não esperar uma API de terceiro. */}
+          <Suspense fallback={null}>
+            <SeloBling sku={p.sku} />
+          </Suspense>
+        </div>
 
         <form action={salvar.bind(null, p.id)} className="grid gap-4">
           <Campo nome="nome" rotulo="Nome do produto" valor={p.nome} />
