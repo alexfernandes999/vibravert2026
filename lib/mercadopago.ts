@@ -133,9 +133,15 @@ export async function cobrar({
 /**
  * Cria a preferência e devolve o link do checkout.
  *
- * O `sandbox_init_point` é usado quando MP_SANDBOX está ligado: mesma tela,
- * mesmo fluxo, sem dinheiro nenhum trocando de mãos. É o que permite fechar
- * pedidos de teste de ponta a ponta.
+ * Quem manda no ambiente é a credencial, não a URL: com o token de teste da
+ * aplicação, o `init_point` já abre um checkout de teste · nenhum centavo sai
+ * de lugar nenhum. Trocar para produção é trocar o MP_ACCESS_TOKEN, e mais
+ * nada aqui muda.
+ *
+ * O `sandbox_init_point` (MP_SANDBOX=1) fica como saída de emergência. O
+ * Mercado Pago o mantém no ar mas parou de recomendá-lo, e ele exige estar
+ * logado como comprador de teste · pelo caminho normal a pessoa paga como
+ * visitante, com cartão de teste, que é o que valida a integração.
  */
 async function cobrarPorPreferencia({
   valor,
@@ -158,9 +164,14 @@ async function cobrarPorPreferencia({
     const d = await chamar(
       "/checkout/preferences",
       {
+        // Categoria e telefone não são obrigatórios, mas entram na nota de
+        // qualidade da integração que o Mercado Pago usa para liberar a conta
+        // para cobrar de verdade · e são dados que já temos na mão.
         items: itens.map((i) => ({
           id: i.sku,
           title: i.titulo.slice(0, 120),
+          description: i.titulo.slice(0, 250),
+          category_id: "home_appliances",
           quantity: i.quantidade,
           unit_price: Number(i.precoUnitario.toFixed(2)),
           currency_id: "BRL",
@@ -173,6 +184,14 @@ async function cobrarPorPreferencia({
             type: comprador.cpf.length > 11 ? "CNPJ" : "CPF",
             number: comprador.cpf,
           },
+          ...(comprador.telefone
+            ? {
+                phone: {
+                  area_code: comprador.telefone.replace(/\D/g, "").slice(0, 2),
+                  number: comprador.telefone.replace(/\D/g, "").slice(2),
+                },
+              }
+            : {}),
         },
         // O total já traz o frete e o desconto do PIX. Somar de novo aqui
         // cobraria a diferença duas vezes.
