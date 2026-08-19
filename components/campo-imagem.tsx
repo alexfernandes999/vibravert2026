@@ -20,12 +20,15 @@ export function CampoImagem({
   valor,
   medida,
   marca,
+  pasta,
 }: {
   nome: string;
   rotulo: string;
   valor?: string | null;
   medida: string;
   marca: string;
+  /** Subpasta no bucket · separa foto de produto de arte de banner. */
+  pasta?: string;
 }) {
   const [url, setUrl] = useState(valor ?? "");
   const [erro, setErro] = useState("");
@@ -68,6 +71,7 @@ export function CampoImagem({
               const d = new FormData();
               d.set("arquivo", f);
               d.set("marca", marca);
+              if (pasta) d.set("pasta", pasta);
               iniciar(async () => {
                 const r = await enviarImagem(d);
                 if (r.ok) setUrl(r.url);

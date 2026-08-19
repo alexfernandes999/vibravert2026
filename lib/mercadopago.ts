@@ -13,6 +13,19 @@ import type { MetodoPagamento } from "@prisma/client";
 
 export const configurado = Boolean(process.env.MP_ACCESS_TOKEN);
 
+/**
+ * Qual checkout está no ar.
+ *
+ * `transparente` cobra dentro da loja, pela API Orders · é para onde estamos
+ * indo. `pro` manda o comprador para uma página do Mercado Pago e traz de
+ * volta, e é o que sustenta a loja enquanto a conta não é liberada para
+ * produção. A variável existe para a troca ser um deploy, e a volta também:
+ * se o transparente der problema numa sexta à noite, ninguém precisa mexer em
+ * código para voltar a vender.
+ */
+export const MODO = (process.env.MP_MODO ?? "pro").toLowerCase();
+export const transparente = MODO === "transparente";
+
 const API = "https://api.mercadopago.com";
 
 type Comprador = { nome: string; email: string; cpf: string; telefone?: string };
@@ -68,6 +81,22 @@ export async function cobrar({
 }): Promise<Cobranca> {
   if (!configurado) {
     return { ok: false, erro: "sem-credencial" };
+  }
+
+  if (transparente) {
+    const { cobrar: viaOrders } = await import("@/lib/mercadopago-orders");
+    const r = await viaOrders({
+      metodo, valor, parcelas, comprador, itens, pedidoNumero, tokenCartao,
+    });
+    return {
+      ok: r.ok,
+      pagamentoId: r.pagamentoId,
+      status: r.status,
+      pixCopiaECola: r.pixCopiaECola,
+      pixQrBase64: r.pixQrBase64,
+      boletoUrl: r.boletoUrl,
+      erro: r.erro,
+    };
   }
 
   // Checkout Pro: o comprador paga numa página do Mercado Pago e volta.

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GaleriaProduto } from "@/components/galeria-produto";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -74,32 +75,10 @@ export default async function EditarProduto({ params }: { params: Promise<{ id: 
       </div>
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,420px)_1fr]">
-        <div>
-          {p.imagens[0] && (
-            <div className="relative aspect-square overflow-hidden rounded-caixa border border-linha bg-superficie">
-              <Image
-                src={p.imagens[0].url}
-                alt={p.imagens[0].alt}
-                fill
-                sizes="420px"
-                className="object-cover"
-                priority
-              />
-            </div>
-          )}
-          {p.imagens.length > 1 && (
-            <ul className="mt-2.5 grid grid-cols-5 gap-2">
-              {p.imagens.slice(1, 11).map((img) => (
-                <li key={img.id} className="overflow-hidden rounded-lg border border-linha">
-                  <Image src={img.url} alt="" width={80} height={80} className="h-full w-full object-cover" />
-                </li>
-              ))}
-            </ul>
-          )}
-          <p className="mt-2 text-[11.5px] text-mudo">
-            {p.imagens.length} fotos, no Storage do Supabase.
-          </p>
-        </div>
+        <GaleriaProduto
+          produtoId={p.id}
+          fotos={p.imagens.map((i) => ({ id: i.id, url: i.url, alt: i.alt, principal: i.principal }))}
+        />
 
         <form action={salvar.bind(null, p.id)} className="grid gap-4">
           <Campo nome="nome" rotulo="Nome do produto" valor={p.nome} />

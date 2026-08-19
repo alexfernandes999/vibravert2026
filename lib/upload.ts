@@ -43,7 +43,11 @@ export async function enviarImagem(dados: FormData): Promise<Envio> {
 
   const ext = arquivo.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
   const marca = String(dados.get("marca") ?? "banner").replace(/[^a-z0-9-]/gi, "").toLowerCase();
-  const nome = `${marca}-${Date.now()}.${ext}`;
+  // A pasta separa foto de produto de arte de banner dentro do mesmo bucket.
+  // Bucket novo exigiria criar e liberar leitura pública de novo · a pasta
+  // resolve igual e não depende de ninguém mexer no Supabase.
+  const pasta = String(dados.get("pasta") ?? "").replace(/[^a-z0-9-]/gi, "").toLowerCase();
+  const nome = `${pasta ? `${pasta}/` : ""}${marca}-${Date.now()}.${ext}`;
 
   const { error } = await supabase.storage
     .from(BUCKET)

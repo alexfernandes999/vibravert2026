@@ -84,7 +84,15 @@ export default async function Produtos() {
 
   return (
     <div className="p-6">
-      <h1 className="text-xl font-extrabold tracking-tight">Produtos</h1>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-xl font-extrabold tracking-tight">Produtos</h1>
+        <Link
+          href="/admin/produtos/novo"
+          className="ml-auto rounded-lg bg-marca px-3.5 py-2 text-[12.5px] font-extrabold text-white"
+        >
+          + Novo produto
+        </Link>
+      </div>
       <p className="mt-0.5 text-[13px] text-mudo">
         {produtos.filter((p) => p.ativo).length} ativos de {produtos.length} · o número diz em que
         posição o produto aparece na loja. A prateleira de bombas mostra {LIMITE_LIDER} e a de peças
