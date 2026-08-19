@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { registrarAcao } from "@/lib/admin-auth";
 import { revalidatePath } from "next/cache";
 import type { TipoProduto } from "@prisma/client";
+import { FotosNovoProduto } from "@/components/fotos-novo-produto";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +77,12 @@ async function criar(dados: FormData) {
       // produto que ainda não existe · quem publica é quem terminou.
       ativo: false,
       estoque: { create: { quantidade: num("estoque") ?? 0 } },
+      imagens: {
+        create: String(dados.get("fotos") ?? "")
+          .split("|")
+          .filter(Boolean)
+          .map((url, i) => ({ url, alt: nome, ordem: i, principal: i === 0 })),
+      },
     },
   });
 
@@ -132,8 +139,8 @@ export default async function NovoProduto({
 
       <h1 className="mt-3 text-[26px] font-extrabold tracking-tight">Novo produto</h1>
       <p className="mt-1.5 text-[14.5px] text-tinta-2">
-        Preencha o essencial. O produto nasce <b>desativado</b> · você adiciona as fotos e a
-        ficha na tela seguinte e publica quando estiver pronto.
+        Preencha o essencial. O produto nasce <b>desativado</b> · a ficha técnica completa
+        você acerta na tela seguinte, e publica quando estiver pronto.
       </p>
 
       {erro && (
@@ -178,6 +185,8 @@ export default async function NovoProduto({
           <Campo nome="precoDe" rotulo="Preço de" dica="riscado, opcional" />
           <Campo nome="estoque" rotulo="Estoque" tipo="number" />
         </div>
+
+        <FotosNovoProduto />
 
         <label className="block">
           <span className="mb-1.5 block text-[12.5px] font-bold">Descrição</span>
