@@ -27,6 +27,8 @@ const MENU = [
   // Quem liga e religa serviço de fora é quem responde pela conta · o operador
   // não precisa ver token nenhum.
   { href: "/admin/integracoes", r: "Integrações", grupo: "Conta", papeis: ["MASTER", "DESENVOLVEDOR"] },
+  // O manual fica no painel, não num PDF: a dúvida aparece aqui dentro.
+  { href: "/admin/manual", r: "Manual de uso", grupo: "Conta" },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
