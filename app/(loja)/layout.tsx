@@ -28,6 +28,26 @@ export const metadata: Metadata = {
     siteName: "Loja Oficial Vibra Vert",
   },
   robots: { index: true, follow: true },
+
+  /**
+   * Provar que o domínio é nosso.
+   *
+   * O Search Console, o Merchant Center e o catálogo do Instagram só falam com
+   * quem prova ser dono do endereço. Cada um dá um código para colar numa meta
+   * tag · aqui eles entram por variável de ambiente, então quem recebe o
+   * código não precisa de mim nem de um deploy para colar.
+   *
+   * Ficam de fora da tag quando a variável está vazia: meta tag de verificação
+   * com valor em branco confunde o próprio verificador.
+   */
+  verification: {
+    ...(process.env.NEXT_PUBLIC_VERIFICACAO_GOOGLE
+      ? { google: process.env.NEXT_PUBLIC_VERIFICACAO_GOOGLE }
+      : {}),
+    ...(process.env.NEXT_PUBLIC_VERIFICACAO_META
+      ? { other: { "facebook-domain-verification": process.env.NEXT_PUBLIC_VERIFICACAO_META } }
+      : {}),
+  },
   // O X/Twitter ignora as tags og: e usa as próprias. Sem isto, o link
   // compartilhado lá aparece sem imagem.
   twitter: {

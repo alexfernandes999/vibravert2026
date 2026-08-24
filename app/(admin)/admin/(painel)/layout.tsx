@@ -19,6 +19,7 @@ const MENU = [
   { href: "/admin/vitrine", r: "Vitrine da home", grupo: "Loja" },
   { href: "/admin/banners", r: "Banners", grupo: "Loja" },
   { href: "/admin/videos", r: "Vídeos", grupo: "Loja" },
+  { href: "/admin/canais", r: "Canais e feeds", grupo: "Loja" },
   { href: "/admin/seguranca", r: "Segurança", grupo: "Conta" },
   // Quem dá e tira acesso é o dono e quem cuida do sistema. O operador não vê
   // esta tela: não precisa criar conta, e cada pessoa a mais com esse poder é
