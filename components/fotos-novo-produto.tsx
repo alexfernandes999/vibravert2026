@@ -27,6 +27,7 @@ export function FotosNovoProduto() {
         d.set("arquivo", f);
         d.set("marca", "produto");
         d.set("pasta", "produtos");
+        d.set("quadrada", "1");
         const r = await enviarImagem(d);
         if (!r.ok) {
           setErro(r.erro);
@@ -40,7 +41,10 @@ export function FotosNovoProduto() {
   return (
     <div>
       <span className="mb-1.5 block text-[12.5px] font-bold">
-        Fotos <span className="font-medium text-mudo">a primeira vira a capa</span>
+        Fotos{" "}
+        <span className="font-medium text-mudo">
+          a primeira vira a capa · <span className="num">1200 × 1200 px</span>
+        </span>
       </span>
 
       <input type="hidden" name="fotos" value={urls.join("|")} />
@@ -90,7 +94,9 @@ export function FotosNovoProduto() {
       )}
 
       <p className="mt-1.5 text-[11.5px] leading-snug text-mudo">
-        Dá para escolher várias de uma vez. Quadrada fica melhor · a loja recorta em quadrado.
+        Dá para escolher várias de uma vez. A loja ajusta todas para{" "}
+        <b className="num text-tinta-2">1200 × 1200 px</b>, o padrão do Mercado Livre · a imagem
+        entra inteira, o que sobra vira fundo branco e nada é cortado.
       </p>
     </div>
   );

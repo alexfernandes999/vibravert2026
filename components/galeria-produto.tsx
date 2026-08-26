@@ -30,6 +30,7 @@ export function GaleriaProduto({ produtoId, fotos }: { produtoId: string; fotos:
     const d = new FormData();
     d.set("arquivo", arquivo);
     d.set("produtoId", produtoId);
+    d.set("quadrada", "1");
     agir(async () => {
       const r = await adicionarFoto(d);
       if (r?.erro) setErro(r.erro);
@@ -109,6 +110,7 @@ export function GaleriaProduto({ produtoId, fotos }: { produtoId: string; fotos:
       <div className="mt-3 flex flex-wrap items-center gap-2.5">
         <label className="cursor-pointer rounded-lg border border-marca bg-superficie px-3.5 py-2 text-[12.5px] font-bold text-marca transition hover:bg-marca-suave">
           {ocupado ? "Enviando…" : "Adicionar foto"}
+          <span className="num ml-1.5 font-semibold text-mudo">1200 × 1200</span>
           <input
             ref={entrada}
             type="file"
@@ -149,8 +151,9 @@ export function GaleriaProduto({ produtoId, fotos }: { produtoId: string; fotos:
       )}
 
       <p className="mt-2 text-[11.5px] leading-snug text-mudo">
-        JPG, PNG, WebP ou AVIF, até 6 MB. Quadrada fica melhor · a loja recorta em quadrado
-        e o que sobrar nas laterais some.
+        A loja ajusta toda foto para <b className="num text-tinta-2">1200 × 1200 px</b>, o padrão
+        do Mercado Livre · a imagem entra inteira e o que sobra vira fundo branco, nada é
+        cortado. Mande a maior que tiver, em JPG ou PNG, até 6 MB.
       </p>
     </div>
   );
