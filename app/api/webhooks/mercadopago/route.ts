@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { consultarPagamento, statusParaPedido } from "@/lib/mercadopago";
 import { pagamentoConfirmado } from "@/lib/email";
+import { enviarParaBling } from "@/lib/bling-nota";
 
 /**
  * Webhook do Mercado Pago.
@@ -52,6 +53,12 @@ export async function POST(req: NextRequest) {
         include: { itens: true, endereco: true, cliente: true },
       });
       if (completo) await pagamentoConfirmado(completo);
+
+      // O pedido sobe para o ERP no instante em que o dinheiro entra, e não
+      // quando alguém lembra · quem emite a nota precisa achá-lo lá antes de
+      // o cliente ligar perguntando. A falha fica gravada no pedido, nunca
+      // estourada: erro aqui faz o Mercado Pago reenviar o aviso por horas.
+      await enviarParaBling(pedido.id);
 
       const itens = await prisma.pedidoItem.findMany({ where: { pedidoId: pedido.id } });
       for (const i of itens) {

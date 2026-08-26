@@ -186,3 +186,29 @@ export async function enviarPedido(pedidoId: string) {
 
   return { jaEstava: false, blingPedidoId: String(id) };
 }
+
+/**
+ * Sobe o pedido e nunca deixa a falha derrubar quem chamou.
+ *
+ * Quem chama é o webhook do Mercado Pago e o fecho do checkout · dois lugares
+ * onde uma exceção custa caro. No webhook, um erro faz o Mercado Pago
+ * reenviar o aviso por horas; no checkout, faria o comprador ver uma tela de
+ * erro depois de o cartão já ter passado.
+ *
+ * Então o erro é guardado no pedido em vez de propagado. O painel mostra o
+ * motivo com o botão de tentar de novo ao lado · falha silenciosa é a que
+ * ninguém conserta.
+ */
+export async function enviarParaBling(pedidoId: string) {
+  try {
+    const r = await enviarPedido(pedidoId);
+    await prisma.pedido.update({ where: { id: pedidoId }, data: { blingErro: null } });
+    return { ok: true as const, ...r };
+  } catch (e) {
+    const erro = e instanceof Error ? e.message : "falha ao enviar para o Bling";
+    await prisma.pedido
+      .update({ where: { id: pedidoId }, data: { blingErro: erro.slice(0, 500) } })
+      .catch(() => {});
+    return { ok: false as const, erro };
+  }
+}

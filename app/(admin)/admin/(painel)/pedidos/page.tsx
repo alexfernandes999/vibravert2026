@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { RelogioPainel } from "@/components/relogio-painel";
 import { registrarAcao } from "@/lib/admin-auth";
+import { enviarParaBling } from "@/lib/bling-nota";
 import { brl } from "@/lib/formato";
 import { revalidatePath } from "next/cache";
 import type { PedidoStatus } from "@prisma/client";
@@ -18,6 +19,20 @@ const PROXIMO: Partial<Record<PedidoStatus, { para: PedidoStatus; r: string }>> 
   SEPARANDO: { para: "ENVIADO", r: "Comprar etiqueta e despachar" },
   ENVIADO: { para: "ENTREGUE", r: "Marcar entregue" },
 };
+
+/**
+ * Manda o pedido para o Bling à mão.
+ *
+ * Existe para o caso em que o envio automático falhou · SKU que não existe
+ * lá, conexão vencida, Bling fora do ar. Sem este botão, a única saída seria
+ * lançar o pedido a dedo no ERP e perder a ligação entre os dois sistemas.
+ */
+async function mandarParaBling(id: string) {
+  "use server";
+  await enviarParaBling(id);
+  await registrarAcao("enviou o pedido para o Bling");
+  revalidatePath("/admin/pedidos");
+}
 
 async function avancar(id: string, para: PedidoStatus) {
   "use server";
@@ -239,6 +254,36 @@ export default async function Pedidos({ searchParams }: { searchParams: Promise<
                         Imprimir etiqueta
                       </a>
                     )}
+                  </p>
+                )}
+
+                {/* O ERP é onde a nota nasce. Um pedido pago que não subiu é
+                    um pedido sem nota esperando alguém reparar · fica dito na
+                    própria linha, com o conserto ao lado. */}
+                {p.status !== "AGUARDANDO_PAGAMENTO" && (
+                  <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px]">
+                    {p.blingPedidoId ? (
+                      <span className="font-bold text-bom">
+                        No Bling <span className="num">#{p.blingPedidoId}</span>
+                      </span>
+                    ) : (
+                      <>
+                        <span className="font-bold text-atencao">
+                          {p.blingErro ? "Não subiu para o Bling" : "Ainda não subiu para o Bling"}
+                        </span>
+                        <form action={mandarParaBling.bind(null, p.id)}>
+                          <button className="rounded-md border border-marca px-2.5 py-1 text-[11.5px] font-bold text-marca">
+                            Enviar agora
+                          </button>
+                        </form>
+                      </>
+                    )}
+                  </p>
+                )}
+
+                {p.blingErro && !p.blingPedidoId && (
+                  <p className="mt-1.5 rounded-lg border-l-[3px] border-critico bg-critico/[0.06] px-3 py-2 text-[11.5px] leading-relaxed text-tinta-2">
+                    {p.blingErro}
                   </p>
                 )}
 

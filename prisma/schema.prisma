@@ -462,6 +462,12 @@ model Pedido {
   /// Guardamos o id do pedido lá para não emitir duas vezes o mesmo, e o link
   /// do DANFE para o cliente baixar sem pedir por e-mail.
   blingPedidoId String?   @unique
+  /// Por que a subida para o Bling falhou, se falhou.
+  ///
+  /// Sem isto, um pedido que não sobe fica calado: ninguém percebe até o
+  /// cliente cobrar a nota. Guardado, o painel mostra o motivo e o botão de
+  /// tentar de novo fica ao lado.
+  blingErro     String?
   notaNumero    String?
   notaUrl       String?
   notaEm        DateTime?

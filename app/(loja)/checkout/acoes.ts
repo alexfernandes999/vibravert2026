@@ -9,6 +9,7 @@ import { buscarCep, soDigitos } from "@/lib/cep";
 import { calcular, type Opcao } from "@/lib/frete";
 import { cobrar, configurado, transparente } from "@/lib/mercadopago";
 import { pedidoRecebido } from "@/lib/email";
+import { enviarParaBling } from "@/lib/bling-nota";
 import { registrar, origemDaSessao } from "@/lib/analitica";
 import { DESCONTO_PIX } from "@/lib/loja";
 
@@ -202,6 +203,13 @@ export async function finalizar(_estado: EstadoCheckout, dados: FormData): Promi
     include: { itens: true, endereco: true, cliente: true },
   });
   if (completo) await pedidoRecebido(completo);
+
+  // No cartão aprovado o dinheiro já entrou aqui mesmo, sem esperar aviso
+  // nenhum · então o pedido sobe agora. No PIX e no boleto quem sobe é o
+  // webhook, quando a transferência cair.
+  if (cobranca.ok && cobranca.status === "approved") {
+    await enviarParaBling(pedido.id);
+  }
 
   await registrar("PEDIDO");
   (await cookies()).delete("carrinho");
