@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { CamposCartao, gerarTokenCartao } from "@/components/campos-cartao";
 import { finalizar, consultarCep, cotarFrete, type EstadoCheckout } from "@/app/(loja)/checkout/acoes";
 import type { Opcao } from "@/lib/frete";
 import { PARCELAS_SEM_JUROS, DESCONTO_PIX } from "@/lib/loja";
@@ -32,11 +33,16 @@ export function FormularioCheckout({
   subtotal,
   freteFallback,
   pagamentoConfigurado,
+  transparente,
+  chavePublica,
   itens,
 }: {
   subtotal: number;
   freteFallback: number;
   pagamentoConfigurado: boolean;
+  /** No transparente o cartão é digitado aqui e vira token antes de sair. */
+  transparente: boolean;
+  chavePublica: string;
   itens: ItemResumo[];
 }) {
   const [estado, enviar, enviando] = useActionState<EstadoCheckout, FormData>(finalizar, {});
@@ -45,6 +51,60 @@ export function FormularioCheckout({
   const [end, setEnd] = useState({ logradouro: "", bairro: "", cidade: "", uf: "" });
   const [fretes, setFretes] = useState<Opcao[] | null>(null);
   const [servico, setServico] = useState<string>("");
+  const [erroCartao, setErroCartao] = useState("");
+  const [tokenizando, setTokenizando] = useState(false);
+  const forma = useRef<HTMLFormElement>(null);
+
+  const cartaoAqui = transparente && metodo === "CARTAO_CREDITO" && pagamentoConfigurado;
+
+  /**
+   * Impressão do dispositivo, para a análise antifraude.
+   *
+   * Não é rastreamento de marketing e não guarda nada nosso · é o sinal que o
+   * Mercado Pago usa para separar um comprador de verdade de um cartão testado
+   * em massa. Sem ele a aprovação cai, e compra recusada é venda perdida que
+   * já estava ganha.
+   */
+  useEffect(() => {
+    if (!transparente || document.getElementById("mp-device")) return;
+    const s = document.createElement("script");
+    s.id = "mp-device";
+    s.src = "https://www.mercadopago.com/v2/security.js";
+    s.setAttribute("view", "checkout");
+    s.setAttribute("output", "deviceId");
+    document.head.appendChild(s);
+  }, [transparente]);
+
+  /**
+   * Troca o cartão por um token antes de mandar o pedido.
+   *
+   * O envio fica segurado até o token existir. Deixar o formulário sair sem
+   * ele grava um pedido que nunca vai poder ser cobrado · e o comprador sai
+   * achando que comprou.
+   */
+  async function aoEnviar(e: React.FormEvent<HTMLFormElement>) {
+    if (!cartaoAqui) return; // Checkout Pro segue o caminho normal do form
+    e.preventDefault();
+    setErroCartao("");
+    setTokenizando(true);
+
+    const dados = new FormData(e.currentTarget);
+    const r = await gerarTokenCartao({
+      nome: String(dados.get("nomeCartao") ?? "").trim() || String(dados.get("nome") ?? ""),
+      cpf: String(dados.get("cpf") ?? ""),
+    });
+
+    setTokenizando(false);
+    if (!r.token) {
+      setErroCartao(r.erro ?? "Não consegui validar o cartão.");
+      return;
+    }
+
+    dados.set("tokenCartao", r.token);
+    const id = (window as unknown as { MP_DEVICE_SESSION_ID?: string }).MP_DEVICE_SESSION_ID;
+    if (id) dados.set("dispositivo", id);
+    enviar(dados);
+  }
 
   /**
    * Preencher sozinho tira quatro campos do caminho de quem compra pelo
@@ -72,7 +132,7 @@ export function FormularioCheckout({
 
   return (
     <div className="grid gap-9 lg:grid-cols-[1fr_330px]">
-      <form action={enviar} className="grid gap-7">
+      <form ref={forma} action={enviar} onSubmit={aoEnviar} className="grid gap-7">
         {estado.erro && (
           <p role="alert" className="rounded-caixa border border-critico/30 bg-critico/5 px-4 py-3 text-[13.5px] font-semibold text-critico">
             {estado.erro}
@@ -198,6 +258,14 @@ export function FormularioCheckout({
             ))}
           </div>
 
+          {cartaoAqui && <CamposCartao chavePublica={chavePublica} />}
+
+          {erroCartao && (
+            <p className="mt-3 rounded-lg border-l-[3px] border-critico bg-critico/[0.06] px-4 py-3 text-[13px] text-critico">
+              {erroCartao}
+            </p>
+          )}
+
           {metodo === "CARTAO_CREDITO" && (
             <label className="mt-3 block">
               <span className="mb-1.5 block text-[12.5px] font-bold">Parcelas</span>
@@ -215,12 +283,14 @@ export function FormularioCheckout({
         <div>
           <button
             type="submit"
-            disabled={enviando}
+            disabled={enviando || tokenizando}
             className="w-full rounded-lg bg-ouro py-4 text-[15px] font-extrabold text-ouro-txt shadow-lg shadow-ouro/25 disabled:opacity-60"
           >
-            {enviando
-              ? "Registrando pedido…"
-              : `Finalizar · ${brl(metodo === "PIX" ? totalPix : total)}`}
+            {tokenizando
+              ? "Validando o cartão…"
+              : enviando
+                ? "Registrando pedido…"
+                : `Finalizar · ${brl(metodo === "PIX" ? totalPix : total)}`}
           </button>
 
           {!pagamentoConfigurado && (

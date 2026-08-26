@@ -446,6 +446,17 @@ model Pedido {
   etiquetaUrl String?
   etiquetaEm  DateTime?
 
+  /// PIX e boleto, quando o pagamento acontece dentro da loja.
+  ///
+  /// Guardamos o copia-e-cola, não a imagem: o QR é gerado a partir dele na
+  /// hora de mostrar. Base64 de imagem no banco engorda cada consulta de
+  /// pedido para sempre, e a string do PIX cabe em duzentos caracteres.
+  ///
+  /// Precisa ficar guardado porque quem fecha a aba volta depois · o PIX vale
+  /// meia hora e o boleto três dias, e a pessoa tem de reencontrar o código.
+  pixCodigo  String?
+  boletoUrl  String?
+
   /// Nota fiscal, emitida no Bling.
   ///
   /// Guardamos o id do pedido lá para não emitir duas vezes o mesmo, e o link

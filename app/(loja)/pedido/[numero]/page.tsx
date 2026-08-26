@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { brl } from "@/lib/formato";
+import QRCode from "qrcode";
 import { configurado } from "@/lib/mercadopago";
+import { PixDoPedido } from "@/components/pix-do-pedido";
 import { BotaoPagar } from "@/components/botao-pagar";
 
 import { TELEFONE } from "@/lib/contato";
@@ -43,7 +45,30 @@ export default async function Pedido({ params }: { params: Promise<{ numero: str
           comprador esperando um PIX que nunca vai chegar. */}
       {/* Pedido parado tem sempre por onde retomar. É para cá que aponta o
           lembrete de carrinho abandonado. */}
-      {configurado && p.status === "AGUARDANDO_PAGAMENTO" && <BotaoPagar numero={p.numero} />}
+      {/* Quando a cobrança já nasceu com o PIX ou o boleto, não há para onde
+          mandar a pessoa · o que ela precisa está aqui. O botão de pagar só
+          faz sentido quando a cobrança acontece do outro lado. */}
+      {p.status === "AGUARDANDO_PAGAMENTO" && p.pixCodigo && (
+        <PixDoPedido
+          codigo={p.pixCodigo}
+          qr={await QRCode.toDataURL(p.pixCodigo, { margin: 1, width: 440, errorCorrectionLevel: "M" })}
+        />
+      )}
+
+      {p.status === "AGUARDANDO_PAGAMENTO" && p.boletoUrl && (
+        <a
+          href={p.boletoUrl}
+          target="_blank"
+          rel="noopener"
+          className="block rounded-caixa bg-marca px-5 py-4 text-center text-[14.5px] font-extrabold text-white"
+        >
+          Abrir o boleto ↗
+        </a>
+      )}
+
+      {configurado && p.status === "AGUARDANDO_PAGAMENTO" && !p.pixCodigo && !p.boletoUrl && (
+        <BotaoPagar numero={p.numero} />
+      )}
 
       {!configurado && p.status === "AGUARDANDO_PAGAMENTO" && (
         <p className="mt-5 rounded-caixa border border-atencao/30 bg-atencao/5 px-4 py-3.5 text-[13px] leading-snug text-atencao">

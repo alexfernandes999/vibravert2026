@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { obterCarrinho } from "@/lib/carrinho";
-import { pagamentoDisponivel } from "./acoes";
+import { pagamentoDisponivel, modoDePagamento } from "./acoes";
 import { registrar } from "@/lib/analitica";
 import { FormularioCheckout } from "@/components/formulario-checkout";
 
@@ -11,6 +11,7 @@ export default async function Checkout() {
   const c = await obterCarrinho();
   if (!c.itens.length) redirect("/carrinho");
   await registrar("CHECKOUT");
+  const modo = await modoDePagamento();
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-8">
@@ -23,6 +24,8 @@ export default async function Checkout() {
         subtotal={c.subtotal}
         freteFallback={c.frete}
         pagamentoConfigurado={await pagamentoDisponivel()}
+        transparente={modo.transparente}
+        chavePublica={modo.chavePublica}
         itens={c.itens.map((i) => ({
           id: i.id,
           nome: i.nome,

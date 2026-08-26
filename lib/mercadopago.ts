@@ -24,11 +24,27 @@ export const configurado = Boolean(process.env.MP_ACCESS_TOKEN);
  * código para voltar a vender.
  */
 export const MODO = (process.env.MP_MODO ?? "pro").toLowerCase();
-export const transparente = MODO === "transparente";
+/** Paga dentro da loja · o cartão nunca sai da nossa página. */
+export const transparente = MODO === "transparente" || MODO === "orders";
 
 const API = "https://api.mercadopago.com";
 
-type Comprador = { nome: string; email: string; cpf: string; telefone?: string };
+type Comprador = {
+  nome: string;
+  email: string;
+  cpf: string;
+  telefone?: string;
+  /** Vai para o Mercado Pago junto com a cobrança: pesa na análise antifraude
+   *  e conta na régua de qualidade que libera a conta. */
+  endereco?: {
+    rua: string;
+    numero: string;
+    bairro?: string;
+    cidade: string;
+    uf: string;
+    cep: string;
+  };
+};
 type Item = { titulo: string; quantidade: number; precoUnitario: number; sku: string };
 
 export type Cobranca = {
@@ -45,7 +61,12 @@ export type Cobranca = {
   erro?: string;
 };
 
-async function chamar(caminho: string, corpo: unknown, idempotencia: string) {
+async function chamar(
+  caminho: string,
+  corpo: unknown,
+  idempotencia: string,
+  cabecalhos?: Record<string, string>,
+) {
   const r = await fetch(`${API}${caminho}`, {
     method: "POST",
     headers: {
@@ -53,6 +74,7 @@ async function chamar(caminho: string, corpo: unknown, idempotencia: string) {
       Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
       // Sem esta chave, um clique duplo no botão de pagar vira duas cobranças.
       "X-Idempotency-Key": idempotencia,
+      ...(cabecalhos ?? {}),
     },
     body: JSON.stringify(corpo),
   });
@@ -69,6 +91,8 @@ export async function cobrar({
   itens,
   pedidoNumero,
   tokenCartao,
+  bandeiraCartao,
+  dispositivo,
 }: {
   metodo: MetodoPagamento;
   valor: number;
@@ -78,16 +102,35 @@ export async function cobrar({
   pedidoNumero: number;
   /** Gerado no navegador pelo SDK do MP: o número do cartão nunca chega ao nosso servidor. */
   tokenCartao?: string;
+  /** A bandeira, lida no navegador a partir dos seis primeiros dígitos. */
+  bandeiraCartao?: string;
+  /**
+   * Impressão do dispositivo, colhida pelo script do Mercado Pago.
+   *
+   * Não é rastreamento de marketing · é o que a análise antifraude usa para
+   * distinguir um comprador de verdade de um cartão testado em massa. Sem
+   * ela, a taxa de aprovação cai, e compra recusada é venda perdida que já
+   * estava ganha.
+   */
+  dispositivo?: string;
 }): Promise<Cobranca> {
   if (!configurado) {
     return { ok: false, erro: "sem-credencial" };
   }
 
-  if (transparente) {
+  // Três caminhos, uma variável.
+  //
+  // `pro`          · o comprador paga numa página do Mercado Pago e volta.
+  // `transparente` · paga dentro da loja, por /v1/payments. É o Checkout API,
+  //                  que é o produto em que a aplicação foi homologada.
+  // `orders`       · a API Orders, mais nova. Fica escrita e testada para o dia
+  //                  em que migrarmos · hoje não é o produto da aplicação.
+  //
+  // A volta é tão barata quanto a ida: se o transparente der problema numa
+  // sexta à noite, `pro` traz a loja de volta sem tocar em código.
+  if (MODO === "orders") {
     const { cobrar: viaOrders } = await import("@/lib/mercadopago-orders");
-    const r = await viaOrders({
-      metodo, valor, parcelas, comprador, itens, pedidoNumero, tokenCartao,
-    });
+    const r = await viaOrders({ metodo, valor, parcelas, comprador, itens, pedidoNumero, tokenCartao });
     return {
       ok: r.ok,
       pagamentoId: r.pagamentoId,
@@ -99,20 +142,16 @@ export async function cobrar({
     };
   }
 
-  // Checkout Pro: o comprador paga numa página do Mercado Pago e volta.
-  //
-  // Existe porque a API de pagamento direto (`/v1/payments`) exige que a
-  // aplicação esteja habilitada para cobrar, e responde 401 enquanto não
-  // estiver. A de preferências não exige isso — é a mesma conta, o mesmo
-  // dinheiro, e destrava a loja hoje.
-  //
-  // Vale a pena voltar para o transparente quando a aplicação for aprovada:
-  // pagar sem sair da loja converte mais. Trocar é uma variável.
-  if ((process.env.MP_MODO ?? "pro") === "pro") {
+  if (MODO === "pro") {
     return await cobrarPorPreferencia({ valor, parcelas, comprador, itens, pedidoNumero, metodo });
   }
 
+  if (metodo === "CARTAO_CREDITO" && !tokenCartao) {
+    return { ok: false, erro: "Os dados do cartão não chegaram. Recarregue a página e tente de novo." };
+  }
+
   const meio = metodo === "PIX" ? "pix" : metodo === "BOLETO" ? "bolbradesco" : undefined;
+  const fone = (comprador.telefone ?? "").replace(/\D/g, "");
 
   try {
     const d = await chamar(
@@ -120,29 +159,73 @@ export async function cobrar({
       {
         transaction_amount: Number(valor.toFixed(2)),
         description: `Pedido ${pedidoNumero} · Loja Oficial Vibra Vert`,
-        payment_method_id: meio,
+        // No cartão quem manda a bandeira é o navegador, que leu os seis
+        // primeiros dígitos · adivinhar pelo prefixo aqui erra em bandeira
+        // menos comum, e o Mercado Pago recusa sem dizer por quê.
+        payment_method_id: meio ?? bandeiraCartao,
         token: tokenCartao,
         installments: metodo === "CARTAO_CREDITO" ? parcelas : 1,
         // O webhook é a fonte da verdade do pagamento — nunca o retorno do navegador,
         // que o comprador pode fechar antes de voltar.
         notification_url: `${process.env.NEXT_PUBLIC_URL}/api/webhooks/mercadopago`,
         external_reference: String(pedidoNumero),
+        // Aparece na fatura do cartão. Sem isto a pessoa não reconhece a
+        // compra e abre contestação · estorno que se perde sem ter errado.
+        statement_descriptor: "VIBRAVERT",
         payer: {
           email: comprador.email,
           first_name: comprador.nome.split(" ")[0],
           last_name: comprador.nome.split(" ").slice(1).join(" ") || undefined,
           identification: { type: comprador.cpf.length > 11 ? "CNPJ" : "CPF", number: comprador.cpf },
+          ...(fone.length >= 10
+            ? { phone: { area_code: fone.slice(0, 2), number: fone.slice(2) } }
+            : {}),
+          ...(comprador.endereco
+            ? {
+                address: {
+                  street_name: comprador.endereco.rua,
+                  street_number: comprador.endereco.numero,
+                  neighborhood: comprador.endereco.bairro,
+                  city: comprador.endereco.cidade,
+                  federal_unit: comprador.endereco.uf,
+                  zip_code: comprador.endereco.cep,
+                },
+              }
+            : {}),
         },
         additional_info: {
           items: itens.map((i) => ({
             id: i.sku,
             title: i.titulo,
+            description: i.titulo.slice(0, 250),
+            category_id: "home_appliances",
             quantity: i.quantidade,
             unit_price: Number(i.precoUnitario.toFixed(2)),
           })),
+          payer: {
+            first_name: comprador.nome.split(" ")[0],
+            last_name: comprador.nome.split(" ").slice(1).join(" ") || undefined,
+            ...(fone.length >= 10
+              ? { phone: { area_code: fone.slice(0, 2), number: fone.slice(2) } }
+              : {}),
+          },
+          ...(comprador.endereco
+            ? {
+                shipments: {
+                  receiver_address: {
+                    street_name: comprador.endereco.rua,
+                    street_number: comprador.endereco.numero,
+                    zip_code: comprador.endereco.cep,
+                    city_name: comprador.endereco.cidade,
+                    state_name: comprador.endereco.uf,
+                  },
+                },
+              }
+            : {}),
         },
       },
       `pedido-${pedidoNumero}`,
+      dispositivo ? { "X-meli-session-id": dispositivo } : undefined,
     );
 
     const tx = d.point_of_interaction?.transaction_data;

@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { obterCarrinho } from "@/lib/carrinho";
 import { buscarCep, soDigitos } from "@/lib/cep";
 import { calcular, type Opcao } from "@/lib/frete";
-import { cobrar, configurado } from "@/lib/mercadopago";
+import { cobrar, configurado, transparente } from "@/lib/mercadopago";
 import { pedidoRecebido } from "@/lib/email";
 import { registrar, origemDaSessao } from "@/lib/analitica";
 import { DESCONTO_PIX } from "@/lib/loja";
@@ -43,6 +43,8 @@ const Formulario = z.object({
   metodo: z.enum(["PIX", "CARTAO_CREDITO", "BOLETO"]),
   parcelas: z.coerce.number().int().min(1).max(6).default(1),
   tokenCartao: z.string().optional(),
+  bandeiraCartao: z.string().optional(),
+  dispositivo: z.string().optional(),
   servicoFrete: z.string().optional(),
 });
 
@@ -141,7 +143,22 @@ export async function finalizar(_estado: EstadoCheckout, dados: FormData): Promi
     metodo: d.metodo,
     valor: total,
     parcelas: pedido.parcelas,
-    comprador: { nome: d.nome, email: d.email, cpf: d.cpf, telefone: d.telefone },
+    comprador: {
+      nome: d.nome,
+      email: d.email,
+      cpf: d.cpf,
+      telefone: d.telefone,
+      // O endereço vai junto porque pesa na análise antifraude: cobrança sem
+      // endereço é recusada com mais frequência, e recusa é venda perdida.
+      endereco: {
+        rua: d.logradouro,
+        numero: d.numero,
+        bairro: d.bairro,
+        cidade: d.cidade,
+        uf: d.uf.toUpperCase(),
+        cep: d.cep,
+      },
+    },
     itens: carrinho.itens.map((i) => ({
       titulo: i.nome,
       quantidade: i.qtd,
@@ -149,12 +166,27 @@ export async function finalizar(_estado: EstadoCheckout, dados: FormData): Promi
       sku: i.sku,
     })),
     pedidoNumero: pedido.numero,
+    tokenCartao: d.tokenCartao,
+    bandeiraCartao: d.bandeiraCartao,
+    dispositivo: d.dispositivo,
   });
 
   if (cobranca.ok) {
     await prisma.pedido.update({
       where: { id: pedido.id },
-      data: { mpPagamentoId: cobranca.pagamentoId, mpStatus: cobranca.status },
+      data: {
+        mpPagamentoId: cobranca.pagamentoId,
+        mpStatus: cobranca.status,
+        // O PIX e o boleto ficam guardados: quem fecha a aba volta depois, e
+        // o código tem de estar lá esperando.
+        pixCodigo: cobranca.pixCopiaECola ?? null,
+        boletoUrl: cobranca.boletoUrl ?? null,
+        // No cartão aprovado o dinheiro já entrou · não faz sentido a página
+        // dizer "aguardando pagamento" enquanto o aviso do webhook não chega.
+        ...(cobranca.status === "approved"
+          ? { status: "PAGO" as const, pagoEm: new Date() }
+          : {}),
+      },
     });
   } else if (cobranca.erro !== "sem-credencial") {
     await prisma.pedido.update({
@@ -182,4 +214,18 @@ export async function finalizar(_estado: EstadoCheckout, dados: FormData): Promi
 
 export async function pagamentoDisponivel() {
   return configurado;
+}
+
+/**
+ * Como a loja cobra hoje.
+ *
+ * O formulário precisa saber: no transparente ele mostra os campos do cartão
+ * e troca por um token antes de enviar; no Checkout Pro não mostra nada, e o
+ * comprador digita o cartão do outro lado.
+ */
+export async function modoDePagamento() {
+  return {
+    transparente,
+    chavePublica: process.env.NEXT_PUBLIC_MP_PUBLIC_KEY || "",
+  };
 }
