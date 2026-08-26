@@ -56,7 +56,7 @@ export default function FaleConosco() {
         <dl className="mt-4 grid gap-3 border-t border-linha pt-4 text-[13.5px] sm:grid-cols-2">
           <div>
             <dt className="font-bold">Vendas e assistência</dt>
-            <dd className="num text-mudo">Segunda a quinta, 7h às 18h · Sexta, 8h às 17h</dd>
+            <dd className="num text-mudo">De segunda a sexta, das 8h30 às 17h</dd>
           </div>
           <div>
             <dt className="font-bold">Chamados técnicos</dt>

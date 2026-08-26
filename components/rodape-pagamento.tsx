@@ -70,7 +70,7 @@ export function RodapePagamento() {
         </svg>
         <p className="text-[12.5px] font-semibold leading-snug text-tinta-2">
           Atendimento de segunda a sexta
-          <span className="num block font-extrabold text-marca">das 8h às 18h</span>
+          <span className="num block font-extrabold text-marca">das 8h30 às 17h</span>
         </p>
       </div>
 

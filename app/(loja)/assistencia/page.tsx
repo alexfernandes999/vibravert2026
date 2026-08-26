@@ -20,7 +20,7 @@ const FABRICA = {
 };
 
 const HORARIOS = [
-  { o: "Vendas e assistência presencial", q: "Segunda a quinta, 7h às 18h · Sexta, 8h às 17h" },
+  { o: "Vendas e assistência presencial", q: "De segunda a sexta, das 8h30 às 17h" },
   { o: "Chamados técnicos", q: "Segunda a sexta, 7h às 17h" },
 ];
 
@@ -164,14 +164,8 @@ export default function Assistencia() {
             openingHoursSpecification: [
               {
                 "@type": "OpeningHoursSpecification",
-                dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday"],
-                opens: "07:00",
-                closes: "18:00",
-              },
-              {
-                "@type": "OpeningHoursSpecification",
-                dayOfWeek: "Friday",
-                opens: "08:00",
+                dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                opens: "08:30",
                 closes: "17:00",
               },
             ],
