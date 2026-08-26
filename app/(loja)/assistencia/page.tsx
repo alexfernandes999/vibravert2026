@@ -20,7 +20,7 @@ const FABRICA = {
 };
 
 const HORARIOS = [
-  { o: "Vendas e assistência presencial", q: "De segunda a sexta, das 8h30 às 17h" },
+  { o: "Vendas e assistência presencial", q: "De segunda a sexta-feira, das 08h30 às 17h00" },
   { o: "Chamados técnicos", q: "Segunda a sexta, 7h às 17h" },
 ];
 
