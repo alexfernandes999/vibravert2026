@@ -72,6 +72,7 @@ async function criar(dados: FormData) {
       voltagem: String(dados.get("voltagem") ?? "").trim() || null,
       vazaoMaxima: num("vazaoMaxima"),
       pocoPolegadas: num("pocoPolegadas"),
+      saiaProtecao: dados.get("saiaProtecao") === "on",
       pesoGramas: num("pesoGramas"),
       // Nasce desligado. Produto sem foto e sem ficha no ar é pior do que
       // produto que ainda não existe · quem publica é quem terminou.
@@ -219,6 +220,17 @@ export default async function NovoProduto({
             <Campo nome="vazaoMaxima" rotulo="Vazão máxima" tipo="number" dica="L/h" />
             <Campo nome="pocoPolegadas" rotulo="Poço" tipo="number" dica="polegadas" />
           </div>
+
+          <label className="mt-3 flex cursor-pointer items-start gap-2.5">
+            <input type="checkbox" name="saiaProtecao" className="mt-0.5 h-4 w-4 accent-marca" />
+            <span>
+              <span className="block text-[13px] font-bold">Com saia de proteção lateral</span>
+              <span className="block text-[11.5px] leading-snug text-mudo">
+                A borracha que envolve o corpo e deixa trabalhar ajustada num poço de 6&quot; sem
+                bater nas paredes. É o que diferencia a Rymer 2500 da 2000.
+              </span>
+            </span>
+          </label>
         </fieldset>
 
         <Campo

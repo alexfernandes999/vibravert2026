@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { registrarAcao } from "@/lib/admin-auth";
 import { brl } from "@/lib/formato";
+import type { TipoProduto } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,12 @@ export const dynamic = "force-dynamic";
  * leitura de propósito — vêm da embalagem do fabricante, e um número editado à
  * mão aqui vira bomba errada recomendada pela calculadora.
  */
+/** Campo em branco vira null, e não zero · zero é um número, ausência não. */
+function inteiro(v: FormDataEntryValue | null) {
+  const n = Number(String(v ?? "").trim());
+  return String(v ?? "").trim() && Number.isFinite(n) && n > 0 ? Math.round(n) : null;
+}
+
 async function salvar(id: string, dados: FormData) {
   "use server";
 
@@ -36,6 +43,15 @@ async function salvar(id: string, dados: FormData) {
       metaDescricao: String(dados.get("metaDescricao") ?? "").trim() || null,
       ativo: dados.get("ativo") === "on",
       destaque: dados.get("destaque") === "on",
+
+      // Ficha comercial. Diferente da técnica logo abaixo: estes são dados que
+      // a fábrica conhece e muda · a saia sai de linha, a peça troca de caixa.
+      tipo: String(dados.get("tipo") ?? "BOMBA") as TipoProduto,
+      saiaProtecao: dados.get("saiaProtecao") === "on",
+      voltagem: String(dados.get("voltagem") ?? "").trim() || null,
+      vazaoMaxima: inteiro(dados.get("vazaoMaxima")),
+      pocoPolegadas: inteiro(dados.get("pocoPolegadas")),
+      pesoGramas: inteiro(dados.get("pesoGramas")),
     },
   });
 
@@ -124,6 +140,94 @@ export default async function EditarProduto({ params }: { params: Promise<{ id: 
               className="w-full rounded-lg border border-linha-2 bg-superficie px-3 py-2.5 text-[13px]"
             />
           </label>
+
+          <fieldset className="rounded-caixa border border-linha bg-superficie p-4">
+            <legend className="px-1.5 text-[11.5px] font-extrabold uppercase tracking-wide text-mudo">
+              Ficha comercial
+            </legend>
+
+            <label className="block">
+              <span className="mb-1.5 block text-[12.5px] font-bold">Tipo</span>
+              <select
+                name="tipo"
+                defaultValue={p.tipo}
+                className="w-full rounded-lg border border-linha-2 bg-superficie px-3 py-2.5 text-[13.5px] font-semibold"
+              >
+                <option value="BOMBA">Bomba · frete grátis sempre</option>
+                <option value="PECA">Peça · paga frete</option>
+                <option value="KIT_AVULSO">Kit avulso · paga frete</option>
+                <option value="ACESSORIO">Acessório · paga frete</option>
+              </select>
+            </label>
+
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <label className="block">
+                <span className="mb-1.5 block text-[12.5px] font-bold">Voltagem</span>
+                <input
+                  name="voltagem"
+                  defaultValue={p.voltagem ?? ""}
+                  placeholder="220V, 110/127V"
+                  className="w-full rounded-lg border border-linha-2 bg-superficie px-3 py-2.5 text-[13.5px]"
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1.5 flex items-baseline gap-1.5 text-[12.5px] font-bold">
+                  Vazão máxima <span className="font-medium text-mudo">L/h</span>
+                </span>
+                <input
+                  name="vazaoMaxima"
+                  inputMode="numeric"
+                  defaultValue={p.vazaoMaxima ?? ""}
+                  className="num w-full rounded-lg border border-linha-2 bg-superficie px-3 py-2.5 text-[13.5px]"
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1.5 flex items-baseline gap-1.5 text-[12.5px] font-bold">
+                  Poço <span className="font-medium text-mudo">polegadas</span>
+                </span>
+                <input
+                  name="pocoPolegadas"
+                  inputMode="numeric"
+                  defaultValue={p.pocoPolegadas ?? ""}
+                  className="num w-full rounded-lg border border-linha-2 bg-superficie px-3 py-2.5 text-[13.5px]"
+                />
+              </label>
+            </div>
+
+            <label className="mt-3 flex cursor-pointer items-start gap-2.5">
+              <input
+                type="checkbox"
+                name="saiaProtecao"
+                defaultChecked={p.saiaProtecao}
+                className="mt-0.5 h-4 w-4 accent-marca"
+              />
+              <span>
+                <span className="block text-[13px] font-bold">Com saia de proteção lateral</span>
+                <span className="block text-[11.5px] leading-snug text-mudo">
+                  A borracha que envolve o corpo e deixa a bomba trabalhar ajustada num poço de 6&quot;
+                  sem bater nas paredes. Aparece no cartão do produto, na ficha e na calculadora.
+                </span>
+              </span>
+            </label>
+
+            <label className="mt-3 block sm:max-w-[220px]">
+              <span className="mb-1.5 flex items-baseline gap-1.5 text-[12.5px] font-bold">
+                Peso da caixa <span className="font-medium text-mudo">gramas</span>
+              </span>
+              <input
+                name="pesoGramas"
+                inputMode="numeric"
+                defaultValue={p.pesoGramas ?? ""}
+                className="num w-full rounded-lg border border-linha-2 bg-superficie px-3 py-2.5 text-[13.5px]"
+              />
+            </label>
+
+            <p className="mt-3 rounded-lg border-l-[3px] border-atencao bg-atencao/[0.07] px-3.5 py-2.5 text-[12px] leading-relaxed text-tinta-2">
+              <b className="text-atencao">Vazão e poço alimentam a calculadora.</b> São eles que
+              decidem qual bomba a loja recomenda para a profundidade que o cliente digita ·
+              um número trocado aqui vira bomba errada vendida. E sem peso, o frete não calcula.
+            </p>
+          </fieldset>
 
           <div className="flex flex-wrap gap-5 rounded-caixa border border-linha bg-superficie p-4">
             <label className="flex cursor-pointer items-center gap-2.5 text-[13px] font-bold">
