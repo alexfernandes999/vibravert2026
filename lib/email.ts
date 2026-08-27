@@ -1,5 +1,6 @@
 import type { Pedido, PedidoItem, Endereco, Cliente } from "@prisma/client";
 import { montar, brl, type Peca } from "@/lib/email-molde";
+import { prisma } from "@/lib/prisma";
 
 /**
  * E-mails da loja.
@@ -39,26 +40,115 @@ const entrega = (p: PedidoCompleto) => [
   `${p.endereco.bairro} · ${p.endereco.cidade}/${p.endereco.uf} · CEP ${p.endereco.cep}`,
 ];
 
-async function enviar(para: string, assunto: string, html: string) {
+/**
+ * Entrega o e-mail ao Resend. Só isso · quem decide se tenta é quem chama.
+ *
+ * O `reply_to` aponta para o e-mail de pedidos: cliente responde a aviso de
+ * compra o tempo todo, e resposta que cai numa caixa que ninguém abre é pior
+ * do que não ter mandado.
+ */
+async function entregar(para: string, assunto: string, html: string) {
+  const r = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: process.env.EMAIL_REMETENTE,
+      to: para,
+      subject: assunto,
+      html,
+      reply_to: process.env.EMAIL_RESPOSTA || "pedido@vibravert.com.br",
+      // Uma cópia para a loja, quando configurada: assim o time vê a venda
+      // entrar sem depender de alguém abrir o painel.
+      ...(process.env.EMAIL_COPIA ? { bcc: process.env.EMAIL_COPIA } : {}),
+    }),
+  });
+  if (!r.ok) throw new Error(`${r.status} ${(await r.text()).slice(0, 300)}`);
+}
+
+/**
+ * Registra e tenta enviar.
+ *
+ * Registra sempre, mesmo sem chave. Sem isso, tudo o que a loja quis mandar
+ * enquanto o Resend não estava ligado viraria uma linha de log que ninguém lê,
+ * e no dia da virada ninguém saberia quais clientes ficaram sem aviso.
+ *
+ * Falha nunca sobe: um erro de e-mail não pode derrubar um pedido já pago.
+ */
+async function enviar(para: string, assunto: string, html: string, pedidoId?: string) {
+  const registro = await prisma.email
+    .create({ data: { para, assunto, corpo: html, pedidoId: pedidoId ?? null } })
+    .catch(() => null);
+
   if (!configurado) {
-    console.info(`[email] não enviado, sem RESEND_API_KEY → ${para}: ${assunto}`);
     return { ok: false, motivo: "sem-credencial" as const };
   }
+
   try {
-    const r = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ from: process.env.EMAIL_REMETENTE, to: para, subject: assunto, html }),
-    });
-    if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+    await entregar(para, assunto, html);
+    if (registro) {
+      await prisma.email.update({
+        where: { id: registro.id },
+        data: { situacao: "ENVIADO", enviadoEm: new Date(), tentativas: { increment: 1 } },
+      });
+    }
     return { ok: true as const };
   } catch (e) {
-    console.error("[email] falhou:", e);
+    const erro = e instanceof Error ? e.message : "falha ao enviar";
+    console.error("[email] falhou:", erro);
+    if (registro) {
+      await prisma.email
+        .update({
+          where: { id: registro.id },
+          data: { situacao: "FALHOU", erro: erro.slice(0, 400), tentativas: { increment: 1 } },
+        })
+        .catch(() => {});
+    }
     return { ok: false, motivo: "falha" as const };
   }
+}
+
+/**
+ * Manda o que ficou parado.
+ *
+ * Usada no dia em que a chave entrar, e depois disso para reprocessar o que
+ * falhou. Vai em série e devagar de propósito · o Resend limita por segundo, e
+ * disparar cem de uma vez faria metade voltar recusada.
+ */
+export async function enviarPendentes(limite = 50) {
+  if (!configurado) return { ok: false as const, motivo: "sem-credencial" as const };
+
+  const fila = await prisma.email.findMany({
+    where: { situacao: { in: ["PENDENTE", "FALHOU"] }, tentativas: { lt: 3 } },
+    orderBy: { criadoEm: "asc" },
+    take: limite,
+  });
+
+  let enviados = 0;
+  for (const e of fila) {
+    try {
+      await entregar(e.para, e.assunto, e.corpo);
+      await prisma.email.update({
+        where: { id: e.id },
+        data: { situacao: "ENVIADO", enviadoEm: new Date(), erro: null, tentativas: { increment: 1 } },
+      });
+      enviados++;
+    } catch (err) {
+      await prisma.email.update({
+        where: { id: e.id },
+        data: {
+          situacao: "FALHOU",
+          erro: (err instanceof Error ? err.message : "falha").slice(0, 400),
+          tentativas: { increment: 1 },
+        },
+      });
+    }
+    await new Promise((r) => setTimeout(r, 600));
+  }
+
+  return { ok: true as const, enviados, restantes: fila.length - enviados };
 }
 
 /** 1. Pedido recebido, antes do pagamento cair. */

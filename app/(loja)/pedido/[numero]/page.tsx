@@ -8,7 +8,8 @@ import { configurado } from "@/lib/mercadopago";
 import { PixDoPedido } from "@/components/pix-do-pedido";
 import { BotaoPagar } from "@/components/botao-pagar";
 
-import { TELEFONE } from "@/lib/contato";
+import { TELEFONE, whatsappLink } from "@/lib/contato";
+import { ObrigadoPeloPedido } from "@/components/obrigado-pelo-pedido";
 export const metadata: Metadata = { title: "Pedido", robots: { index: false, follow: false } };
 
 const ROTULO: Record<string, { t: string; d: string; cor: string }> = {
@@ -40,6 +41,22 @@ export default async function Pedido({ params }: { params: Promise<{ numero: str
       </p>
       <h1 className={`mt-2 text-3xl font-extrabold tracking-tight ${st.cor}`}>{st.t}</h1>
       <p className="mt-2 text-[15px] text-tinta-2">{st.d}</p>
+
+      {/* O agradecimento aparece quando há o que agradecer · num pedido
+          cancelado seria deselegante, e num que ainda não foi pago seria
+          prematuro. */}
+      {["PAGO", "SEPARANDO", "ENVIADO", "ENTREGUE"].includes(p.status) && (
+        <ObrigadoPeloPedido
+          nome={p.cliente.nome.split(" ")[0]}
+          numero={p.numero}
+          email={p.cliente.email}
+          status={p.status}
+          rastreio={p.rastreio}
+          prazo={p.fretePrazo}
+          servico={p.freteServico}
+          whatsapp={whatsappLink(`Olá! Sou ${p.cliente.nome}, do pedido nº ${p.numero}.`)}
+        />
+      )}
 
       {/* Sem credencial não houve cobrança. Dizer isso é melhor do que deixar o
           comprador esperando um PIX que nunca vai chegar. */}

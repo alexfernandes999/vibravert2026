@@ -683,3 +683,36 @@ model Integracao {
   @@map("integracoes")
   @@schema("vibravert")
 }
+
+/// Cada e-mail que a loja quis mandar.
+///
+/// Existe porque hoje não há chave de envio, e sem registro tudo o que a loja
+/// tentou mandar viraria uma linha de log que ninguém lê. Guardado, dá para
+/// ver o que ficou pendente e disparar tudo de uma vez no dia em que o Resend
+/// entrar · em vez de descobrir que três clientes nunca souberam que o pedido
+/// tinha sido despachado.
+///
+/// O corpo vai junto de propósito: reconstruir o e-mail meses depois exigiria
+/// que o molde e o pedido estivessem iguais, e nenhum dos dois fica parado.
+model Email {
+  id      String @id @default(cuid())
+  para    String
+  assunto String
+  corpo   String
+
+  /// PENDENTE enquanto não há chave · ENVIADO quando o Resend aceitou ·
+  /// FALHOU quando recusou, com o motivo ao lado.
+  situacao String  @default("PENDENTE")
+  erro     String?
+  /// A que pedido se refere, quando se refere. Serve para o painel mostrar
+  /// "este pedido recebeu três avisos" sem cruzar tabela por e-mail.
+  pedidoId String?
+
+  tentativas Int       @default(0)
+  enviadoEm  DateTime?
+  criadoEm   DateTime  @default(now())
+
+  @@index([situacao, criadoEm])
+  @@map("emails")
+  @@schema("vibravert")
+}
