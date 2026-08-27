@@ -31,6 +31,19 @@ const ESPERA_MIN: Record<string, number> = {
 };
 const ESPERA_PADRAO = 30;
 
+/**
+ * Quando o pedido deixa de estar "parado" e passa a ser abandonado.
+ *
+ * Vinte e quatro horas. Até aí ainda é gente que se distraiu, foi almoçar,
+ * ficou sem sinal · um lembrete resolve. Passado um dia, quem não pagou
+ * decidiu não pagar, e o que reverte isso é uma pessoa ligando, não outro
+ * e-mail.
+ *
+ * A separação existe para o time de vendas não gastar o dia inteiro numa
+ * lista onde metade ainda vai pagar sozinha.
+ */
+const ABANDONADO_HORAS = 24;
+
 async function mandarEmail(id: string) {
   "use server";
   const p = await prisma.pedido.findUnique({
@@ -100,11 +113,19 @@ export default async function Recuperar() {
   const maduro = (p: { metodo: string; criadoEm: Date }) =>
     Date.now() - p.criadoEm.getTime() >= (ESPERA_MIN[p.metodo] ?? ESPERA_PADRAO) * 60_000;
 
-  const parados = todosParados.filter(maduro);
-  const esperando = todosParados.length - parados.length;
+  const todosMaduros = todosParados.filter(maduro);
+  const esperando = todosParados.length - todosMaduros.length;
 
-  const semContato = Math.max(0, anonimos.length - compraram.length - parados.length);
-  const total = parados.reduce((s, p) => s + Number(p.total), 0);
+  const abandonado = (p: { criadoEm: Date }) =>
+    Date.now() - p.criadoEm.getTime() >= ABANDONADO_HORAS * 36e5;
+
+  // O PIX e o boleto que geramos já venceram muito antes disto · aqui o que
+  // recupera a venda é a conversa, não um link novo.
+  const abandonados = todosMaduros.filter(abandonado);
+  const parados = todosMaduros.filter((p) => !abandonado(p));
+
+  const semContato = Math.max(0, anonimos.length - compraram.length - todosMaduros.length);
+  const total = todosMaduros.reduce((s, p) => s + Number(p.total), 0);
 
   const base = process.env.NEXT_PUBLIC_URL || "https://vibravert-loja.vercel.app";
 
@@ -123,11 +144,16 @@ export default async function Recuperar() {
         <div className="rounded-caixa border border-linha bg-superficie p-4">
           <dt className="text-[11.5px] font-bold uppercase tracking-wide text-mudo">Dá para chamar</dt>
           <dd className="num mt-1 text-2xl font-extrabold text-marca">{parados.length}</dd>
-          {esperando > 0 && (
-            <dd className="mt-1 text-[11.5px] leading-snug text-mudo">
-              {esperando} ainda no prazo de pagamento
-            </dd>
-          )}
+          <dd className="mt-1 text-[11.5px] leading-snug text-mudo">
+            {abandonados.length > 0 && (
+              <>
+                <b className="text-atencao">{abandonados.length} abandonado{abandonados.length > 1 ? "s" : ""}</b>
+                {" · passaram de 24h"}
+                <br />
+              </>
+            )}
+            {esperando > 0 && `${esperando} ainda no prazo de pagamento`}
+          </dd>
         </div>
         <div className="rounded-caixa border border-linha bg-superficie p-4">
           <dt className="text-[11.5px] font-bold uppercase tracking-wide text-mudo">Valor parado</dt>
@@ -163,8 +189,21 @@ export default async function Recuperar() {
           )}
         </p>
       ) : (
+        <>
+          {abandonados.length > 0 && (
+            <p className="mt-5 rounded-caixa border-l-[3px] border-atencao bg-atencao/[0.07] px-4 py-3 text-[13px] leading-relaxed text-tinta-2">
+              <b className="text-atencao">
+                {abandonados.length} {abandonados.length === 1 ? "pedido passou" : "pedidos passaram"} de 24 horas.
+              </b>{" "}
+              Vêm primeiro na lista, marcados. O PIX e o boleto que a loja gerou já venceram ·
+              quem não pagou em um dia decidiu não pagar, e o que reverte isso é uma ligação, não
+              outro e-mail. Se a pessoa ainda quiser, o vendedor refaz o pedido ou manda um link novo.
+            </p>
+          )}
         <ul className="mt-5 space-y-3">
-          {parados.map((p) => {
+          {/* Abandonados primeiro: são os que só uma pessoa recupera, e o time
+              de vendas abre esta tela para achá-los, não para rolar até eles. */}
+          {[...abandonados, ...parados].map((p) => {
             const itens = p.itens.map((i) => `${i.quantidade}× ${i.nomeProduto}`).join(", ");
             const primeiro = p.cliente.nome.split(" ")[0];
             const texto =
@@ -186,6 +225,11 @@ export default async function Recuperar() {
                   <span className="num text-[12.5px] text-mudo">
                     parado há {horas(p.criadoEm) < 1 ? "menos de 1 h" : `${horas(p.criadoEm)} h`}
                   </span>
+                  {abandonado(p) && (
+                    <span className="rounded bg-atencao px-1.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wide text-ouro-txt">
+                      abandonado · ligar
+                    </span>
+                  )}
                   {p.metodo === "BOLETO" && (
                     <span className="rounded bg-atencao/15 px-1.5 py-0.5 text-[11px] font-bold text-atencao">
                       boleto · confira se não compensou
@@ -238,6 +282,7 @@ export default async function Recuperar() {
             );
           })}
         </ul>
+        </>
       )}
     </div>
   );

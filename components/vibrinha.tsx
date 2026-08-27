@@ -120,10 +120,27 @@ export function Vibrinha() {
               <span className="block text-[14px] font-extrabold">Vibrinha</span>
               <span className="block text-[11px] text-white/60">atendimento da Vibra Vert</span>
             </span>
+            {/* A saída para gente de verdade fica sempre à vista, e não só no
+                fim de um caminho. Quem já decidiu que quer falar com alguém
+                não deveria ter de responder três perguntas antes · e saber que
+                a porta está aberta é o que faz a pessoa aceitar conversar com
+                a Vibrinha primeiro. */}
+            <a
+              href={whatsappLink(contexto)}
+              target="_blank"
+              rel="noopener"
+              title="Falar agora com um vendedor no WhatsApp"
+              className="ml-auto flex items-center gap-1.5 rounded-lg bg-[#25D366] px-2.5 py-1.5 text-[11.5px] font-extrabold text-white transition hover:brightness-110"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5">
+                <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.87 9.87 0 004.79 1.22C17.5 21.84 21.96 17.38 21.96 11.9 21.96 6.45 17.5 2 12.04 2z" />
+              </svg>
+              Falar com uma pessoa
+            </a>
             <button
               onClick={() => setAberto(false)}
               aria-label="Fechar conversa"
-              className="ml-auto rounded-lg p-1.5 text-white/70 hover:bg-white/10 hover:text-white"
+              className="rounded-lg p-1.5 text-white/70 hover:bg-white/10 hover:text-white"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
                 <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
@@ -203,6 +220,21 @@ export function Vibrinha() {
                       </button>
                     ))}
                   </div>
+                )}
+
+                {!encaminhar && (
+                  <p className="mt-3 border-t border-linha pt-2.5 text-center text-[11.5px] leading-snug text-mudo">
+                    Prefere falar com uma pessoa?{" "}
+                    <a
+                      href={whatsappLink(contexto)}
+                      target="_blank"
+                      rel="noopener"
+                      className="font-bold text-[#128C4A] underline underline-offset-2"
+                    >
+                      Chame no WhatsApp
+                    </a>{" "}
+                    · de segunda a sexta-feira, das 08h30 às 17h00.
+                  </p>
                 )}
 
                 {encaminhar && (
