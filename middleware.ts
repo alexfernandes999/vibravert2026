@@ -63,5 +63,8 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: "/((?!_next|api|produtos|fonts|favicon).*)",
+  // `.well-known` fica de fora: é por lá que a autoridade certificadora prova
+  // que o domínio é nosso, e um middleware no caminho faz o desafio falhar ·
+  // o site fica sem HTTPS sem que nada no código pareça errado.
+  matcher: "/((?!_next|api|produtos|fonts|favicon|\\.well-known).*)",
 };
