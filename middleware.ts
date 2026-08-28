@@ -38,6 +38,28 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const limpo = pathname.replace(/\/+$/, "") || "/";
 
+  /**
+   * Uma única direção canônica: tudo vai para o www.
+   *
+   * O www é o endereço que a loja antiga tinha indexado, com milhares de URLs
+   * · manter o histórico dele vale mais do que a preferência estética por um
+   * domínio curto.
+   *
+   * O redirecionamento mora aqui e não na configuração da Vercel de propósito.
+   * Lá ele acontece antes de tudo, inclusive antes do `.well-known`, e trava a
+   * emissão do certificado: a autoridade entra por HTTP, é empurrada para o
+   * HTTPS de um domínio que ainda não tem certificado, e desiste. Circular, e
+   * difícil de enxergar. Aqui o `.well-known` já está fora do matcher.
+   */
+  const host = req.headers.get("host") ?? "";
+  if (host === "vibravert.com.br") {
+    const url = req.nextUrl.clone();
+    url.host = "www.vibravert.com.br";
+    url.protocol = "https:";
+    url.port = "";
+    return NextResponse.redirect(url, 301);
+  }
+
   // ── categoria antiga da nossa linha ──────────────────────────────
   const nossa = categorias[limpo];
   if (nossa) return NextResponse.redirect(new URL(nossa, req.url), 301);
