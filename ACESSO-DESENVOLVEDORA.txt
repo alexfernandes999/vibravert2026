@@ -1,0 +1,51 @@
+PAINEL DA LOJA VIBRA VERT — ACESSO DE DESENVOLVIMENTO
+
+LINKS
+  Loja:    https://www.vibravert.com.br
+  Painel:  https://www.vibravert.com.br/admin
+  Repo:    github.com/alexfernandes999/vibravert2026
+  Manual de uso: dentro do painel, menu "Manual"
+
+CONTA (papel DESENVOLVEDOR — vê tudo)
+  login: dev
+  senha: p9r8-5rz8-wqp6-fjrg
+  e-mail da conta: gabyfernandezweb@gmail.com
+
+  O papel DESENVOLVEDOR abre o painel inteiro, inclusive as duas telas que o
+  operador não vê:
+    · Integrações — tokens de Mercado Pago, SuperFrete e Bling, e diagnóstico
+    · Equipe e acessos — criar conta, trocar papel, ligar e desligar pessoa
+
+PRIMEIRO ACESSO (uma vez só)
+  1. Instale um autenticador no celular (Google Authenticator, Authy, 1Password).
+  2. Entre em https://www.vibravert.com.br/admin com o login e a senha acima.
+  3. O painel abre direto em Segurança, com um QR na tela.
+  4. Leia o QR no aplicativo e digite o código de 6 dígitos. Pronto.
+  Depois disso, todo login pede login + senha + código do momento.
+
+  Troque a senha em Segurança depois de entrar: esta passou por mensagem.
+
+QUEM MAIS TEM ACESSO HOJE
+  alex        MASTER (dono)   — vê tudo, menos diagnóstico técnico
+  escritorio  OPERADOR        — operação da loja; NÃO vê integrações nem equipe
+  dev         DESENVOLVEDOR   — esta conta
+
+CONTAS PELA LINHA DE COMANDO (na pasta do projeto)
+  npm run usuarios listar
+  npm run usuarios senha <login>
+  npm run usuarios criar <login> "<Nome>" <email> [OPERADOR|MASTER|DESENVOLVEDOR]
+  npm run usuarios desligar2fa <login>      (quem perdeu o celular)
+  npm run usuarios ativar <login> | desativar <login>
+
+O QUE PRECISA SABER ANTES DE MEXER
+  · O domínio www.vibravert.com.br NÃO é publicado da conta Vercel da Gaby:
+    ele roda num projeto Vercel de fora (conta do Alex), que builda de
+    origin/main no GitHub. Ou seja: `vercel --prod` daqui publica só o
+    endereço de teste vibravert-loja.vercel.app · para mudar o que está no
+    domínio é preciso PUSH para o GitHub.
+  · Banco: Supabase, schema `vibravert`. Os dois endereços leem o MESMO banco.
+  · O apex vibravert.com.br faz 301 para o www pelo middleware, de propósito
+    (na Vercel o redirect quebrava a emissão do certificado).
+  · Armadilha já paga: process.env.NEXT_PUBLIC_* precisa de `||`, nunca `??` ·
+    o Next substitui em build e variável ausente vira "", que passa pelo `??`.
+  · Recuperação de senha por e-mail ainda não funciona: falta a chave do Resend.

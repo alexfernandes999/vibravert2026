@@ -3,6 +3,13 @@ import { Tela, Legenda, Marca, Botao, Campo, Foto } from "@/components/manual-te
 
 export const metadata = { title: "Manual de uso" };
 
+// O endereço que o painel mostra é o mesmo por onde a pessoa entrou: o domínio
+// da loja. Deixar o `.vercel.app` escrito à mão faz o manual ensinar um
+// endereço secundário, que um dia deixa de existir.
+const ENDERECO = (process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br")
+  .replace(/^https?:\/\//, "")
+  .replace(/\/$/, "");
+
 /**
  * O manual, dentro do painel.
  *
@@ -94,7 +101,7 @@ export default function Manual() {
         ))}
       </nav>
 
-      <Tela titulo="vibravert-loja.vercel.app/admin">
+      <Tela titulo={`${ENDERECO}/admin`}>
         <div className="grid grid-cols-[128px_1fr] gap-3">
           <div className="rounded-md border border-linha bg-superficie-2 p-2">
             <div className="mb-2 h-4 w-16 rounded bg-marca/25" />

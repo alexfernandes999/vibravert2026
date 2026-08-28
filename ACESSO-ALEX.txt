@@ -1,0 +1,50 @@
+PAINEL DA LOJA VIBRA VERT — ACESSOS
+
+LINKS
+  Loja:    https://www.vibravert.com.br
+  Painel:  https://www.vibravert.com.br/admin
+  Manual de uso: dentro do painel, no menu "Manual"
+
+COMO FUNCIONA O ACESSO
+  Agora cada pessoa tem a sua própria conta: login + senha + um código de
+  6 dígitos do aplicativo autenticador. Não existe mais senha única do painel,
+  e ninguém precisa emprestar a senha para ninguém — assim dá para saber quem
+  fez o quê, e desligar o acesso de uma pessoa sem trocar a senha de todo mundo.
+
+CONTAS
+
+  1) Alex — acesso total (MASTER)
+     login: alex
+     senha: chz2-pbch-ugwv-4z5r
+
+  2) Escritório — acesso de operação (OPERADOR): pedidos, estoque, produtos
+     login: escritorio
+     senha: jydy-65kf-6fvj-mhnk
+
+PRIMEIRO ACESSO (uma vez só, leva 2 minutos)
+  1. Instale no celular um destes: Google Authenticator, Authy ou 1Password.
+  2. Entre em https://www.vibravert.com.br/admin com o login e a senha acima.
+  3. O painel abre direto na tela de Segurança com um QR na tela.
+  4. Abra o aplicativo, toque em "+" / "ler QR code" e aponte para o QR.
+  5. Digite no painel o código de 6 dígitos que o aplicativo mostrar. Pronto.
+
+  A partir daí, todo login pede: login, senha e o código do momento. O código
+  muda a cada 30 segundos e é gerado no celular, sem internet.
+
+TROQUE A SENHA
+  Essas senhas foram geradas por mim e passaram por mensagem, então valem como
+  senha de estreia. Depois de entrar, troque por uma sua em Segurança.
+
+SE ALGO TRAVAR
+  · Perdeu o celular ou trocou de aparelho: me chame que eu solto o
+    autenticador da sua conta e você cadastra de novo no próximo acesso.
+  · Esqueceu a senha: me chame. O e-mail automático de recuperação ainda
+    depende de uma configuração pendente.
+  · Endereço errado: o painel é sempre www.vibravert.com.br/admin.
+    Qualquer endereço terminado em .vercel.app é ambiente de teste.
+
+CUIDADOS
+  · Uma conta por pessoa. Se entrar alguém novo no escritório, eu crio a conta
+    dela em vez de compartilhar a do "escritorio".
+  · Não mande senha junto com o link no mesmo lugar (WhatsApp, e-mail).
+  · Nunca digite o código de 6 dígitos em site que você não abriu você mesmo.

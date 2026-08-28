@@ -1,6 +1,7 @@
 "use client";
 
 import { whatsappLink } from "@/lib/contato";
+import { guardarConversa } from "@/lib/acoes-vibrinha";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -100,13 +101,50 @@ export function Vibrinha() {
   // O que a Vibrinha já apurou vai junto na mensagem: quem atende do outro
   // lado não precisa refazer as mesmas três perguntas, e quem escreve não
   // precisa contar a história de novo.
+  /**
+   * A conversa inteira, do jeito que o vendedor precisa ler.
+   *
+   * Antes ia só uma linha com as opções clicadas. O vendedor abria o WhatsApp
+   * sabendo que a pessoa "informou três coisas" e tinha de perguntar tudo de
+   * novo · que é exatamente o que a Vibrinha existe para evitar.
+   *
+   * As falas dela vão encurtadas: o vendedor precisa do fio da conversa, não
+   * do texto completo de um roteiro que ele já conhece. O que a pessoa disse
+   * vai inteiro, porque é ali que está a informação nova.
+   */
+  const dialogo = msgs
+    .slice(1) // a saudação não informa nada
+    .map((m) =>
+      m.de === "eu"
+        ? `— ${m.texto}`
+        : `Vibrinha: ${m.texto.length > 130 ? `${m.texto.slice(0, 130)}…` : m.texto}`,
+    )
+    .join("\n");
+
   const contexto = [
     nome ? `Olá! Meu nome é ${nome}.` : "Olá!",
     "Vim pelo site e conversei com a Vibrinha.",
-    apurado.length ? `Já informei: ${apurado.join(" · ")}.` : "",
+    apurado.length ? `\n\nO que já respondi:\n${apurado.map((a) => `· ${a}`).join("\n")}` : "",
+    dialogo ? `\n\n— — — conversa — — —\n${dialogo.slice(0, 1400)}` : "",
   ]
     .filter(Boolean)
-    .join(" ");
+    .join(" ")
+    .trim();
+
+  /**
+   * Guarda antes de sair.
+   *
+   * O clique abre o WhatsApp e a página fica para trás · se o registro
+   * dependesse do que acontece depois, se perderia sempre.
+   */
+  function aoPassarParaVendedor(de: string) {
+    void guardarConversa({
+      nome: nome || undefined,
+      dialogo,
+      apurado: apurado.join(" · ") || undefined,
+      origem: de,
+    });
+  }
 
   return (
     <>
@@ -129,6 +167,7 @@ export function Vibrinha() {
               href={whatsappLink(contexto)}
               target="_blank"
               rel="noopener"
+              onClick={() => aoPassarParaVendedor("cabeçalho")}
               title="Falar agora com um vendedor no WhatsApp"
               className="ml-auto flex items-center gap-1.5 rounded-lg bg-[#25D366] px-2.5 py-1.5 text-[11.5px] font-extrabold text-white transition hover:brightness-110"
             >
@@ -229,6 +268,7 @@ export function Vibrinha() {
                       href={whatsappLink(contexto)}
                       target="_blank"
                       rel="noopener"
+                      onClick={() => aoPassarParaVendedor("rodapé da resposta")}
                       className="font-bold text-[#128C4A] underline underline-offset-2"
                     >
                       Chame no WhatsApp
@@ -242,6 +282,7 @@ export function Vibrinha() {
                     href={whatsappLink(contexto)}
                     target="_blank"
                     rel="noopener"
+                    onClick={() => aoPassarParaVendedor("fim do roteiro")}
                     className="mt-2.5 flex items-center justify-center gap-2 rounded-lg bg-[#25D366] py-2.5 text-[13px] font-extrabold text-white"
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">

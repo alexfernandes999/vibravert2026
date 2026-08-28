@@ -716,3 +716,25 @@ model Email {
   @@map("emails")
   @@schema("vibravert")
 }
+
+/// Uma conversa com a Vibrinha que terminou no vendedor.
+///
+/// Guardada por dois motivos. O primeiro é a venda: se o cliente sumir do
+/// WhatsApp, o que ele contou continua aqui. O segundo é o roteiro · a lista
+/// do que as pessoas perguntam e onde elas desistem é o que diz qual pergunta
+/// falta, e isso não se descobre imaginando.
+model Conversa {
+  id       String @id @default(cuid())
+  nome     String?
+  /// O diálogo inteiro, na ordem, já pronto para leitura.
+  dialogo  String
+  /// Só o que a pessoa respondeu · é o resumo que o vendedor lê primeiro.
+  apurado  String?
+  /// De onde saiu para o WhatsApp, para saber que assunto converte.
+  origem   String?
+  criadoEm DateTime @default(now())
+
+  @@index([criadoEm])
+  @@map("conversas")
+  @@schema("vibravert")
+}
