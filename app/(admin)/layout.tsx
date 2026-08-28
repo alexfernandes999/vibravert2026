@@ -11,6 +11,10 @@ import "../globals.css";
  * dois grupos de rota, cada um com a sua raiz.
  */
 export const metadata: Metadata = {
+  // Sem isto o Next resolve qualquer caminho de imagem contra
+  // http://localhost:3000 e avisa a cada build. O painel não é compartilhado
+  // em lugar nenhum, mas o aviso repetido esconde os que importam.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br"),
   title: { default: "Administração · Vibra Vert", template: "%s · Administração" },
   robots: { index: false, follow: false },
   // O painel usa o mesmo ícone da loja: quem opera costuma ter as duas abas

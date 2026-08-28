@@ -112,7 +112,7 @@ export function montar(m: Molde) {
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:28px;border-top:1px solid ${LINHA};padding-top:4px">
         <tr>
           <td width="66" style="padding-top:18px;vertical-align:top">
-            <img src="${base()}/vibrinha.png" width="56" height="56" alt="Vibrinha" style="display:block;border:0">
+            <img src="${base()}/vibrinha.png" width="56" height="56" alt="Vibrinha" style="display:block;border:0;background:#ffffff;border-radius:28px">
           </td>
           <td style="padding-top:18px;font:13.5px/1.55 ${F};color:${TINTA_2}">
             <strong style="color:${TINTA}">Vibrinha</strong>
@@ -127,26 +127,49 @@ export function montar(m: Molde) {
 
   return `<!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
-<title>${m.titulo}</title></head>
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>${m.titulo}</title>
+<style>
+  /* O e-mail é claro, e diz isso de três formas porque cada cliente escuta
+     uma. Sem isto, o Gmail no Android e o Mail do iPhone invertem tudo por
+     conta própria: o cartão branco vira preto e o logotipo azul escuro
+     desaparece dentro dele. */
+  :root { color-scheme: light; supported-color-schemes: light; }
+  @media (prefers-color-scheme: dark) {
+    .fundo   { background: ${FUNDO} !important; }
+    .cartao  { background: #ffffff !important; }
+    .tinta   { color: ${TINTA} !important; }
+    .tinta-2 { color: ${TINTA_2} !important; }
+    .azul    { color: ${AZUL} !important; }
+  }
+  /* O Outlook.com renomeia os seletores em vez de usar a media query. */
+  [data-ogsc] .fundo  { background: ${FUNDO} !important; }
+  [data-ogsc] .cartao { background: #ffffff !important; }
+  [data-ogsc] .tinta  { color: ${TINTA} !important; }
+  [data-ogsc] .tinta-2{ color: ${TINTA_2} !important; }
+  [data-ogsc] .azul   { color: ${AZUL} !important; }
+</style>
+</head>
 <body style="margin:0;padding:0;background:${FUNDO}">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">${m.texto[0] ?? m.titulo}</div>
 
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${FUNDO};padding:30px 12px">
+<table role="presentation" class="fundo" bgcolor="${FUNDO}" width="100%" cellpadding="0" cellspacing="0" style="background:${FUNDO};padding:30px 12px">
 <tr><td align="center">
   <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid ${LINHA}">
 
     <!-- Cabeçalho branco com o logotipo real: o azul da marca só funciona
          sobre claro, e escrever o nome à mão joga fora a marca. -->
-    <tr><td style="padding:26px 26px 20px">
-      <img src="${base()}/logo-vibravert.png" width="176" alt="Vibra Vert · Bombas Submersas Vibratórias" style="display:block;border:0">
+    <tr><td bgcolor="#ffffff" style="background:#ffffff;padding:22px 22px 16px">
+      <img src="${base()}/logo-email.png" width="196" alt="Vibra Vert · Bombas Submersas Vibratórias" style="display:block;border:0;background:#ffffff">
     </td></tr>
 
     <tr><td style="height:3px;background:${AZUL};font-size:0;line-height:0">&nbsp;</td></tr>
 
     <tr><td style="padding:26px 26px 30px">
-      <div style="font:700 11px ${F};letter-spacing:1.5px;text-transform:uppercase;color:${AZUL}">${m.etiqueta}</div>
-      <h1 style="margin:8px 0 12px;font:800 25px/1.22 ${F};letter-spacing:-.5px;color:${TINTA}">${m.titulo}</h1>
-      ${m.texto.map((t) => `<p style="margin:0 0 11px;font:15px/1.62 ${F};color:${TINTA_2}">${t}</p>`).join("")}
+      <div class="azul" style="font:700 11px ${F};letter-spacing:1.5px;text-transform:uppercase;color:${AZUL}">${m.etiqueta}</div>
+      <h1 class="tinta" style="margin:8px 0 12px;font:800 25px/1.22 ${F};letter-spacing:-.5px;color:${TINTA}">${m.titulo}</h1>
+      ${m.texto.map((t) => `<p class="tinta-2" style="margin:0 0 11px;font:15px/1.62 ${F};color:${TINTA_2}">${t}</p>`).join("")}
       ${aviso}${itens}${resumo}${botao}${entrega}${assinatura}
     </td></tr>
 

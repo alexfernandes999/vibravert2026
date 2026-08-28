@@ -7,6 +7,13 @@ export const contentType = "image/png";
 /**
  * Imagem de compartilhamento, gerada pelo próprio site.
  *
+ * Mora dentro do grupo (loja), e não na raiz de app/. Na raiz ela ficava fora
+ * de qualquer layout, e sem layout não há metadataBase: o Next resolvia o
+ * endereço dela contra localhost:3000 e avisava a cada build. Aqui herda a
+ * base do layout da loja. O grupo de rota não aparece na URL, então a imagem
+ * continua valendo para o site inteiro · o painel fica de fora, e é o certo:
+ * ele é noindex e ninguém compartilha o link do admin.
+ *
  * Sem ela, o WhatsApp e o Facebook mostram um retângulo cinza com a URL · e
  * nesta categoria o link circula justamente por WhatsApp, entre instalador e
  * cliente. Gerada em tempo de build, sem serviço externo e sem custo.

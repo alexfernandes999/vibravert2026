@@ -121,6 +121,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="pt-BR">
       <head>
+        {/* A fonte está declarada em @font-face, dentro do CSS · o navegador
+            só descobre que precisa dela depois de baixar e ler a folha de
+            estilo inteira, e até lá o texto do LCP espera. O preload pede o
+            arquivo junto com o HTML.
+
+            O crossOrigin é obrigatório mesmo sendo do próprio domínio: fonte
+            é sempre buscada em modo anônimo, e sem o atributo o preload não
+            casa com o pedido do @font-face — o arquivo desce duas vezes. */}
+        <link
+          rel="preload"
+          href="/fonts/red-hat-display.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         {/* Marca que há JavaScript antes da primeira pintura. Só então o CSS
             esconde os blocos que a animação vai revelar. */}
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
