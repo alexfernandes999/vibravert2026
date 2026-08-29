@@ -52,6 +52,21 @@ export function middleware(req: NextRequest) {
    * difícil de enxergar. Aqui o `.well-known` já está fora do matcher.
    */
   const host = req.headers.get("host") ?? "";
+
+  /**
+   * Só o domínio de verdade é indexável.
+   *
+   * Os endereços da Vercel servem a mesma loja e o Google os trata como cópia.
+   * O canonical na página já aponta para cá, mas ele é uma sugestão · o
+   * cabeçalho não é. Vale para os endereços de pré-visualização também, que
+   * aparecem em cada deploy e ninguém lembra de bloquear.
+   */
+  if (host && !host.endsWith("vibravert.com.br") && !host.startsWith("localhost")) {
+    const r = NextResponse.next();
+    r.headers.set("X-Robots-Tag", "noindex, nofollow");
+    return r;
+  }
+
   if (host === "vibravert.com.br") {
     const url = req.nextUrl.clone();
     url.host = "www.vibravert.com.br";
