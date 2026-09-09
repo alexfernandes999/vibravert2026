@@ -3,7 +3,14 @@ import { gerarFeed } from "@/lib/feed";
 export const revalidate = 3600;
 
 /**
- * Serve o feed, e falha alto quando falha.
+ * O mesmo catálogo, noutro endereço.
+ *
+ * A Meta aceita o formato do Google, então um gerador só serve para os dois.
+ * O segundo endereço existe de propósito: cada plataforma agenda a leitura no
+ * seu ritmo, e quando uma para de atualizar dá para saber qual · com um
+ * endereço só, a única resposta possível é "alguma das duas".
+ *
+ * Falha alto quando falha.
  *
  * Um 200 com feed vazio faz a plataforma apagar o catálogo inteiro e recomeçar
  * do zero · perde o histórico de desempenho de cada produto. O 503 diz "estou
@@ -17,7 +24,7 @@ export async function GET() {
       headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=3600" },
     });
   } catch (e) {
-    console.error("[feed] falhou:", e instanceof Error ? e.message : e);
+    console.error("[feed-meta] falhou:", e instanceof Error ? e.message : e);
     return new Response("feed indisponível", { status: 503, headers: { "Retry-After": "600" } });
   }
 }

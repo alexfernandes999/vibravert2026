@@ -738,3 +738,35 @@ model Conversa {
   @@map("conversas")
   @@schema("vibravert")
 }
+
+/// Chaves de marketing, editáveis pelo painel.
+///
+/// Moram no banco e não no ambiente por dois motivos. Quem cuida do tráfego
+/// precisa trocar um pixel numa terça sem esperar deploy · e no Vercel uma
+/// variável NEXT_PUBLIC marcada como sensível simplesmente não entra no build,
+/// deixando a tela sem o id e ninguém entendendo por quê.
+///
+/// Uma linha só. `id` fixo em "unico" para o upsert nunca duplicar.
+model Marketing {
+  id String @id @default("unico")
+
+  /// Público por natureza · vai no HTML de qualquer forma.
+  pixelMeta String?
+  gtmId     String?
+
+  /// Segredo. Nunca sai numa resposta pública · só o servidor o usa para
+  /// mandar a venda pela API de Conversões.
+  tokenCapi String?
+  /// Código de teste do Gerenciador de Eventos, para conferir sem sujar os
+  /// dados reais. Fica vazio em operação normal.
+  testeCapi String?
+
+  /// Desligar tudo sem apagar as chaves · útil para diagnosticar.
+  ativo Boolean @default(true)
+
+  atualizadoEm DateTime @updatedAt
+  criadoEm     DateTime @default(now())
+
+  @@map("marketing")
+  @@schema("vibravert")
+}

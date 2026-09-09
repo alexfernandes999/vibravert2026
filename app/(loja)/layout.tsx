@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Rastreio } from "@/components/rastreio";
+import { configPublica } from "@/lib/marketing";
 import Link from "next/link";
 import Image from "next/image";
 import { bannerAtivo } from "@/lib/banners";
@@ -113,6 +115,8 @@ function Logotipo({ largura = 186 }: { largura?: number }) {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // As chaves vêm do banco · a agência troca o pixel e vale na hora.
+  const mkt = await configPublica();
   // A tarja do topo vem do banco, não do código: é o espaço mais visto da loja
   // e quem decide o que vai nele é o time comercial, não o desenvolvedor.
   const tarja = await bannerAtivo("TARJA_TOPO");
@@ -141,6 +145,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
       </head>
       <body>
+        <Rastreio pixel={mkt.pixelMeta} gtm={mkt.gtmId} />
         {tarja && (
           <div className="relative overflow-hidden bg-marca-escuro">
             <div

@@ -20,6 +20,7 @@ const MENU = [
   { href: "/admin/vitrine", r: "Vitrine da home", grupo: "Loja" },
   { href: "/admin/banners", r: "Banners", grupo: "Loja" },
   { href: "/admin/videos", r: "Vídeos", grupo: "Loja" },
+  { href: "/admin/marketing", r: "Marketing", grupo: "Loja" },
   { href: "/admin/canais", r: "Canais e feeds", grupo: "Loja" },
   { href: "/admin/emails", r: "E-mails", grupo: "Loja" },
   { href: "/admin/seguranca", r: "Segurança", grupo: "Conta" },
