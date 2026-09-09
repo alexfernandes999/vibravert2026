@@ -22,7 +22,9 @@ const so = (s: string) => s.replace(/\D/g, "");
  * Era 11 4000-2440, que é o número da A Casa São Paulo, outra empresa do
  * grupo. O da Vibra Vert é este, e o mesmo atende no WhatsApp.
  */
-export const TELEFONE = process.env.NEXT_PUBLIC_TELEFONE || "11 5033-2828";
+// O fixo termina em 9 e o WhatsApp em 8 · são linhas diferentes, e trocar
+// um pelo outro manda quem quer falar para uma linha que não atende.
+export const TELEFONE = process.env.NEXT_PUBLIC_TELEFONE || "11 5033-2829";
 export const TELEFONE_LINK = `+55${so(TELEFONE)}`;
 
 /** WhatsApp: é para onde a Vibrinha passa a conversa. */
