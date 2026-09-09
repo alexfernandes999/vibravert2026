@@ -7,8 +7,9 @@ import { TELEFONE, TELEFONE_LINK, WHATSAPP_BONITO, whatsappLink } from "@/lib/co
  * um WhatsApp e um e-mail com horário declarado respondem essa pergunta melhor
  * do que qualquer selo.
  *
- * O Vibra Phone e o WhatsApp são o mesmo número, e isso é dito: repetir o
- * número em dois blocos sem explicar parece erro de montagem.
+ * O Vibra Phone e o WhatsApp são linhas diferentes · terminam em 9 e em 8. A
+ * nota de cada um diz para que serve, senão dois números quase iguais lado a
+ * lado parecem erro de digitação e a pessoa liga no errado.
  */
 const CANAIS = [
   {
@@ -23,7 +24,7 @@ const CANAIS = [
   {
     rot: "WhatsApp de vendas",
     valor: WHATSAPP_BONITO,
-    nota: "o mesmo número do Vibra Phone",
+    nota: "linha direta de vendas, só mensagem",
     href: whatsappLink("Olá! Vim pelo site da Vibra Vert."),
     icone: (
       <>
