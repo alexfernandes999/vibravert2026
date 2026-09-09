@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { adicionar } from "@/lib/carrinho";
+import { noCarrinho } from "@/components/rastreio";
 
 /**
  * Comprar leva direto ao carrinho, sem modal intermediário.
@@ -11,7 +12,18 @@ import { adicionar } from "@/lib/carrinho";
  * comprando" no meio do caminho só adia a conversão desta loja — não é uma
  * loja de navegar.
  */
-export function BotaoComprar({ produtoId }: { produtoId: string }) {
+export function BotaoComprar({
+  produtoId,
+  sku,
+  nome,
+  preco,
+}: {
+  produtoId: string;
+  /** Só para a medição · é por estes que a campanha liga a venda ao anúncio. */
+  sku: string;
+  nome: string;
+  preco: number;
+}) {
   const [qtd, setQtd] = useState(1);
   const [pendente, iniciar] = useTransition();
   const router = useRouter();
@@ -44,6 +56,7 @@ export function BotaoComprar({ produtoId }: { produtoId: string }) {
         onClick={() =>
           iniciar(async () => {
             await adicionar(produtoId, qtd);
+            noCarrinho(sku, nome, preco, qtd);
             router.push("/carrinho");
           })
         }

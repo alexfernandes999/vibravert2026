@@ -188,6 +188,29 @@ export function FormMarketing({
           O feed anuncia o preço cheio, nunca o do PIX · o desconto vale só num meio de pagamento,
           e anunciar um valor que o checkout não cobra faz a plataforma reprovar o produto.
         </p>
+
+        <a
+          href="/admin/marketing/diagnostico"
+          target="_blank"
+          rel="noopener"
+          className="mt-3 inline-block text-[12.5px] font-bold text-marca underline underline-offset-2"
+        >
+          Ver o diagnóstico completo ↗
+        </a>
+      </section>
+
+      <section className="rounded-caixa border border-linha bg-superficie p-5">
+        <h2 className="text-[15px] font-extrabold">Como conferir se está medindo</h2>
+        <ol className="mt-2 grid gap-1.5 pl-5 text-[13px] leading-relaxed text-tinta-2" style={{ listStyle: "decimal" }}>
+          <li>No Gerenciador de Eventos da Meta, abra o pixel e veja a atividade em tempo real.</li>
+          <li>Abra a loja numa aba normal e navegue por um produto · devem aparecer <b>PageView</b> e <b>ViewContent</b>.</li>
+          <li>Uma compra de teste gera <b>um</b> Purchase, não dois · se aparecerem dois, o identificador não bateu e me avise.</li>
+        </ol>
+        <p className="mt-3 rounded-lg border-l-[3px] border-atencao bg-atencao/[0.07] px-3.5 py-2.5 text-[12.5px] leading-relaxed text-tinta-2">
+          <b className="text-atencao">Confira com um navegador de verdade.</b> A Meta ignora
+          eventos vindos de navegador automatizado · um teste automático mostra &quot;não envia
+          nada&quot; mesmo com tudo certo.
+        </p>
       </section>
     </form>
   );

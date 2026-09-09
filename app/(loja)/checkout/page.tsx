@@ -28,6 +28,7 @@ export default async function Checkout() {
         chavePublica={modo.chavePublica}
         itens={c.itens.map((i) => ({
           id: i.id,
+          sku: i.sku,
           nome: i.nome,
           qtd: i.qtd,
           total: i.total,

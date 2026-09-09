@@ -6,6 +6,7 @@ import { brl } from "@/lib/formato";
 import QRCode from "qrcode";
 import { configurado } from "@/lib/mercadopago";
 import { PixDoPedido } from "@/components/pix-do-pedido";
+import { Comprou } from "@/components/rastreio";
 import { BotaoPagar } from "@/components/botao-pagar";
 
 import { TELEFONE, whatsappLink } from "@/lib/contato";
@@ -45,6 +46,21 @@ export default async function Pedido({ params }: { params: Promise<{ numero: str
       {/* O agradecimento aparece quando há o que agradecer · num pedido
           cancelado seria deselegante, e num que ainda não foi pago seria
           prematuro. */}
+      {/* O aviso da venda pelo navegador. O servidor manda o mesmo com o mesmo
+          número de pedido como identificador · a plataforma junta os dois e
+          conta uma venda só. */}
+      {["PAGO", "SEPARANDO", "ENVIADO", "ENTREGUE"].includes(p.status) && (
+        <Comprou
+          pedido={p.numero}
+          total={Number(p.total)}
+          itens={p.itens.map((i) => ({
+            sku: i.skuProduto,
+            quantidade: i.quantidade,
+            precoUnitario: Number(i.precoUnitario),
+          }))}
+        />
+      )}
+
       {["PAGO", "SEPARANDO", "ENVIADO", "ENTREGUE"].includes(p.status) && (
         <ObrigadoPeloPedido
           nome={p.cliente.nome.split(" ")[0]}

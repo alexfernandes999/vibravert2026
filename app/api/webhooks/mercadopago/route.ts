@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { consultarPagamento, statusParaPedido } from "@/lib/mercadopago";
 import { pagamentoConfirmado } from "@/lib/email";
 import { enviarParaBling } from "@/lib/bling-nota";
+import { compraNoMeta } from "@/lib/marketing";
 
 /**
  * Webhook do Mercado Pago.
@@ -59,6 +60,34 @@ export async function POST(req: NextRequest) {
       // o cliente ligar perguntando. A falha fica gravada no pedido, nunca
       // estourada: erro aqui faz o Mercado Pago reenviar o aviso por horas.
       await enviarParaBling(pedido.id);
+
+      /**
+       * A venda para a Meta, pelo servidor.
+       *
+       * O pixel do navegador perde uma parte das vendas · iPhone, bloqueador,
+       * aba fechada antes da hora. Este é o sinal confiável, e leva o mesmo
+       * número de pedido como identificador para não contar em dobro.
+       *
+       * Best-effort de propósito: uma métrica não pode derrubar o aviso de
+       * pagamento nem fazer o Mercado Pago reenviar por horas.
+       */
+      if (completo) {
+        await compraNoMeta({
+          pedidoNumero: completo.numero,
+          valor: Number(completo.total),
+          itens: completo.itens.map((i) => ({
+            sku: i.skuProduto,
+            quantidade: i.quantidade,
+            precoUnitario: Number(i.precoUnitario),
+          })),
+          email: completo.cliente.email,
+          telefone: completo.cliente.telefone,
+          nome: completo.cliente.nome,
+          cidade: completo.endereco.cidade,
+          uf: completo.endereco.uf,
+          cep: completo.endereco.cep,
+        });
+      }
 
       const itens = await prisma.pedidoItem.findMany({ where: { pedidoId: pedido.id } });
       for (const i of itens) {

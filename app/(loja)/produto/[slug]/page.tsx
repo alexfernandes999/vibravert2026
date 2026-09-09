@@ -10,6 +10,7 @@ import { Medir } from "@/components/medir";
 import { Galeria } from "@/components/galeria";
 import { Video } from "@/components/video";
 import { BotaoComprar } from "@/components/botao-comprar";
+import { VerProduto } from "@/components/rastreio";
 import { brl, precoPix, parcela, PARCELAS_MAX, ALTURAS_MCA, litros } from "@/lib/formato";
 import { SeloGarantia } from "@/components/selo-garantia";
 
@@ -154,7 +155,8 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
             <p className="num mt-1 text-[13px] font-semibold text-tinta-2">
               ou até {PARCELAS_MAX}× de {brl(parcela(preco))} sem juros
             </p>
-            <BotaoComprar produtoId={p.id} />
+            <BotaoComprar produtoId={p.id} sku={p.sku} nome={p.nome} preco={Number(p.preco)} />
+            <VerProduto sku={p.sku} nome={p.nome} valor={Number(p.preco)} />
           </div>
 
           <SeletorVersao versoes={versoes} atual={p.versao} />

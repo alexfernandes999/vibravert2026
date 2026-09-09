@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { CamposCartao, gerarTokenCartao } from "@/components/campos-cartao";
+import { comecouCheckout } from "@/components/rastreio";
 import { finalizar, consultarCep, cotarFrete, type EstadoCheckout } from "@/app/(loja)/checkout/acoes";
 import type { Opcao } from "@/lib/frete";
 import { PARCELAS_SEM_JUROS, DESCONTO_PIX } from "@/lib/loja";
@@ -23,6 +24,9 @@ const METODOS = [
  */
 export type ItemResumo = {
   id: string;
+  /** O código do produto · é o mesmo que vai no feed, e é por ele que a
+   *  plataforma liga a venda ao anúncio que a trouxe. */
+  sku: string;
   nome: string;
   qtd: number;
   total: number;
@@ -83,6 +87,13 @@ export function FormularioCheckout({
    * achando que comprou.
    */
   async function aoEnviar(e: React.FormEvent<HTMLFormElement>) {
+    // Antes de qualquer coisa: é o passo que a campanha usa para achar quem
+    // chega até aqui, e vale mesmo quando o pagamento falha depois.
+    comecouCheckout(
+      itens.map((i) => ({ sku: i.sku, quantidade: i.qtd, precoUnitario: i.total / i.qtd })),
+      metodo === "PIX" ? totalPix : total,
+    );
+
     if (!cartaoAqui) return; // Checkout Pro segue o caminho normal do form
     e.preventDefault();
     setErroCartao("");
