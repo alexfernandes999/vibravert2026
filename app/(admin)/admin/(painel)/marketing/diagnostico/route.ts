@@ -42,6 +42,8 @@ export async function GET() {
       pixelMeta: m?.pixelMeta ? `configurado (${m.pixelMeta})` : "FALTA",
       tokenConversoes: m?.tokenCapi ? "configurado" : "FALTA",
       gtm: m?.gtmId ? `configurado (${m.gtmId})` : "FALTA",
+      googleAds: m?.googleAds ? `configurado (${m.googleAds})` : "FALTA",
+      conversaoCompra: m?.rotuloCompra ? "configurada" : "FALTA · a campanha não sabe o que é uma venda",
       modoTeste: m?.testeCapi ? `LIGADO (${m.testeCapi}) · as vendas não contam` : "desligado",
       alteradoEm: m?.atualizadoEm ?? null,
     },

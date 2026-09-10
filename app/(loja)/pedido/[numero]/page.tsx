@@ -6,7 +6,8 @@ import { brl } from "@/lib/formato";
 import QRCode from "qrcode";
 import { configurado } from "@/lib/mercadopago";
 import { PixDoPedido } from "@/components/pix-do-pedido";
-import { Comprou } from "@/components/rastreio";
+import { Comprou, ConversaoGoogle } from "@/components/rastreio";
+import { configPublica } from "@/lib/marketing";
 import { BotaoPagar } from "@/components/botao-pagar";
 
 import { TELEFONE, whatsappLink } from "@/lib/contato";
@@ -34,6 +35,7 @@ export default async function Pedido({ params }: { params: Promise<{ numero: str
   if (!p) notFound();
 
   const st = ROTULO[p.status] ?? ROTULO.AGUARDANDO_PAGAMENTO;
+  const mkt = await configPublica();
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-12">
@@ -49,6 +51,15 @@ export default async function Pedido({ params }: { params: Promise<{ numero: str
       {/* O aviso da venda pelo navegador. O servidor manda o mesmo com o mesmo
           número de pedido como identificador · a plataforma junta os dois e
           conta uma venda só. */}
+      {mkt.googleAds && mkt.rotuloCompra && ["PAGO", "SEPARANDO", "ENVIADO", "ENTREGUE"].includes(p.status) && (
+        <ConversaoGoogle
+          ads={mkt.googleAds}
+          rotulo={mkt.rotuloCompra}
+          pedido={p.numero}
+          total={Number(p.total)}
+        />
+      )}
+
       {["PAGO", "SEPARANDO", "ENVIADO", "ENTREGUE"].includes(p.status) && (
         <Comprou
           pedido={p.numero}

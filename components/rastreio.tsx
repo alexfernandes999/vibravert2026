@@ -22,10 +22,20 @@ declare global {
     fbq?: ((...a: unknown[]) => void) & { queue?: unknown[]; loaded?: boolean; version?: string; callMethod?: (...a: unknown[]) => void };
     _fbq?: unknown;
     dataLayer?: unknown[];
+    gtag?: (...a: unknown[]) => void;
   }
 }
 
-export function Rastreio({ pixel, gtm }: { pixel: string | null; gtm: string | null }) {
+export function Rastreio({
+  pixel,
+  gtm,
+  ads,
+}: {
+  pixel: string | null;
+  gtm: string | null;
+  /** Conta do Google Ads · AW-… É o que liga o clique pago à venda. */
+  ads: string | null;
+}) {
   const caminho = usePathname();
   const primeira = useRef(true);
 
@@ -55,6 +65,20 @@ t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
 document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init','${pixel}');fbq('track','PageView');`}
         </Script>
+      )}
+
+      {ads && (
+        <>
+          <Script
+            id="gtag-src"
+            strategy="afterInteractive"
+            src={`https://www.googletagmanager.com/gtag/js?id=${ads}`}
+          />
+          <Script id="gtag" strategy="afterInteractive">
+            {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
+gtag('js',new Date());gtag('config','${ads}');`}
+          </Script>
+        </>
       )}
 
       {gtm && (
@@ -101,6 +125,41 @@ export function noCarrinho(sku: string, nome: string, valor: number, qtd = 1) {
 /** Começou a finalizar. */
 export function comecouCheckout(itens: Item[], total: number) {
   disparar("InitiateCheckout", { value: total, num_items: itens.reduce((s, i) => s + i.quantidade, 0), ...conteudo(itens) });
+}
+
+/**
+ * A conversão de compra no Google Ads.
+ *
+ * Sem ela o Google não sabe quais cliques viraram venda · a campanha gasta às
+ * cegas por semanas otimizando para nada, e depois desiste. É o passo que
+ * precisa existir ANTES de a campanha começar a rodar, não depois.
+ *
+ * `transaction_id` é o número do pedido: se a pessoa recarregar a página de
+ * acompanhamento, o Google entende que é a mesma venda e não conta de novo.
+ */
+export function ConversaoGoogle({
+  ads,
+  rotulo,
+  pedido,
+  total,
+}: {
+  ads: string;
+  rotulo: string;
+  pedido: number;
+  total: number;
+}) {
+  const feito = useRef(false);
+  useEffect(() => {
+    if (feito.current || !window.gtag) return;
+    feito.current = true;
+    window.gtag("event", "conversion", {
+      send_to: `${ads}/${rotulo}`,
+      value: total,
+      currency: "BRL",
+      transaction_id: String(pedido),
+    });
+  }, [ads, rotulo, pedido, total]);
+  return null;
 }
 
 /**

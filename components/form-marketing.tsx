@@ -54,9 +54,10 @@ function Campo({
 }
 
 export function FormMarketing({
-  pixelMeta, gtmId, testeCapi, temToken, ativo, base, ofertas, atualizadoEm,
+  pixelMeta, gtmId, googleAds, rotuloCompra, testeCapi, temToken, ativo, base, ofertas, atualizadoEm,
 }: {
-  pixelMeta: string; gtmId: string; testeCapi: string; temToken: boolean;
+  pixelMeta: string; gtmId: string; googleAds: string; rotuloCompra: string;
+  testeCapi: string; temToken: boolean;
   ativo: boolean; base: string; ofertas: number; atualizadoEm: string | null;
 }) {
   const [estado, setEstado] = useState<{ erro?: string; ok?: boolean }>({});
@@ -117,6 +118,40 @@ export function FormMarketing({
           servidor, com o mesmo identificador. O Meta junta as duas e conta uma só. O envio pelo
           servidor existe porque o do navegador se perde: iPhone, bloqueador de anúncios, aba
           fechada antes da hora.
+        </p>
+      </fieldset>
+
+      <fieldset className="rounded-caixa border border-linha bg-superficie p-5">
+        <legend className="px-1.5 text-[11.5px] font-extrabold uppercase tracking-wide text-mudo">
+          Google Ads · conversão de compra
+        </legend>
+
+        <div className="grid gap-4">
+          <Campo
+            nome="googleAds"
+            rotulo="ID da conta"
+            dica="Google Ads → Ferramentas → Conversões → a conversão de compra → Configurar a tag. É o número que aparece como AW-…"
+            valor={googleAds}
+            placeholder="AW-123456789"
+          />
+          <Campo
+            nome="rotuloCompra"
+            rotulo="Rótulo da conversão"
+            dica="Na mesma tela, logo abaixo do ID · é a segunda parte, depois da barra. Costuma ser uma sequência de letras e números."
+            valor={rotuloCompra}
+            placeholder="AbC-D_efGh12ijkLMn"
+          />
+        </div>
+
+        <p className="mt-4 rounded-lg border-l-[3px] border-atencao bg-atencao/[0.07] px-3.5 py-2.5 text-[12.5px] leading-relaxed text-tinta-2">
+          <b className="text-atencao">Isto tem de existir antes de a campanha começar.</b> Sem a
+          conversão registrada, o Google não sabe quais cliques viraram venda · a campanha gasta
+          às cegas por semanas otimizando para nada, e depois desiste.
+          <br />
+          <span className="mt-1.5 block text-[12px] text-mudo">
+            Depois de salvar, faça um pedido de teste. A conversão aparece no Google Ads em até
+            algumas horas · até lá o painel mostra &quot;sem dados&quot;, e isso é normal.
+          </span>
         </p>
       </fieldset>
 

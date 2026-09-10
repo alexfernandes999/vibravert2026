@@ -145,7 +145,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
       </head>
       <body>
-        <Rastreio pixel={mkt.pixelMeta} gtm={mkt.gtmId} />
+        <Rastreio pixel={mkt.pixelMeta} gtm={mkt.gtmId} ads={mkt.googleAds} />
         {tarja && (
           <div className="relative overflow-hidden bg-marca-escuro">
             <div

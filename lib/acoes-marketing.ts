@@ -17,6 +17,8 @@ export async function salvarMarketing(dados: FormData) {
 
   const pixel = texto("pixelMeta").replace(/\D/g, "");
   const gtm = texto("gtmId").toUpperCase();
+  const ads = texto("googleAds").toUpperCase();
+  const rotulo = texto("rotuloCompra");
   const token = texto("tokenCapi");
   const teste = texto("testeCapi");
 
@@ -26,6 +28,12 @@ export async function salvarMarketing(dados: FormData) {
   if (pixel && pixel.length < 10) {
     return { erro: "O id do pixel tem 15 ou 16 dígitos." };
   }
+  if (ads && !/^AW-\d{9,}$/.test(ads)) {
+    return { erro: "O id do Google Ads tem o formato AW-123456789." };
+  }
+  if (rotulo && !ads) {
+    return { erro: "O rótulo da conversão só funciona junto com o id do Google Ads." };
+  }
 
   await prisma.marketing.upsert({
     where: { id: "unico" },
@@ -33,6 +41,8 @@ export async function salvarMarketing(dados: FormData) {
       id: "unico",
       pixelMeta: pixel || null,
       gtmId: gtm || null,
+      googleAds: ads || null,
+      rotuloCompra: rotulo || null,
       tokenCapi: token || null,
       testeCapi: teste || null,
       ativo: dados.get("ativo") === "on",
@@ -40,6 +50,8 @@ export async function salvarMarketing(dados: FormData) {
     update: {
       pixelMeta: pixel || null,
       gtmId: gtm || null,
+      googleAds: ads || null,
+      rotuloCompra: rotulo || null,
       // Em branco mantém o que estava · só troca quando alguém digita outro.
       ...(token ? { tokenCapi: token } : {}),
       testeCapi: teste || null,

@@ -754,6 +754,14 @@ model Marketing {
   pixelMeta String?
   gtmId     String?
 
+  /// Google Ads. O id da conta (AW-…) e o rótulo da conversão de compra.
+  ///
+  /// É outra coisa que o GTM e que o pixel: sem esta etiqueta o Google não
+  /// sabe quais cliques viraram venda, e a campanha gasta às cegas por
+  /// semanas otimizando para nada.
+  googleAds    String?
+  rotuloCompra String?
+
   /// Segredo. Nunca sai numa resposta pública · só o servidor o usa para
   /// mandar a venda pela API de Conversões.
   tokenCapi String?

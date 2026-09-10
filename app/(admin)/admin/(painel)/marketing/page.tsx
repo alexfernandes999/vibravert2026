@@ -29,6 +29,8 @@ export default async function Marketing() {
       <FormMarketing
         pixelMeta={m?.pixelMeta ?? ""}
         gtmId={m?.gtmId ?? ""}
+        googleAds={m?.googleAds ?? ""}
+        rotuloCompra={m?.rotuloCompra ?? ""}
         testeCapi={m?.testeCapi ?? ""}
         temToken={Boolean(m?.tokenCapi)}
         ativo={m?.ativo ?? true}
