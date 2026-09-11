@@ -47,7 +47,7 @@ const entrega = (p: PedidoCompleto) => [
  * compra o tempo todo, e resposta que cai numa caixa que ninguém abre é pior
  * do que não ter mandado.
  */
-async function entregar(para: string, assunto: string, html: string) {
+async function entregar(para: string, assunto: string, html: string, comCopia = false) {
   const r = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -60,9 +60,11 @@ async function entregar(para: string, assunto: string, html: string) {
       subject: assunto,
       html,
       reply_to: process.env.EMAIL_RESPOSTA || "pedido@vibravert.com.br",
-      // Uma cópia para a loja, quando configurada: assim o time vê a venda
-      // entrar sem depender de alguém abrir o painel.
-      ...(process.env.EMAIL_COPIA ? { bcc: process.env.EMAIL_COPIA } : {}),
+      // Cópia para a loja só no que é pedido · o time vê a venda entrar sem
+      // abrir o painel. Nunca no resto: a recuperação de senha leva um link
+      // que troca a senha do painel, e em cópia ele deixaria qualquer um que
+      // lê a caixa da loja entrar como administrador.
+      ...(comCopia && process.env.EMAIL_COPIA ? { bcc: process.env.EMAIL_COPIA } : {}),
     }),
   });
   if (!r.ok) throw new Error(`${r.status} ${(await r.text()).slice(0, 300)}`);
@@ -87,7 +89,7 @@ async function enviar(para: string, assunto: string, html: string, pedidoId?: st
   }
 
   try {
-    await entregar(para, assunto, html);
+    await entregar(para, assunto, html, Boolean(pedidoId));
     if (registro) {
       await prisma.email.update({
         where: { id: registro.id },
@@ -129,7 +131,7 @@ export async function enviarPendentes(limite = 50) {
   let enviados = 0;
   for (const e of fila) {
     try {
-      await entregar(e.para, e.assunto, e.corpo);
+      await entregar(e.para, e.assunto, e.corpo, Boolean(e.pedidoId));
       await prisma.email.update({
         where: { id: e.id },
         data: { situacao: "ENVIADO", enviadoEm: new Date(), erro: null, tentativas: { increment: 1 } },
