@@ -186,6 +186,7 @@ export function pedidoRecebido(p: PedidoCompleto) {
       entrega: entrega(p),
       assinatura: true,
     }),
+    p.id,
   );
 }
 
@@ -212,6 +213,7 @@ export function pagamentoConfirmado(p: PedidoCompleto) {
       entrega: entrega(p),
       assinatura: true,
     }),
+    p.id,
   );
 }
 
@@ -238,6 +240,7 @@ export function pedidoEnviado(p: PedidoCompleto) {
       entrega: entrega(p),
       assinatura: true,
     }),
+    p.id,
   );
 }
 
