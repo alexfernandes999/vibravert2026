@@ -36,8 +36,16 @@ function descricao(s: Busca) {
   return "Bomba sapo Vibra Vert e Rymer, direto da fábrica. Filtre por diâmetro do poço, vazão e voltagem, e veja quanto cada bomba entrega na sua instalação.";
 }
 
-/** A canônica ignora filtro não indexável, para não multiplicar a mesma página. */
+/**
+ * A canônica ignora filtro não indexável, para não multiplicar a mesma página.
+ *
+ * Todo filtro indexável aponta para si mesmo. Uma página que se declara
+ * indexável e ao mesmo tempo aponta a canônica para outra está pedindo duas
+ * coisas opostas · o Google fica com a outra e esta nunca aparece. Era o que
+ * acontecia com peças: indexável, no sitemap, e invisível.
+ */
 function canonica(s: Busca) {
+  if (s.tipo === "peca") return "/bombas?tipo=peca";
   if (s.poco) return `/bombas?poco=${s.poco}`;
   if (s.voltagem) return `/bombas?voltagem=${encodeURIComponent(s.voltagem)}`;
   return "/bombas";

@@ -42,6 +42,40 @@ async function buscar(slug: string) {
   });
 }
 
+/**
+ * O título sem o nome da loja.
+ *
+ * O layout já acrescenta "| Loja Oficial Vibra Vert" a toda página. O
+ * cadastro importado da VTEX trazia o sufixo embutido, e o resultado era o
+ * nome da loja duas vezes no título · 101 caracteres, a metade cortada pelo
+ * Google, e com cara de spam. Tirar aqui protege também o produto cadastrado
+ * amanhã por alguém que não sabe disso.
+ */
+function tituloLimpo(t: string | null) {
+  return (t ?? "").replace(/\s*[|·–-]\s*Loja Oficial( Vibra Vert)?\s*$/i, "").trim();
+}
+
+/**
+ * A descrição como o Google a mostra: texto corrido, até ~155 caracteres.
+ *
+ * O cadastro antigo trazia HTML dentro da meta · "<p>Especificações
+ * Técnicas</p>…", 1.240 caracteres. O Google mostra 155 e descarta o resto,
+ * e as etiquetas no meio sinalizam página malfeita. Corta na última palavra
+ * inteira, nunca no meio de uma.
+ */
+function metaLimpa(t: string | null) {
+  if (!t) return undefined;
+  const texto = t
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (texto.length <= 155) return texto;
+  const corte = texto.slice(0, 152);
+  return corte.slice(0, corte.lastIndexOf(" ")).replace(/[,;:·\s]+$/, "") + "…";
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -49,9 +83,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const p = await buscar((await params).slug);
   if (!p) return {};
+  const descricao = metaLimpa(p.metaDescricao);
   return {
-    title: p.metaTitulo ?? p.nome,
-    description: p.metaDescricao ?? undefined,
+    title: tituloLimpo(p.metaTitulo) || p.nome,
+    description: descricao,
     // A URL indexada é a da versão principal: quatro páginas quase idênticas
     // disputando a mesma busca é o que diluía a força do produto.
     alternates: { canonical: `/produto/${(await irmas(p.familia, p.slug)).find((i) => i.principalDaFamilia)?.slug ?? p.slug}` },
@@ -60,7 +95,7 @@ export async function generateMetadata({
     // recorta em uma tira ilegível.
     openGraph: {
       title: p.nome,
-      description: p.metaDescricao ?? undefined,
+      description: descricao,
       type: "website",
     },
   };
