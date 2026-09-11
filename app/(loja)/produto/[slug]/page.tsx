@@ -271,9 +271,14 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
             "@type": "Product",
             name: p.nome,
             sku: p.sku,
-            ...(p.ean ? { gtin13: p.ean } : { mpn: p.sku }),
+            // O mpn vai sempre, e o gtin junto quando existe. O Google cruza os
+            // dois para reconhecer o produto; mandar só um o faz adivinhar.
+            mpn: p.sku,
+            ...(p.ean ? { gtin13: p.ean } : {}),
             brand: { "@type": "Brand", name: p.marca },
-            description: p.metaDescricao ?? p.descricao?.slice(0, 300),
+            // Pelo mesmo filtro da meta: HTML vindo de cadastro importado não
+            // pode vazar para os dados estruturados.
+            description: metaLimpa(p.metaDescricao) ?? metaLimpa(p.descricao),
             image: p.imagens.map((i) => i.url),
             offers: {
               "@type": "Offer",

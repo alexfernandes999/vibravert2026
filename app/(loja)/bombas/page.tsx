@@ -4,6 +4,8 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { CartaoProduto } from "@/components/cartao-produto";
 
+const SITE = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
+
 export const revalidate = 300;
 
 type Busca = { poco?: string; voltagem?: string; acompanha?: string; ordem?: string; lider?: string; marca?: string; tipo?: string };
@@ -121,6 +123,39 @@ export default async function Listagem({ searchParams }: { searchParams: Promise
 
   return (
     <div className="mx-auto max-w-7xl gap-8 px-5 py-8 lg:grid lg:grid-cols-[220px_1fr]">
+      {/* A página de categoria dizendo ao Google o que ela é: onde fica no
+          site e quais produtos lista. Sem isto ele vê uma grade de links e
+          precisa adivinhar · com isto, pode mostrar o caminho de navegação no
+          resultado da busca. O script não ocupa célula do grid: sem caixa,
+          ele não participa do layout. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "BreadcrumbList",
+                itemListElement: [
+                  { "@type": "ListItem", position: 1, name: "Início", item: SITE },
+                  { "@type": "ListItem", position: 2, name: titulo(s), item: `${SITE}${canonica(s)}` },
+                ],
+              },
+              {
+                "@type": "ItemList",
+                name: titulo(s),
+                numberOfItems: produtos.length,
+                itemListElement: produtos.map((pr, i) => ({
+                  "@type": "ListItem",
+                  position: i + 1,
+                  url: `${SITE}/produto/${pr.slug}`,
+                  name: pr.nome,
+                })),
+              },
+            ],
+          }),
+        }}
+      />
       <aside className="mb-6 lg:mb-0">
         <h2 className="mb-3 text-[13.5px] font-extrabold">Filtrar</h2>
 
