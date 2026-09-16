@@ -53,9 +53,9 @@ export function RelogioPainel() {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="rounded-caixa border border-linha bg-superficie px-3 py-1.5 text-right leading-tight">
-        <p className="num text-[15px] font-extrabold tracking-tight tabular-nums">{hora}</p>
-        <p className="text-[10.5px] font-semibold capitalize text-mudo">{dia || "carregando"}</p>
+      <div className="flex h-9 items-center gap-2 rounded-lg border border-linha bg-superficie px-3">
+        <span className="num text-[13.5px] font-semibold tabular-nums text-tinta">{hora}</span>
+        <span className="text-[12px] capitalize text-mudo">{dia || "carregando"}</span>
       </div>
 
       <button
@@ -63,7 +63,7 @@ export function RelogioPainel() {
         disabled={atualizando}
         title="Buscar os números de novo"
         aria-label="Atualizar os dados"
-        className="grid h-[46px] w-[46px] place-items-center rounded-caixa border border-linha bg-superficie text-marca transition hover:border-marca hover:bg-marca-suave active:scale-95 disabled:opacity-60"
+        className="grid h-9 w-9 place-items-center rounded-lg border border-linha bg-superficie text-tinta-2 transition-colors hover:border-marca/40 hover:text-marca active:scale-95 disabled:opacity-60"
       >
         <svg
           viewBox="0 0 24 24"
@@ -72,7 +72,8 @@ export function RelogioPainel() {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className={`h-5 w-5 ${atualizando ? "animate-spin" : ""}`}
+          aria-hidden
+          className={`h-4 w-4 ${atualizando ? "animate-spin" : ""}`}
         >
           <path d="M20.5 12a8.5 8.5 0 11-2.5-6" />
           <path d="M20.5 4.5V10H15" />

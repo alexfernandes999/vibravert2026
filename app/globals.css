@@ -44,6 +44,14 @@
   --color-atencao: #9a6a0e;
   --color-critico: #a83a2c;
 
+  /* Cores de dado, só para gráfico. O azul do logotipo é escuro demais para
+     marcar valor · quase se confunde com o texto. Este é o mesmo azul aberto
+     um passo. As três passaram no validador de daltonismo e contraste; o
+     âmbar fica abaixo de 3:1, por isso nunca aparece sem o nome ao lado. */
+  --color-dado: #3563c7;
+  --color-dado-2: #1a9e94;
+  --color-dado-3: #c9911a;
+
   --font-sans: "Red Hat Display", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --radius-caixa: 0.75rem;

@@ -37,16 +37,16 @@ export function Saudacao({ nome }: { nome: string }) {
       <Image
         src="/vibrinha.png"
         alt=""
-        width={46}
-        height={46}
-        className="h-[46px] w-[46px] shrink-0 rounded-full bg-marca-suave"
+        width={44}
+        height={44}
+        className="h-11 w-11 shrink-0 rounded-full bg-marca-suave"
         priority
       />
       <div className="min-w-0">
-        <h1 className="text-xl font-extrabold tracking-tight">
+        <h1 className="text-[22px] font-semibold leading-tight tracking-tight text-tinta">
           {saudacao}, {primeiroNome(nome)}
         </h1>
-        <p className="text-[12.5px] text-mudo">{fala}</p>
+        <p className="mt-0.5 text-[13.5px] text-mudo">{fala}</p>
       </div>
     </div>
   );

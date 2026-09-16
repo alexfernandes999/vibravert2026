@@ -1,109 +1,103 @@
 import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import { LogOut, PlayCircle } from "lucide-react";
 import { usuarioAtual, sair } from "@/lib/admin-auth";
-import { prisma as db } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { TourPainel } from "@/components/tour-painel";
 import { repetirTour } from "@/lib/acoes-tour";
-import { prisma } from "@/lib/prisma";
+import { NavPainel, type ItemMenu } from "@/components/nav-painel";
 
 export const dynamic = "force-dynamic";
 
-const MENU = [
-  { href: "/admin", r: "Painel", grupo: "" },
-  { href: "/admin/pedidos", r: "Pedidos", grupo: "" },
-  { href: "/admin/produtos", r: "Produtos", grupo: "" },
-  { href: "/admin/estoque", r: "Estoque", grupo: "" },
-  { href: "/admin/recuperar-vendas", r: "Recuperar vendas", grupo: "" },
-  { href: "/admin/conversas", r: "Conversas", grupo: "" },
-  { href: "/admin/revenda", r: "Revenda", grupo: "" },
-  { href: "/admin/vitrine", r: "Vitrine da home", grupo: "Loja" },
-  { href: "/admin/banners", r: "Banners", grupo: "Loja" },
-  { href: "/admin/videos", r: "Vídeos", grupo: "Loja" },
-  { href: "/admin/marketing", r: "Marketing", grupo: "Loja" },
-  { href: "/admin/canais", r: "Canais e feeds", grupo: "Loja" },
-  { href: "/admin/emails", r: "E-mails", grupo: "Loja" },
-  { href: "/admin/seguranca", r: "Segurança", grupo: "Conta" },
+const MENU: (Omit<ItemMenu, "badge"> & { papeis?: string[] })[] = [
+  { href: "/admin", r: "Visão geral", grupo: "", icone: "painel" },
+  { href: "/admin/pedidos", r: "Pedidos", grupo: "", icone: "pedidos" },
+  { href: "/admin/produtos", r: "Produtos", grupo: "", icone: "produtos" },
+  { href: "/admin/estoque", r: "Estoque", grupo: "", icone: "estoque" },
+  { href: "/admin/recuperar-vendas", r: "Recuperar vendas", grupo: "", icone: "recuperar" },
+  { href: "/admin/conversas", r: "Conversas", grupo: "", icone: "conversas" },
+  { href: "/admin/revenda", r: "Revenda", grupo: "", icone: "revenda" },
+  { href: "/admin/vitrine", r: "Vitrine da home", grupo: "Loja", icone: "vitrine" },
+  { href: "/admin/banners", r: "Banners", grupo: "Loja", icone: "banners" },
+  { href: "/admin/videos", r: "Vídeos", grupo: "Loja", icone: "videos" },
+  { href: "/admin/marketing", r: "Marketing", grupo: "Loja", icone: "marketing" },
+  { href: "/admin/canais", r: "Canais e feeds", grupo: "Loja", icone: "canais" },
+  { href: "/admin/emails", r: "E-mails", grupo: "Loja", icone: "emails" },
+  { href: "/admin/seguranca", r: "Segurança", grupo: "Conta", icone: "seguranca" },
   // Quem dá e tira acesso é o dono e quem cuida do sistema. O operador não vê
-  // esta tela: não precisa criar conta, e cada pessoa a mais com esse poder é
-  // uma porta a mais para deixar aberta.
-  { href: "/admin/equipe", r: "Equipe e acessos", grupo: "Conta", papeis: ["MASTER", "DESENVOLVEDOR"] },
-  // Quem liga e religa serviço de fora é quem responde pela conta · o operador
-  // não precisa ver token nenhum.
-  { href: "/admin/integracoes", r: "Integrações", grupo: "Conta", papeis: ["MASTER", "DESENVOLVEDOR"] },
+  // esta tela: cada pessoa a mais com esse poder é uma porta a mais aberta.
+  { href: "/admin/equipe", r: "Equipe e acessos", grupo: "Conta", icone: "equipe", papeis: ["MASTER", "DESENVOLVEDOR"] },
+  // Quem liga serviço de fora é quem responde pela conta · o operador não
+  // precisa ver token nenhum.
+  { href: "/admin/integracoes", r: "Integrações", grupo: "Conta", icone: "integracoes", papeis: ["MASTER", "DESENVOLVEDOR"] },
   // O manual fica no painel, não num PDF: a dúvida aparece aqui dentro.
-  { href: "/admin/manual", r: "Manual de uso", grupo: "Conta" },
+  { href: "/admin/manual", r: "Manual de uso", grupo: "Conta", icone: "manual" },
 ];
+
+const PAPEL = { OPERADOR: "Operador", MASTER: "Dono", DESENVOLVEDOR: "Desenvolvedor" } as const;
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const eu = await usuarioAtual();
   if (!eu) redirect("/admin/entrar");
 
-  const menu = MENU.filter((m) => !m.papeis || m.papeis.includes(eu.papel));
-
-  // O tour aparece na primeira entrada de cada pessoa, seja o dono, o
-  // escritório ou quem for criado depois.
-  const conta = await db.usuario.findUnique({ where: { id: eu.id }, select: { viuTour: true } });
-
-  const [aSeparar, estoqueBaixo] = await Promise.all([
+  const [conta, aSeparar, estoqueBaixo] = await Promise.all([
+    // O tour aparece na primeira entrada de cada pessoa.
+    prisma.usuario.findUnique({ where: { id: eu.id }, select: { viuTour: true } }),
     prisma.pedido.count({ where: { status: { in: ["PAGO", "SEPARANDO"] } } }),
     prisma.estoque.count({ where: { quantidade: { lte: 5 } } }),
   ]);
 
   const contagem: Record<string, number> = { "/admin/pedidos": aSeparar, "/admin/estoque": estoqueBaixo };
+  const itens: ItemMenu[] = MENU.filter((m) => !m.papeis || m.papeis.includes(eu.papel)).map(
+    ({ papeis: _papeis, ...m }) => ({ ...m, badge: contagem[m.href] || undefined }),
+  );
+  const inicial = eu.nome.trim().charAt(0).toLocaleUpperCase("pt-BR");
 
   return (
-    <div className="grid min-h-screen grid-cols-1 md:grid-cols-[218px_1fr]">
-      <aside className="border-r border-linha bg-superficie-2 p-4">
-        <Link href="/" className="block border-b border-linha pb-4">
-          <Image src="/logo-vibravert.png" alt="Vibra Vert" width={140} height={49} />
-          <span className="mt-2 block text-[9.5px] font-extrabold uppercase tracking-[0.16em] text-mudo">
-            Administração
-          </span>
-        </Link>
+    <div className="min-h-screen bg-fundo md:grid md:grid-cols-[248px_minmax(0,1fr)]">
+      <aside className="flex flex-col border-b border-linha bg-superficie md:sticky md:top-0 md:h-screen md:border-b-0 md:border-r">
+        <div className="px-5 pb-3 pt-5">
+          <Link href="/admin" className="inline-block">
+            <Image src="/logo-vibravert.png" alt="Vibra Vert" width={132} height={46} priority />
+          </Link>
+          <p className="mt-1.5 text-[12px] font-medium text-mudo">Painel administrativo</p>
+        </div>
 
-        <nav className="mt-4 flex flex-col gap-0.5">
-          {menu.map((m, i) => (
-            <span key={m.href}>
-              {m.grupo && menu[i - 1]?.grupo !== m.grupo && (
-                <span className="block px-2.5 pb-1.5 pt-4 text-[9.5px] font-extrabold uppercase tracking-[0.14em] text-tenue">
-                  {m.grupo}
-                </span>
-              )}
-              <Link
-                href={m.href}
-                className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13.5px] font-semibold text-tinta-2 hover:bg-superficie hover:text-tinta"
-              >
-                {m.r}
-                {contagem[m.href] > 0 && (
-                  <span className="num ml-auto rounded-full bg-critico/10 px-1.5 py-0.5 text-[10px] font-extrabold text-critico">
-                    {contagem[m.href]}
-                  </span>
-                )}
-              </Link>
-            </span>
-          ))}
-        </nav>
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
+          <NavPainel itens={itens} />
+        </div>
 
         {/* Quem está logado fica visível: em máquina compartilhada, agir sem
             saber em nome de quem é o jeito de a auditoria virar ficção. */}
-        <div className="mt-6 border-t border-linha pt-4">
-          <p className="text-[12.5px] font-bold leading-tight">{eu.nome}</p>
-          <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-mudo">
-            {{ OPERADOR: "Operador", MASTER: "Dono", DESENVOLVEDOR: "Desenvolvedor" }[eu.papel]}
-          </p>
-          <form action={async () => { "use server"; await repetirTour(); redirect("/admin"); }}>
-            <button className="mt-2 block text-[12px] font-semibold text-mudo underline underline-offset-2">
-              Ver o tour de novo
-            </button>
-          </form>
-          <form action={async () => { "use server"; await sair(); redirect("/admin/entrar"); }}>
-            <button className="mt-1.5 text-[12.5px] font-semibold text-mudo underline underline-offset-2">Sair</button>
-          </form>
+        <div className="border-t border-linha p-3">
+          <div className="flex items-center gap-2.5 px-2 py-1.5">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-marca text-[13px] font-semibold text-white">
+              {inicial}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-[13px] font-semibold leading-tight text-tinta">{eu.nome}</p>
+              <p className="text-[12px] text-mudo">{PAPEL[eu.papel as keyof typeof PAPEL] ?? eu.papel}</p>
+            </div>
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
+            <form action={async () => { "use server"; await repetirTour(); redirect("/admin"); }}>
+              <button className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-linha px-2 py-1.5 text-[12.5px] font-medium text-tinta-2 transition-colors hover:bg-fundo hover:text-tinta">
+                <PlayCircle aria-hidden className="h-3.5 w-3.5" />
+                Ver tour
+              </button>
+            </form>
+            <form action={async () => { "use server"; await sair(); redirect("/admin/entrar"); }}>
+              <button className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-linha px-2 py-1.5 text-[12.5px] font-medium text-tinta-2 transition-colors hover:border-critico/40 hover:text-critico">
+                <LogOut aria-hidden className="h-3.5 w-3.5" />
+                Sair
+              </button>
+            </form>
+          </div>
         </div>
       </aside>
 
-      <main className="min-w-0 bg-fundo">{children}</main>
+      <main className="min-w-0">{children}</main>
 
       {!conta?.viuTour && <TourPainel />}
     </div>

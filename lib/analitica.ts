@@ -20,6 +20,16 @@ const SESSAO = "vv_s";
 const ORIGEM = "vv_o";
 const TRINTA_DIAS = 60 * 60 * 24 * 30;
 
+/**
+ * Endereços de teste · a própria máquina e as prévias da Vercel.
+ *
+ * O ambiente de desenvolvimento grava no mesmo banco da loja, e cada página
+ * aberta ali virava uma visita no painel, com "localhost" aparecendo como
+ * canal de entrada.
+ */
+const interno = (host: string) =>
+  /^(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?$/.test(host) || host.endsWith(".vercel.app");
+
 /** Referenciador cru → nome legível no relatório. */
 function classificar(ref: string | null, utmSource?: string, utmMedium?: string) {
   if (utmSource) return `${utmSource} / ${utmMedium ?? "campanha"}`;
@@ -60,6 +70,14 @@ async function sessao() {
  */
 export async function registrar(etapa: EtapaFunil, params?: Record<string, string | undefined>) {
   try {
+    const h = await headers();
+    // Teste não é visita: nem quem roda a loja na própria máquina, nem quem
+    // clica num link vindo de lá.
+    if (interno(h.get("host") ?? "")) return;
+    let refHost = "";
+    try { refHost = new URL(h.get("referer") ?? "").host; } catch {}
+    if (refHost && interno(refHost)) return;
+
     const c = await cookies();
     const s = await sessao();
 
@@ -67,7 +85,7 @@ export async function registrar(etapa: EtapaFunil, params?: Record<string, strin
     let utm = { source: params?.utm_source, medium: params?.utm_medium, campaign: params?.utm_campaign };
 
     if (!origem) {
-      const ref = (await headers()).get("referer");
+      const ref = h.get("referer");
       origem = classificar(ref, utm.source, utm.medium);
       c.set(ORIGEM, origem, { maxAge: TRINTA_DIAS, httpOnly: true, sameSite: "lax", path: "/" });
     }
