@@ -14,8 +14,18 @@ const VALIDAS = new Set(["VISITA", "PRODUTO"]);
 
 export async function POST(req: NextRequest) {
   try {
-    const { etapa } = await req.json();
-    if (VALIDAS.has(etapa)) await registrar(etapa as EtapaFunil);
+    const { etapa, ref, utm } = await req.json();
+    const texto = (v: unknown) => (typeof v === "string" && v.length <= 500 ? v : undefined);
+    if (VALIDAS.has(etapa)) {
+      await registrar(etapa as EtapaFunil, {
+        ref: texto(ref),
+        utm_source: texto(utm?.utm_source),
+        utm_medium: texto(utm?.utm_medium),
+        utm_campaign: texto(utm?.utm_campaign),
+        gclid: texto(utm?.gclid),
+        fbclid: texto(utm?.fbclid),
+      });
+    }
   } catch {
     // medição nunca devolve erro para a página
   }

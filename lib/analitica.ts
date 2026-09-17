@@ -31,8 +31,11 @@ const interno = (host: string) =>
   /^(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?$/.test(host) || host.endsWith(".vercel.app");
 
 /** Referenciador cru → nome legível no relatório. */
-function classificar(ref: string | null, utmSource?: string, utmMedium?: string) {
+function classificar(ref: string | null, utmSource?: string, utmMedium?: string, gclid?: string, fbclid?: string) {
   if (utmSource) return `${utmSource} / ${utmMedium ?? "campanha"}`;
+  // Anúncio sem UTM ainda deixa a marca do clique na URL.
+  if (gclid) return "google / anúncio";
+  if (fbclid) return "facebook / social";
   if (!ref) return "direto";
   try {
     const h = new URL(ref).hostname.replace(/^www\./, "");
@@ -74,8 +77,11 @@ export async function registrar(etapa: EtapaFunil, params?: Record<string, strin
     // Teste não é visita: nem quem roda a loja na própria máquina, nem quem
     // clica num link vindo de lá.
     if (interno(h.get("host") ?? "")) return;
+    // Vindo do navegador, o referenciador verdadeiro chega em params.ref; o
+    // cabeçalho só serve quando o registro acontece na própria navegação.
+    const ref = params?.ref !== undefined ? params.ref || null : h.get("referer");
     let refHost = "";
-    try { refHost = new URL(h.get("referer") ?? "").host; } catch {}
+    try { refHost = new URL(ref ?? "").host; } catch {}
     if (refHost && interno(refHost)) return;
 
     const c = await cookies();
@@ -85,8 +91,7 @@ export async function registrar(etapa: EtapaFunil, params?: Record<string, strin
     let utm = { source: params?.utm_source, medium: params?.utm_medium, campaign: params?.utm_campaign };
 
     if (!origem) {
-      const ref = h.get("referer");
-      origem = classificar(ref, utm.source, utm.medium);
+      origem = classificar(ref, utm.source, utm.medium, params?.gclid, params?.fbclid);
       c.set(ORIGEM, origem, { maxAge: TRINTA_DIAS, httpOnly: true, sameSite: "lax", path: "/" });
     }
 
