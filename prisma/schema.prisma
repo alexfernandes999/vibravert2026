@@ -739,6 +739,32 @@ model Conversa {
   @@schema("vibravert")
 }
 
+/// Quem começou o checkout e deixou o e-mail.
+///
+/// Sete de cada dez pessoas que chegavam ao checkout saíam antes de finalizar,
+/// e a loja não ficava com nada: nem nome, nem contato. O contato é gravado
+/// assim que o e-mail está digitado, junto com o carrinho, para o lembrete
+/// automático poder devolver a pessoa exatamente onde ela parou.
+model ContatoCheckout {
+  id           String    @id @default(cuid())
+  email        String
+  nome         String?
+  telefone     String?
+  /// Linhas do carrinho no momento · [{ id, qtd }].
+  itens        Json
+  total        Decimal   @db.Decimal(10, 2)
+  criadoEm     DateTime  @default(now())
+  atualizadoEm DateTime  @updatedAt
+  lembreteEm   DateTime?
+  /// Virou pedido · não recebe lembrete.
+  pedidoId     String?
+
+  @@index([email])
+  @@index([criadoEm])
+  @@map("contatos_checkout")
+  @@schema("vibravert")
+}
+
 /// Chaves de marketing, editáveis pelo painel.
 ///
 /// Moram no banco e não no ambiente por dois motivos. Quem cuida do tráfego

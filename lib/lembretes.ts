@@ -68,11 +68,73 @@ export async function lembretesAutomaticos() {
         total: Number(i.precoUnitario) * i.quantidade,
       })),
       Number(p.total),
-      p.numero,
+      { numeroPedido: p.numero },
     ).catch(() => null);
     enviados++;
   }
+
+  enviados += await lembrarCheckouts();
   return { enviados };
+}
+
+/**
+ * Quem deixou o e-mail no checkout e não finalizou.
+ *
+ * Duas horas depois, um e-mail só, com um link que remonta o carrinho em
+ * qualquer aparelho. Não vai para quem fez qualquer pedido depois de deixar o
+ * contato · se o pedido ficou sem pagar, o lembrete dele já cuida disso.
+ */
+async function lembrarCheckouts() {
+  const agora = Date.now();
+  const contatos = await prisma.contatoCheckout.findMany({
+    where: {
+      pedidoId: null,
+      lembreteEm: null,
+      atualizadoEm: { lte: new Date(agora - 2 * HORA) },
+      criadoEm: { gte: new Date(agora - 48 * HORA) },
+    },
+    take: 20,
+  });
+
+  let enviados = 0;
+  for (const c of contatos) {
+    const trava = await prisma.contatoCheckout.updateMany({
+      where: { id: c.id, lembreteEm: null },
+      data: { lembreteEm: new Date() },
+    });
+    if (trava.count === 0) continue;
+
+    const comprou = await prisma.pedido.findFirst({
+      where: { cliente: { email: { equals: c.email, mode: "insensitive" } }, criadoEm: { gte: c.criadoEm } },
+      select: { id: true },
+    });
+    if (comprou) {
+      await prisma.contatoCheckout.update({ where: { id: c.id }, data: { pedidoId: comprou.id } });
+      continue;
+    }
+
+    const linhas = (Array.isArray(c.itens) ? c.itens : []) as { id: string; qtd: number }[];
+    const produtos = await prisma.produto.findMany({
+      where: { id: { in: linhas.map((l) => l.id) }, ativo: true },
+      select: { id: true, nome: true, sku: true, preco: true },
+    });
+    if (!produtos.length) continue;
+
+    const itens = produtos.map((p) => {
+      const qtd = linhas.find((l) => l.id === p.id)?.qtd ?? 1;
+      return { nome: p.nome, sku: p.sku, qtd, total: Number(p.preco) * qtd };
+    });
+    const base = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
+    await carrinhoAbandonado(
+      c.email,
+      c.nome,
+      itens,
+      itens.reduce((s, i) => s + i.total, 0),
+      { href: `${base}/api/carrinho/voltar/${c.id}` },
+    ).catch(() => null);
+    enviados++;
+  }
+  return enviados;
 }
 
 /**

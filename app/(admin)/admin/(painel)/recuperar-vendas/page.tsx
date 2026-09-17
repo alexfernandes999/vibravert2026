@@ -84,6 +84,18 @@ async function marcarWhats(id: string) {
   revalidatePath("/admin/recuperar-vendas");
 }
 
+/** Quem chamou pelo WhatsApp já fez o contato · o e-mail automático não sai. */
+async function marcarContato(id: string) {
+  "use server";
+  const c = await prisma.contatoCheckout.update({
+    where: { id },
+    data: { lembreteEm: new Date() },
+    select: { email: true },
+  });
+  await registrarAcao("chamou no WhatsApp (checkout abandonado)", c.email);
+  revalidatePath("/admin/recuperar-vendas");
+}
+
 const horas = (d: Date) => Math.round((Date.now() - d.getTime()) / 36e5);
 
 export default async function Recuperar() {
@@ -91,7 +103,7 @@ export default async function Recuperar() {
   // e três condições OR no banco custam mais a ler do que a economizar.
   const maisAntigo = new Date(Date.now() - Math.min(...Object.values(ESPERA_MIN)) * 60_000);
 
-  const [todosParados, anonimos, compraram] = await Promise.all([
+  const [todosParados, anonimos, compraram, saiuDoCheckout] = await Promise.all([
     prisma.pedido.findMany({
       where: { status: "AGUARDANDO_PAGAMENTO", criadoEm: { lt: maisAntigo } },
       orderBy: { criadoEm: "desc" },
@@ -108,7 +120,20 @@ export default async function Recuperar() {
       select: { sessao: true },
       distinct: ["sessao"],
     }),
+    // Deixaram o e-mail no checkout e saíram sem finalizar.
+    prisma.contatoCheckout.findMany({
+      where: { pedidoId: null, criadoEm: { gte: new Date(Date.now() - 7 * 864e5) } },
+      orderBy: { atualizadoEm: "desc" },
+      take: 50,
+    }),
   ]);
+  const produtosDoCheckout = await prisma.produto.findMany({
+    where: {
+      id: { in: saiuDoCheckout.flatMap((c) => ((c.itens ?? []) as { id: string }[]).map((l) => l.id)) },
+    },
+    select: { id: true, nome: true },
+  });
+  const nomeProduto = new Map(produtosDoCheckout.map((p) => [p.id, p.nome]));
 
   const maduro = (p: { metodo: string; criadoEm: Date }) =>
     Date.now() - p.criadoEm.getTime() >= (ESPERA_MIN[p.metodo] ?? ESPERA_PADRAO) * 60_000;
@@ -284,6 +309,66 @@ export default async function Recuperar() {
         </ul>
         </>
       )}
+
+      <section className="mt-9">
+        <h2 className="text-lg font-extrabold tracking-tight">Saíram do checkout sem finalizar</h2>
+        <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-tinta-2">
+          Deixaram nome e e-mail no checkout e foram embora antes de fechar o pedido. Duas horas
+          depois recebem sozinhos um e-mail com o carrinho remontado. Quem tem telefone vale uma
+          mensagem · se você chamar pelo WhatsApp, o e-mail automático não sai.
+        </p>
+
+        {saiuDoCheckout.length === 0 ? (
+          <p className="mt-4 rounded-caixa border border-linha bg-superficie p-5 text-[13.5px] text-mudo">
+            Ninguém nos últimos 7 dias.
+          </p>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {saiuDoCheckout.map((c) => {
+              const linhas = (c.itens ?? []) as { id: string; qtd: number }[];
+              const itens = linhas
+                .map((l) => `${l.qtd}× ${nomeProduto.get(l.id) ?? "produto fora do ar"}`)
+                .join(", ");
+              const primeiro = c.nome?.split(" ")[0];
+              const texto =
+                `Oi${primeiro ? `, ${primeiro}` : ""}! Aqui é da Vibra Vert.\n\n` +
+                `Vi que você estava finalizando a compra de ${itens} e não concluiu. ` +
+                `Ficou alguma dúvida sobre o modelo, o frete ou o pagamento? Posso ajudar por aqui.\n\n` +
+                `Seu carrinho está guardado: ${base}/api/carrinho/voltar/${c.id}`;
+              return (
+                <li key={c.id} className="rounded-caixa border border-linha bg-superficie p-4">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="text-[13.5px] font-semibold">{c.nome || "Sem nome"}</span>
+                    <span className="num text-[12.5px] text-mudo">
+                      há {horas(c.atualizadoEm) < 1 ? "menos de 1 h" : `${horas(c.atualizadoEm)} h`}
+                    </span>
+                    {c.lembreteEm && (
+                      <span className="rounded bg-marca-suave px-1.5 py-0.5 text-[11px] font-bold text-marca">
+                        contato feito
+                      </span>
+                    )}
+                    <span className="num ml-auto text-[15px] font-extrabold">{brl(Number(c.total))}</span>
+                  </div>
+                  <p className="num mt-1.5 text-[12.5px] text-tinta-2">{itens}</p>
+                  <p className="num mt-0.5 text-[12px] text-mudo">
+                    {c.email}
+                    {c.telefone ? ` · ${c.telefone}` : " · sem telefone"}
+                  </p>
+                  {c.telefone && (
+                    <div className="mt-3">
+                      <BotaoWhats
+                        href={whatsappLink(texto)}
+                        telefone={c.telefone}
+                        marcar={marcarContato.bind(null, c.id)}
+                      />
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

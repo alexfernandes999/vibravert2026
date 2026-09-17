@@ -13,6 +13,41 @@ import { enviarParaBling } from "@/lib/bling-nota";
 import { registrar, origemDaSessao } from "@/lib/analitica";
 import { DESCONTO_PIX } from "@/lib/loja";
 
+/**
+ * Guarda o contato de quem está no checkout, antes de finalizar.
+ *
+ * Sete de cada dez pessoas que chegavam aqui saíam sem finalizar, e a loja
+ * ficava sem nada. Com o e-mail e o carrinho gravados, o lembrete automático
+ * devolve a pessoa ao carrinho dela, e o vendedor vê quem ligar.
+ *
+ * Uma linha por pessoa por dia: cada campo que ela sai atualiza a mesma linha,
+ * em vez de gravar uma nova a cada tecla.
+ */
+export async function guardarContato(dados: { email: string; nome?: string; telefone?: string }) {
+  try {
+    const email = dados.email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email) || email.length > 120) return;
+    const c = await obterCarrinho();
+    if (!c.itens.length) return;
+
+    const campos = {
+      nome: dados.nome?.trim().slice(0, 120) || null,
+      telefone: dados.telefone?.replace(/[^\d()+ -]/g, "").slice(0, 30) || null,
+      itens: c.itens.map((i) => ({ id: i.id, qtd: i.qtd })),
+      total: c.subtotal,
+    };
+    const aberto = await prisma.contatoCheckout.findFirst({
+      where: { email, pedidoId: null, criadoEm: { gte: new Date(Date.now() - 864e5) } },
+      orderBy: { criadoEm: "desc" },
+      select: { id: true },
+    });
+    if (aberto) await prisma.contatoCheckout.update({ where: { id: aberto.id }, data: campos });
+    else await prisma.contatoCheckout.create({ data: { email, ...campos } });
+  } catch {
+    // Guardar contato nunca pode atrapalhar quem está comprando.
+  }
+}
+
 export async function consultarCep(cep: string) {
   return buscarCep(cep);
 }
@@ -213,6 +248,10 @@ export async function finalizar(_estado: EstadoCheckout, dados: FormData): Promi
 
   await registrar("PEDIDO");
   (await cookies()).delete("carrinho");
+  // Quem finalizou sai da lista de checkout abandonado e não recebe lembrete.
+  await prisma.contatoCheckout
+    .updateMany({ where: { email: d.email.trim().toLowerCase(), pedidoId: null }, data: { pedidoId: pedido.id } })
+    .catch(() => null);
 
   // No Checkout Pro o pagamento acontece numa página do Mercado Pago. O pedido
   // já está gravado como aguardando, então voltar sem pagar não perde nada: a

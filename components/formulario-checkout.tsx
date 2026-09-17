@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { CamposCartao, gerarTokenCartao } from "@/components/campos-cartao";
 import { comecouCheckout } from "@/components/rastreio";
-import { finalizar, consultarCep, cotarFrete, type EstadoCheckout } from "@/app/(loja)/checkout/acoes";
+import { finalizar, consultarCep, cotarFrete, guardarContato, type EstadoCheckout } from "@/app/(loja)/checkout/acoes";
 import type { Opcao } from "@/lib/frete";
 import { PARCELAS_SEM_JUROS, DESCONTO_PIX } from "@/lib/loja";
 import { brl } from "@/lib/formato";
@@ -134,6 +134,15 @@ export function FormularioCheckout({
     });
   }
 
+  /** Grava o contato ao sair de nome, e-mail ou telefone · ver guardarContato. */
+  function guardar() {
+    const f = forma.current;
+    if (!f) return;
+    const v = (n: string) => String(new FormData(f).get(n) ?? "");
+    if (!v("email").includes("@")) return;
+    guardarContato({ email: v("email"), nome: v("nome"), telefone: v("telefone") }).catch(() => {});
+  }
+
   const err = estado.campos ?? {};
 
   const escolhida = fretes?.find((o) => o.servico === servico) ?? null;
@@ -153,11 +162,17 @@ export function FormularioCheckout({
         <fieldset>
           <Legenda n={1}>Seus dados</Legenda>
           <div className="grid gap-3.5 sm:grid-cols-2">
-            <Campo nome="nome" rotulo="Nome completo" erro={err.nome} autoComplete="name" className="sm:col-span-2" />
-            <Campo nome="email" rotulo="E-mail" tipo="email" erro={err.email} autoComplete="email" />
-            <Campo nome="telefone" rotulo="Telefone com DDD" erro={err.telefone} autoComplete="tel" inputMode="tel" />
+            <Campo nome="nome" rotulo="Nome completo" erro={err.nome} autoComplete="name" className="sm:col-span-2" aoSair={guardar} />
+            <Campo nome="email" rotulo="E-mail" tipo="email" erro={err.email} autoComplete="email" aoSair={guardar} />
+            <Campo nome="telefone" rotulo="Telefone com DDD" erro={err.telefone} autoComplete="tel" inputMode="tel" aoSair={guardar} />
             <Campo nome="cpf" rotulo="CPF ou CNPJ" erro={err.cpf} inputMode="numeric" dica="só números" />
           </div>
+          {/* A LGPD pede que a pessoa saiba para que serve o dado já na hora
+              em que o digita, não só na política de privacidade. */}
+          <p className="mt-2.5 text-[11.5px] leading-snug text-mudo">
+            Usamos seu contato para enviar o pedido. Se você não concluir a compra, mandamos um
+            único lembrete com o seu carrinho.
+          </p>
         </fieldset>
 
         <fieldset>
