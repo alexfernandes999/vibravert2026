@@ -114,7 +114,6 @@ export function CarrosselFabrica({ fotos }: { fotos: FotoFabrica[] }) {
                   fill
                   sizes="(min-width:1024px) 46vw, 74vw"
                   className={`object-cover ${f.posicao ?? "object-center"}`}
-                  priority={i === 0}
                 />
 
                 {/* O texto só no cartão da frente: legenda em foto recuada e

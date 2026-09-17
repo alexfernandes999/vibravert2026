@@ -10,6 +10,8 @@ import { Medir } from "@/components/medir";
 import { Galeria } from "@/components/galeria";
 import { Video } from "@/components/video";
 import { BotaoComprar } from "@/components/botao-comprar";
+import { BarraCompra } from "@/components/barra-compra";
+import { whatsappLink } from "@/lib/contato";
 import { VerProduto } from "@/components/rastreio";
 import { brl, precoPix, parcela, PARCELAS_MAX, ALTURAS_MCA, litros } from "@/lib/formato";
 import { SeloGarantia } from "@/components/selo-garantia";
@@ -182,7 +184,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
             </p>
           )}
 
-          <div className="mt-5 rounded-caixa border border-linha bg-superficie-2 p-5">
+          <div id="caixa-compra" className="mt-5 rounded-caixa border border-linha bg-superficie-2 p-5">
             <p className="num text-3xl font-extrabold tracking-tight">{brl(preco)}</p>
             <p className="num mt-2 text-[13px] font-extrabold text-bom">
               {brl(precoPix(preco))} à vista no PIX · {DESCONTO_PIX * 100}% de desconto
@@ -192,7 +194,51 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
             </p>
             <BotaoComprar produtoId={p.id} sku={p.sku} nome={p.nome} preco={Number(p.preco)} />
             <VerProduto sku={p.sku} nome={p.nome} valor={Number(p.preco)} />
+
+            {/* Frete e prazo junto do botão. Quem não vê o custo de entrega
+                antes de clicar imagina o pior, e o frete grátis é o argumento
+                mais forte da loja · estava escondido até o checkout. */}
+            <ul className="mt-4 space-y-1.5 border-t border-linha pt-4 text-[13px]">
+              {FRETE_GRATIS_EM_BOMBAS && p.tipo === "BOMBA" ? (
+                <li className="flex items-center gap-2 font-bold text-bom">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className="h-4 w-4 shrink-0">
+                    <path d="M3 7h11v9H3zM14 10h4l3 3v3h-7" strokeLinejoin="round" />
+                    <circle cx="7" cy="17.5" r="1.6" />
+                    <circle cx="17" cy="17.5" r="1.6" />
+                  </svg>
+                  Frete grátis para todo o Brasil
+                </li>
+              ) : (
+                <li className="font-semibold text-tinta-2">Frete calculado pelo CEP no checkout</li>
+              )}
+              <li className="pl-6 text-tinta-2">Sai da fábrica em até 1 dia útil após o pagamento</li>
+            </ul>
+
+            {/* A dúvida que trava a compra de bomba é quase sempre a mesma:
+                serve no meu poço? Um atalho com o modelo já escrito responde
+                isso em minutos, em vez de a pessoa sair para perguntar em outra
+                loja. */}
+            <a
+              href={whatsappLink(`Olá! Tenho uma dúvida sobre a ${p.nome} (SKU ${p.sku}).`)}
+              target="_blank"
+              rel="noopener"
+              className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-linha-2 bg-superficie py-2.5 text-[13px] font-bold text-tinta-2 transition-colors hover:border-[#25D366] hover:text-tinta"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 fill-[#25D366]">
+                <path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.3-.4.3-.4.7-1.3a.5.5 0 000-.5l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.8 11.9 11.9 0 004.6 4c1.7.7 2.4.8 3.2.7a2.8 2.8 0 001.8-1.3 2.3 2.3 0 00.2-1.3c-.1-.1-.3-.2-.5-.3z" />
+              </svg>
+              Dúvida sobre este modelo? Fale com a fábrica
+            </a>
           </div>
+
+          <BarraCompra
+            alvo="caixa-compra"
+            produtoId={p.id}
+            sku={p.sku}
+            nome={p.nome}
+            preco={preco}
+            precoPix={brl(precoPix(preco))}
+          />
 
           <SeletorVersao versoes={versoes} atual={p.versao} />
 

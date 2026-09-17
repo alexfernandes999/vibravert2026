@@ -300,7 +300,7 @@ export function Vibrinha() {
       <button
         onClick={() => setAberto((a) => !a)}
         aria-expanded={aberto}
-        className="group fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-full bg-[#25D366] py-2.5 pl-2.5 pr-3 shadow-xl shadow-black/25 transition hover:brightness-105 sm:pr-5"
+        className="group fixed bottom-5 right-5 z-50 transition-[bottom] duration-300 [body[data-barra-compra]_&]:bottom-[5.5rem] md:[body[data-barra-compra]_&]:bottom-5 flex items-center gap-3 rounded-full bg-[#25D366] py-2.5 pl-2.5 pr-3 shadow-xl shadow-black/25 transition hover:brightness-105 sm:pr-5"
       >
         {/* A mascote no lugar do ícone genérico: é da casa, está na embalagem
             que o cliente já viu na prateleira, e dá rosto ao atendimento. */}

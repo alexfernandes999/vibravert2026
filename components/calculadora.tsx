@@ -243,6 +243,9 @@ function Ficha({ item, hTotal }: { item: { m: ModeloCalc; vazao: number }; hTota
               alt={m.imagem.alt}
               width={560}
               height={860}
+              // Aparece com 300 a 380 px de altura, uns 250 px de largura · sem
+              // isto o celular baixava a versão de 1200 px.
+              sizes="250px"
               className="h-[300px] w-auto object-contain sm:h-[380px]"
             />
           )}

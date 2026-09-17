@@ -258,6 +258,8 @@ export function carrinhoAbandonado(
   nome: string | null,
   itens: Peca[],
   total: number,
+  /** Pedido já feito e não pago: o botão leva à página dele, onde se paga. */
+  numeroPedido?: number,
 ) {
   return enviar(
     email,
@@ -276,7 +278,12 @@ export function carrinhoAbandonado(
       },
       itens,
       resumo: [{ rotulo: "Total", valor: brl(total), forte: true }],
-      botao: { rotulo: "Voltar ao meu carrinho", href: `${base()}/carrinho` },
+      // O carrinho mora num cookie do aparelho em que a pessoa comprou · quem
+      // abre o e-mail no celular encontraria um carrinho vazio. A página do
+      // pedido abre em qualquer aparelho e já tem o PIX e o botão de pagar.
+      botao: numeroPedido
+        ? { rotulo: "Concluir o pagamento", href: `${base()}/pedido/${numeroPedido}` }
+        : { rotulo: "Voltar ao meu carrinho", href: `${base()}/carrinho` },
       assinatura: true,
     }),
   );

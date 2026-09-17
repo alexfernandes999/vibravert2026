@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, after, type NextRequest } from "next/server";
+import { talvezLembrar } from "@/lib/lembretes";
 import { registrar } from "@/lib/analitica";
 import type { EtapaFunil } from "@prisma/client";
 
@@ -29,5 +30,7 @@ export async function POST(req: NextRequest) {
   } catch {
     // medição nunca devolve erro para a página
   }
+  // Depois de responder: a visita não espera pela varredura de lembretes.
+  after(() => talvezLembrar());
   return NextResponse.json({ ok: true });
 }
