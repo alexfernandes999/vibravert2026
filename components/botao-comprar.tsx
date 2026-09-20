@@ -17,12 +17,15 @@ export function BotaoComprar({
   sku,
   nome,
   preco,
+  ficha,
 }: {
   produtoId: string;
   /** Só para a medição · é por estes que a campanha liga a venda ao anúncio. */
   sku: string;
   nome: string;
   preco: number;
+  /** Marca, categoria e variação · o Analytics agrupa a venda por eles. */
+  ficha?: { marca?: string; categoria?: string; variacao?: string };
 }) {
   const [qtd, setQtd] = useState(1);
   const [pendente, iniciar] = useTransition();
@@ -56,7 +59,7 @@ export function BotaoComprar({
         onClick={() =>
           iniciar(async () => {
             await adicionar(produtoId, qtd);
-            noCarrinho(sku, nome, preco, qtd);
+            noCarrinho(sku, nome, preco, qtd, ficha);
             router.push("/carrinho");
           })
         }

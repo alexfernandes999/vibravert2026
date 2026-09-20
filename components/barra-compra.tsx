@@ -22,6 +22,7 @@ export function BarraCompra({
   nome,
   preco,
   precoPix,
+  ficha,
 }: {
   /** id da caixa de preço da página. */
   alvo: string;
@@ -30,6 +31,7 @@ export function BarraCompra({
   nome: string;
   preco: number;
   precoPix: string;
+  ficha?: { marca?: string; categoria?: string; variacao?: string };
 }) {
   const [visivel, setVisivel] = useState(false);
   const [pendente, iniciar] = useTransition();
@@ -72,7 +74,7 @@ export function BarraCompra({
           onClick={() =>
             iniciar(async () => {
               await adicionar(produtoId, 1);
-              noCarrinho(sku, nome, preco, 1);
+              noCarrinho(sku, nome, preco, 1, ficha);
               router.push("/carrinho");
             })
           }

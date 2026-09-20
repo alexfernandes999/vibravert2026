@@ -780,6 +780,10 @@ model Marketing {
   pixelMeta String?
   gtmId     String?
 
+  /// Google Analytics 4 · G-… Uma etiqueta só na loja inteira: duas contam a
+  /// mesma sessão e a mesma compra duas vezes, e todo relatório fica errado.
+  ga4 String?
+
   /// Google Ads. O id da conta (AW-…) e o rótulo da conversão de compra.
   ///
   /// É outra coisa que o GTM e que o pixel: sem esta etiqueta o Google não

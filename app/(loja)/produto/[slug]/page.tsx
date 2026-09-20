@@ -103,6 +103,18 @@ export async function generateMetadata({
   };
 }
 
+/**
+ * Categoria e variação como o Google as lê.
+ *
+ * São os mesmos valores do feed do Shopping. Relatório de campanha agrupado
+ * por categoria e por tensão só funciona se a loja e o feed falarem igual.
+ */
+const categoriaGoogle = (tipo: string) =>
+  tipo === "BOMBA" ? "Bombas Submersas Vibratórias" : "Peças e Acessórios";
+
+const variacao = (p: { voltagem: string | null; saiaProtecao: boolean }) =>
+  [p.voltagem, p.saiaProtecao ? "com saia" : null].filter(Boolean).join(" · ") || undefined;
+
 export default async function PaginaProduto({ params }: { params: Promise<{ slug: string }> }) {
   const p = await buscar((await params).slug);
   if (!p || !p.ativo) notFound();
@@ -192,8 +204,21 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
             <p className="num mt-1 text-[13px] font-semibold text-tinta-2">
               ou até {PARCELAS_MAX}× de {brl(parcela(preco))} sem juros
             </p>
-            <BotaoComprar produtoId={p.id} sku={p.sku} nome={p.nome} preco={Number(p.preco)} />
-            <VerProduto sku={p.sku} nome={p.nome} valor={Number(p.preco)} />
+            <BotaoComprar
+              produtoId={p.id}
+              sku={p.sku}
+              nome={p.nome}
+              preco={preco}
+              ficha={{ marca: p.marca, categoria: categoriaGoogle(p.tipo), variacao: variacao(p) }}
+            />
+            <VerProduto
+              sku={p.sku}
+              nome={p.nome}
+              valor={preco}
+              marca={p.marca}
+              categoria={categoriaGoogle(p.tipo)}
+              variacao={variacao(p)}
+            />
 
             {/* Frete e prazo junto do botão. Quem não vê o custo de entrega
                 antes de clicar imagina o pior, e o frete grátis é o argumento
@@ -238,6 +263,7 @@ export default async function PaginaProduto({ params }: { params: Promise<{ slug
             nome={p.nome}
             preco={preco}
             precoPix={brl(precoPix(preco))}
+            ficha={{ marca: p.marca, categoria: categoriaGoogle(p.tipo), variacao: variacao(p) }}
           />
 
           <SeletorVersao versoes={versoes} atual={p.versao} />

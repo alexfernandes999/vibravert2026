@@ -17,6 +17,7 @@ export async function salvarMarketing(dados: FormData) {
 
   const pixel = texto("pixelMeta").replace(/\D/g, "");
   const gtm = texto("gtmId").toUpperCase();
+  const ga4 = texto("ga4").toUpperCase();
   const ads = texto("googleAds").toUpperCase();
   const rotulo = texto("rotuloCompra");
   const token = texto("tokenCapi");
@@ -27,6 +28,9 @@ export async function salvarMarketing(dados: FormData) {
   }
   if (pixel && pixel.length < 10) {
     return { erro: "O id do pixel tem 15 ou 16 dígitos." };
+  }
+  if (ga4 && !/^G-[A-Z0-9]{6,}$/.test(ga4)) {
+    return { erro: "O id do Analytics tem o formato G-XXXXXXXXXX." };
   }
   if (ads && !/^AW-\d{9,}$/.test(ads)) {
     return { erro: "O id do Google Ads tem o formato AW-123456789." };
@@ -41,6 +45,7 @@ export async function salvarMarketing(dados: FormData) {
       id: "unico",
       pixelMeta: pixel || null,
       gtmId: gtm || null,
+      ga4: ga4 || null,
       googleAds: ads || null,
       rotuloCompra: rotulo || null,
       tokenCapi: token || null,
@@ -50,6 +55,7 @@ export async function salvarMarketing(dados: FormData) {
     update: {
       pixelMeta: pixel || null,
       gtmId: gtm || null,
+      ga4: ga4 || null,
       googleAds: ads || null,
       rotuloCompra: rotulo || null,
       // Em branco mantém o que estava · só troca quando alguém digita outro.

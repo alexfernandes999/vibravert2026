@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const c = await configPublica();
   return NextResponse.json(
-    { pixelMeta: c.pixelMeta, gtmId: c.gtmId },
+    { pixelMeta: c.pixelMeta, gtmId: c.gtmId, ga4: c.ga4 },
     { headers: { "Cache-Control": "public, max-age=300, s-maxage=300" } },
   );
 }

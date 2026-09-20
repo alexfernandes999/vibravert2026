@@ -64,8 +64,10 @@ export default async function Pedido({ params }: { params: Promise<{ numero: str
         <Comprou
           pedido={p.numero}
           total={Number(p.total)}
+          frete={Number(p.frete)}
           itens={p.itens.map((i) => ({
             sku: i.skuProduto,
+            nome: i.nomeProduto,
             quantidade: i.quantidade,
             precoUnitario: Number(i.precoUnitario),
           }))}

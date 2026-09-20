@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 /**
- * Pixel da Meta e Google Tag Manager.
+ * Pixel da Meta, Google Analytics 4, Google Ads e Tag Manager.
  *
  * Carregam desde a primeira visita, sem esperar aceite de cookies. Não é
  * descuido · é a diferença entre medir e não medir. Quando o rastreio só sobe
@@ -29,10 +29,13 @@ declare global {
 export function Rastreio({
   pixel,
   gtm,
+  ga4,
   ads,
 }: {
   pixel: string | null;
   gtm: string | null;
+  /** Medição do Google · G-… Uma só na loja inteira. */
+  ga4: string | null;
   /** Conta do Google Ads · AW-… É o que liga o clique pago à venda. */
   ads: string | null;
 }) {
@@ -46,13 +49,15 @@ export function Rastreio({
    * visita só, por mais que a pessoa navegue por vinte produtos.
    */
   useEffect(() => {
-    if (!pixel) return;
+    if (!pixel && !ga4) return;
     if (primeira.current) {
       primeira.current = false; // o init já dispara o primeiro
       return;
     }
-    window.fbq?.("track", "PageView");
-  }, [caminho, pixel]);
+    if (pixel) window.fbq?.("track", "PageView");
+    // O gtag também só conta a primeira tela sozinho.
+    if (ga4) window.gtag?.("event", "page_view", { page_path: caminho, send_to: ga4 });
+  }, [caminho, pixel, ga4]);
 
   return (
     <>
@@ -67,16 +72,20 @@ fbq('init','${pixel}');fbq('track','PageView');`}
         </Script>
       )}
 
-      {ads && (
+      {/* Uma biblioteca gtag só, com uma configuração por conta. Carregar o
+          script duas vezes · uma para o Analytics e outra para o Ads · é o que
+          faz a mesma sessão e a mesma compra contarem em dobro. */}
+      {(ga4 || ads) && (
         <>
           <Script
             id="gtag-src"
             strategy="afterInteractive"
-            src={`https://www.googletagmanager.com/gtag/js?id=${ads}`}
+            src={`https://www.googletagmanager.com/gtag/js?id=${ga4 || ads}`}
           />
           <Script id="gtag" strategy="afterInteractive">
             {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
-gtag('js',new Date());gtag('config','${ads}');`}
+gtag('js',new Date());
+${ga4 ? `gtag('config','${ga4}');` : ""}${ads ? `gtag('config','${ads}');` : ""}`}
           </Script>
         </>
       )}
@@ -95,13 +104,46 @@ f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtm}')
 
 /* ── os quatro momentos que a campanha usa para aprender ──────────── */
 
-type Item = { sku: string; quantidade: number; precoUnitario: number };
+/**
+ * Um item do pedido nos dois formatos.
+ *
+ * `sku` é o mesmo id que vai no feed do Google Shopping (`g:id`) e, por isso,
+ * o "ID do produto" no Merchant Center. O Google exige que o item_id da compra
+ * seja exatamente esse · id diferente e a venda não encosta no produto que a
+ * pessoa clicou, e o relatório de campanha fica sem receita.
+ */
+type Item = {
+  sku: string;
+  quantidade: number;
+  precoUnitario: number;
+  nome?: string;
+  marca?: string;
+  categoria?: string;
+  variacao?: string;
+};
 
 const conteudo = (itens: Item[]) => ({
   content_type: "product",
   content_ids: itens.map((i) => i.sku),
   contents: itens.map((i) => ({ id: i.sku, quantity: i.quantidade, item_price: i.precoUnitario })),
 });
+
+const itensGa = (itens: Item[]) =>
+  itens.map((i) => ({
+    item_id: i.sku,
+    ...(i.nome ? { item_name: i.nome } : {}),
+    ...(i.marca ? { item_brand: i.marca } : {}),
+    ...(i.categoria ? { item_category: i.categoria } : {}),
+    ...(i.variacao ? { item_variant: i.variacao } : {}),
+    price: Number(i.precoUnitario.toFixed(2)),
+    quantity: i.quantidade,
+  }));
+
+/** Evento no padrão do Google Analytics 4. */
+function ga(evento: string, dados: Record<string, unknown>) {
+  if (typeof window === "undefined") return;
+  window.gtag?.("event", evento, { currency: "BRL", ...dados });
+}
 
 function disparar(evento: string, dados: Record<string, unknown>, id?: string) {
   if (typeof window === "undefined" || !window.fbq) return;
@@ -110,21 +152,46 @@ function disparar(evento: string, dados: Record<string, unknown>, id?: string) {
 }
 
 /** Abriu a ficha de um produto. */
-export function VerProduto({ sku, nome, valor }: { sku: string; nome: string; valor: number }) {
+export function VerProduto({
+  sku,
+  nome,
+  valor,
+  marca,
+  categoria,
+  variacao,
+}: {
+  sku: string;
+  nome: string;
+  valor: number;
+  marca?: string;
+  categoria?: string;
+  variacao?: string;
+}) {
   useEffect(() => {
-    disparar("ViewContent", { value: valor, content_name: nome, ...conteudo([{ sku, quantidade: 1, precoUnitario: valor }]) });
-  }, [sku, nome, valor]);
+    const item = { sku, quantidade: 1, precoUnitario: valor, nome, marca, categoria, variacao };
+    disparar("ViewContent", { value: valor, content_name: nome, ...conteudo([item]) });
+    ga("view_item", { value: valor, items: itensGa([item]) });
+  }, [sku, nome, valor, marca, categoria, variacao]);
   return null;
 }
 
 /** Colocou no carrinho · chamado do botão, não de uma página. */
-export function noCarrinho(sku: string, nome: string, valor: number, qtd = 1) {
-  disparar("AddToCart", { value: valor * qtd, content_name: nome, ...conteudo([{ sku, quantidade: qtd, precoUnitario: valor }]) });
+export function noCarrinho(
+  sku: string,
+  nome: string,
+  valor: number,
+  qtd = 1,
+  ficha?: { marca?: string; categoria?: string; variacao?: string },
+) {
+  const item = { sku, quantidade: qtd, precoUnitario: valor, nome, ...ficha };
+  disparar("AddToCart", { value: valor * qtd, content_name: nome, ...conteudo([item]) });
+  ga("add_to_cart", { value: valor * qtd, items: itensGa([item]) });
 }
 
 /** Começou a finalizar. */
 export function comecouCheckout(itens: Item[], total: number) {
   disparar("InitiateCheckout", { value: total, num_items: itens.reduce((s, i) => s + i.quantidade, 0), ...conteudo(itens) });
+  ga("begin_checkout", { value: total, items: itensGa(itens) });
 }
 
 /**
@@ -170,12 +237,41 @@ export function ConversaoGoogle({
  * · sem ele cada compra conta em dobro e a campanha otimiza com um número
  * inventado, gastando mais achando que vende mais.
  */
-export function Comprou({ pedido, itens, total }: { pedido: number; itens: Item[]; total: number }) {
+export function Comprou({
+  pedido,
+  itens,
+  total,
+  frete = 0,
+}: {
+  pedido: number;
+  itens: Item[];
+  total: number;
+  frete?: number;
+}) {
   const feito = useRef(false);
   useEffect(() => {
     if (feito.current) return;
     feito.current = true;
     disparar("Purchase", { value: total, ...conteudo(itens) }, String(pedido));
-  }, [pedido, itens, total]);
+
+    // O Analytics conta por transaction_id, mas quem recarrega a página de
+    // acompanhamento em outro dia reabre o evento numa sessão nova. A marca no
+    // navegador fecha essa porta.
+    const marca = `ga4_compra_${pedido}`;
+    try {
+      if (localStorage.getItem(marca)) return;
+      localStorage.setItem(marca, "1");
+    } catch {
+      // Navegador sem armazenamento · o transaction_id ainda protege.
+    }
+    ga("purchase", {
+      transaction_id: String(pedido),
+      affiliation: "Vibra Vert",
+      value: total,
+      tax: 0,
+      shipping: frete,
+      items: itensGa(itens),
+    });
+  }, [pedido, itens, total, frete]);
   return null;
 }

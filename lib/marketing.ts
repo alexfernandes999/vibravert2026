@@ -13,6 +13,7 @@ import { prisma } from "@/lib/prisma";
 export type Config = {
   pixelMeta: string | null;
   gtmId: string | null;
+  ga4: string | null;
   googleAds: string | null;
   rotuloCompra: string | null;
   temToken: boolean;
@@ -23,11 +24,12 @@ export type Config = {
 export async function configPublica(): Promise<Config> {
   try {
     const m = await prisma.marketing.findUnique({ where: { id: "unico" } });
-    const vazio = { pixelMeta: null, gtmId: null, googleAds: null, rotuloCompra: null, temToken: false, ativo: false };
+    const vazio = { pixelMeta: null, gtmId: null, ga4: null, googleAds: null, rotuloCompra: null, temToken: false, ativo: false };
     if (!m || !m.ativo) return vazio;
     return {
       pixelMeta: m.pixelMeta || null,
       gtmId: m.gtmId || null,
+      ga4: m.ga4 || null,
       googleAds: m.googleAds || null,
       rotuloCompra: m.rotuloCompra || null,
       temToken: Boolean(m.tokenCapi),
@@ -35,7 +37,7 @@ export async function configPublica(): Promise<Config> {
     };
   } catch {
     // Sem banco a loja continua vendendo · rastreio não é essencial.
-    return { pixelMeta: null, gtmId: null, googleAds: null, rotuloCompra: null, temToken: false, ativo: false };
+    return { pixelMeta: null, gtmId: null, ga4: null, googleAds: null, rotuloCompra: null, temToken: false, ativo: false };
   }
 }
 

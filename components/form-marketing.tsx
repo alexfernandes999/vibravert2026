@@ -54,9 +54,9 @@ function Campo({
 }
 
 export function FormMarketing({
-  pixelMeta, gtmId, googleAds, rotuloCompra, testeCapi, temToken, ativo, base, ofertas, atualizadoEm,
+  pixelMeta, gtmId, ga4, googleAds, rotuloCompra, testeCapi, temToken, ativo, base, ofertas, atualizadoEm,
 }: {
-  pixelMeta: string; gtmId: string; googleAds: string; rotuloCompra: string;
+  pixelMeta: string; gtmId: string; ga4: string; googleAds: string; rotuloCompra: string;
   testeCapi: string; temToken: boolean;
   ativo: boolean; base: string; ofertas: number; atualizadoEm: string | null;
 }) {
@@ -118,6 +118,24 @@ export function FormMarketing({
           servidor, com o mesmo identificador. O Meta junta as duas e conta uma só. O envio pelo
           servidor existe porque o do navegador se perde: iPhone, bloqueador de anúncios, aba
           fechada antes da hora.
+        </p>
+      </fieldset>
+
+      <fieldset className="rounded-caixa border border-linha bg-superficie p-5">
+        <legend className="px-1.5 text-[11.5px] font-extrabold uppercase tracking-wide text-mudo">
+          Google Analytics 4
+        </legend>
+        <Campo
+          nome="ga4"
+          rotulo="ID da medição"
+          dica="analytics.google.com → Administrador → Fluxos de dados → o fluxo da loja. É o número que começa com G-. Um só: uma segunda etiqueta conta a mesma sessão e a mesma compra duas vezes."
+          valor={ga4}
+          placeholder="G-XXXXXXXXXX"
+        />
+        <p className="mt-4 rounded-lg border-l-[3px] border-marca bg-marca-suave px-3.5 py-2.5 text-[12.5px] leading-relaxed text-tinta-2">
+          Com este id a loja manda sozinha os eventos de loja do Analytics · <b>view_item</b>,
+          <b> add_to_cart</b>, <b>begin_checkout</b> e <b>purchase</b>, com produto, marca, tensão
+          e valor. O id de cada produto é o SKU, o mesmo que vai no feed do Merchant Center.
         </p>
       </fieldset>
 

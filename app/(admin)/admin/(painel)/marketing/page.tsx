@@ -29,6 +29,7 @@ export default async function Marketing() {
       <FormMarketing
         pixelMeta={m?.pixelMeta ?? ""}
         gtmId={m?.gtmId ?? ""}
+        ga4={m?.ga4 ?? ""}
         googleAds={m?.googleAds ?? ""}
         rotuloCompra={m?.rotuloCompra ?? ""}
         testeCapi={m?.testeCapi ?? ""}
