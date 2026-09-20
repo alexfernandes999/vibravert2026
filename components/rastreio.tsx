@@ -49,14 +49,23 @@ export function Rastreio({
    * visita só, por mais que a pessoa navegue por vinte produtos.
    */
   useEffect(() => {
-    if (!pixel && !ga4) return;
+    // O Analytics sobe com send_page_view desligado, então TODAS as telas são
+    // contadas aqui · inclusive a primeira. O pixel da Meta já conta a
+    // primeira sozinho, no init, e por isso pula uma.
+    if (ga4) {
+      window.gtag?.("event", "page_view", {
+        send_to: ga4,
+        page_path: caminho,
+        page_location: window.location.href,
+        page_title: document.title,
+      });
+    }
+    if (!pixel) return;
     if (primeira.current) {
-      primeira.current = false; // o init já dispara o primeiro
+      primeira.current = false;
       return;
     }
-    if (pixel) window.fbq?.("track", "PageView");
-    // O gtag também só conta a primeira tela sozinho.
-    if (ga4) window.gtag?.("event", "page_view", { page_path: caminho, send_to: ga4 });
+    window.fbq?.("track", "PageView");
   }, [caminho, pixel, ga4]);
 
   return (
@@ -72,23 +81,7 @@ fbq('init','${pixel}');fbq('track','PageView');`}
         </Script>
       )}
 
-      {/* Uma biblioteca gtag só, com uma configuração por conta. Carregar o
-          script duas vezes · uma para o Analytics e outra para o Ads · é o que
-          faz a mesma sessão e a mesma compra contarem em dobro. */}
-      {(ga4 || ads) && (
-        <>
-          <Script
-            id="gtag-src"
-            strategy="afterInteractive"
-            src={`https://www.googletagmanager.com/gtag/js?id=${ga4 || ads}`}
-          />
-          <Script id="gtag" strategy="afterInteractive">
-            {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
-gtag('js',new Date());
-${ga4 ? `gtag('config','${ga4}');` : ""}${ads ? `gtag('config','${ads}');` : ""}`}
-          </Script>
-        </>
-      )}
+
 
       {gtm && (
         <Script id="gtm" strategy="afterInteractive">

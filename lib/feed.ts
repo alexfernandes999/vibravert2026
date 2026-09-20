@@ -6,6 +6,13 @@ const base = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
 const esc = (s: string) => s.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" }[c]!));
 
 /**
+ * title, description e link vão sem o prefixo g:.
+ *
+ * São elementos do próprio RSS, e o Google só os reconhece assim. Com
+ * <g:link> o Merchant Center lê cada item sem endereço, descarta todos e
+ * relata "0 produtos importados" · sem dizer o motivo.
+ */
+/**
  * Feed do Google Merchant Center.
  *
  * Duas decisões que definem se o produto é aprovado ou reprovado:
@@ -81,9 +88,9 @@ export async function gerarFeed() {
 
       return `  <item>
     <g:id>${esc(p.sku)}</g:id>
-    <g:title>${esc(p.nome.slice(0, 150))}</g:title>
-    <g:description>${esc(descricao.slice(0, 5000))}</g:description>
-    <g:link>${base}/produto/${p.slug}</g:link>
+    <title>${esc(p.nome.slice(0, 150))}</title>
+    <description>${esc(descricao.slice(0, 5000))}</description>
+    <link>${base}/produto/${p.slug}</link>
     <g:image_link>${esc(capa.url)}</g:image_link>
 ${outras.map((i) => `    <g:additional_image_link>${esc(i.url)}</g:additional_image_link>`).join("\n")}
     <g:availability>${disponivel(p.estoque?.quantidade)}</g:availability>

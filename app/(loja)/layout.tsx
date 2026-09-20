@@ -143,6 +143,29 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Marca que há JavaScript antes da primeira pintura. Só então o CSS
             esconde os blocos que a animação vai revelar. */}
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
+
+        {/* Medição do Google, iniciada no HTML e não depois da hidratação.
+            Funcionava carregada pelo next/script, mas só existia depois de o
+            React montar: quem abria o console no primeiro instante, ou lia o
+            código-fonte da página, não encontrava dataLayer nem gtag e
+            concluía que a loja não media nada. Aqui a fila existe antes de
+            qualquer evento, que é o que a biblioteca espera.
+
+            send_page_view desligado porque a loja não recarrega ao trocar de
+            página: quem conta as telas é o roteador, em Rastreio. */}
+        {(mkt.ga4 || mkt.googleAds) && (
+          <>
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${mkt.ga4 || mkt.googleAds}`} />
+            <script
+              dangerouslySetInnerHTML={{
+                __html:
+                  "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());" +
+                  (mkt.ga4 ? `gtag('config','${mkt.ga4}',{send_page_view:false});` : "") +
+                  (mkt.googleAds ? `gtag('config','${mkt.googleAds}');` : ""),
+              }}
+            />
+          </>
+        )}
       </head>
       <body>
         <Rastreio pixel={mkt.pixelMeta} gtm={mkt.gtmId} ga4={mkt.ga4} ads={mkt.googleAds} />
