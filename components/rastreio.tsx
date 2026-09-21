@@ -188,6 +188,42 @@ export function comecouCheckout(itens: Item[], total: number) {
 }
 
 /**
+ * Viu a lista de bombas da página de campanha.
+ *
+ * É o evento que o Analytics usa para ligar a campanha ao produto: sem ele a
+ * visita aparece como uma tela qualquer, e não dá para saber qual modelo a
+ * página de anúncio realmente empurra.
+ */
+export function VerLista({ lista, itens }: { lista: string; itens: Item[] }) {
+  const feito = useRef(false);
+  useEffect(() => {
+    if (feito.current) return;
+    feito.current = true;
+    ga("view_item_list", { item_list_name: lista, items: itensGa(itens) });
+  }, [lista, itens]);
+  return null;
+}
+
+/** Clicou num modelo da lista. */
+export function escolheuItem(lista: string, item: Item) {
+  ga("select_item", { item_list_name: lista, items: itensGa([item]) });
+}
+
+/**
+ * Pediu indicação de bomba pelo formulário.
+ *
+ * Vai como generate_lead, que é o nome que o Analytics entende · e nunca como
+ * compra: misturar pedido de contato com venda faz a campanha otimizar para
+ * quem preenche formulário em vez de quem paga.
+ */
+export function pediuIndicacao(resumo?: string) {
+  ga("generate_lead", { value: 0, ...(resumo ? { lead_source: resumo } : {}) });
+  if (typeof window !== "undefined" && window.fbq) {
+    window.fbq("track", "Lead", { content_name: "indicação de bomba" });
+  }
+}
+
+/**
  * A conversão de compra no Google Ads.
  *
  * Sem ela o Google não sabe quais cliques viraram venda · a campanha gasta às

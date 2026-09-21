@@ -29,6 +29,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: base, changeFrequency: "weekly", priority: 1 },
     { url: `${base}/qual-bomba`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${base}/bombas`, changeFrequency: "weekly", priority: 0.9 },
+    // Página de campanha · vive de anúncio, mas também responde bem à busca
+    // por "bomba para poço", e deixá-la fora do sitemap seria jogar fora a
+    // parte gratuita do tráfego.
+    { url: `${base}/bomba-sapo/alternativa`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/bombas?tipo=peca`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/assistencia`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/revenda`, changeFrequency: "monthly", priority: 0.8 },
