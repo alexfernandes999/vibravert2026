@@ -172,7 +172,7 @@ export function RodapeRedes() {
         ),
       )}
       {(!INSTAGRAM || !YOUTUBE) && (
-        <li className="text-[11.5px] font-semibold text-tenue">em breve</li>
+        <li className="text-[11.5px] font-semibold text-mudo">em breve</li>
       )}
     </ul>
   );

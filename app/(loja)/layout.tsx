@@ -339,7 +339,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 Vibra Phone {TELEFONE}
               </a>
             </address>
-            <p className="mt-3 text-center text-[11.5px] font-medium text-tenue">
+            <p className="mt-3 text-center text-[11.5px] font-medium text-mudo">
               © {new Date().getFullYear()} Vibra Vert Bombas Submersas Vibratórias · Indústria Brasileira
             </p>
           </div>

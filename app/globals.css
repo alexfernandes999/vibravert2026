@@ -37,6 +37,8 @@
      usado · 12 e 13 px · o anterior ficava em 3,78:1 sobre branco, abaixo do
      mínimo legível de 4,5:1. Este passa nos três fundos da loja. */
   --color-mudo: #656d78;
+  /* Cinza de contorno e de estado vazio · fica abaixo do contraste mínimo
+     para texto e por isso não veste texto que precisa ser lido. */
   --color-tenue: #9aa3ae;
   --color-linha: #dfe4ee;
   --color-linha-2: #c7d0e0;

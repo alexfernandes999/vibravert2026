@@ -312,7 +312,7 @@ function Opcao({ href, ativo, rotulo, n }: { href: string; ativo: boolean; rotul
           }`}
         />
         {rotulo}
-        {n !== undefined && <span className="num ml-auto text-[10.5px] font-bold text-tenue">{n}</span>}
+        {n !== undefined && <span className="num ml-auto text-[10.5px] font-bold text-mudo">{n}</span>}
       </Link>
     </li>
   );
