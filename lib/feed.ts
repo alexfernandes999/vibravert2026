@@ -3,6 +3,19 @@ import { FRETE_GRATIS_EM_BOMBAS, FRETE_PADRAO } from "@/lib/loja";
 
 
 const base = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
+
+/**
+ * Endereço de imagem sempre absoluto.
+ *
+ * As fotos das seis bombas principais são arquivos do próprio site e ficam
+ * gravadas como "/bombas/rymer-2000.jpg" · o que é certo dentro da loja e
+ * inválido num feed, que é lido de fora. O Merchant Center reprovava
+ * justamente os modelos mais vendidos por image_link inválido, enquanto as
+ * fotos hospedadas fora passavam · daí o erro parecer aleatório.
+ */
+function imagem(url: string) {
+  return esc(url.startsWith("//") ? `https:${url}` : url.startsWith("/") ? `${base}${url}` : url);
+}
 const esc = (s: string) => s.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" }[c]!));
 
 /**
@@ -91,8 +104,8 @@ export async function gerarFeed() {
     <title>${esc(p.nome.slice(0, 150))}</title>
     <description>${esc(descricao.slice(0, 5000))}</description>
     <link>${base}/produto/${p.slug}</link>
-    <g:image_link>${esc(capa.url)}</g:image_link>
-${outras.map((i) => `    <g:additional_image_link>${esc(i.url)}</g:additional_image_link>`).join("\n")}
+    <g:image_link>${imagem(capa.url)}</g:image_link>
+${outras.map((i) => `    <g:additional_image_link>${imagem(i.url)}</g:additional_image_link>`).join("\n")}
     <g:availability>${disponivel(p.estoque?.quantidade)}</g:availability>
     <g:price>${Number(p.preco).toFixed(2)} BRL</g:price>
     <g:brand>${esc(p.marca)}</g:brand>
