@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { bannerAtivo } from "@/lib/banners";
 import { RedeLojas } from "@/components/rede-lojas";
+import { SoForaDaCampanha } from "@/components/so-fora-da-campanha";
 import { resumoCarrinho } from "@/lib/carrinho";
 import { Revelar } from "@/components/revelar";
 import { FaixaAvisos } from "@/components/faixa-avisos";
@@ -250,7 +251,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Revelar />
 
         <div className="mt-16 border-t border-linha bg-superficie">
-          <RedeLojas />
+          <SoForaDaCampanha>
+            <RedeLojas />
+          </SoForaDaCampanha>
         </div>
 
         <footer className="border-t border-linha bg-superficie-2">
