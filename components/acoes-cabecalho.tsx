@@ -46,11 +46,14 @@ function Bloco({
   );
 
   const classe = "flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition hover:bg-superficie-2";
+  // Abaixo de lg o rótulo fica escondido e sobra só o ícone · para quem usa
+  // leitor de tela o link vira "link, em branco".
+  const acessivel = `${rotulo}: ${valor}`;
 
   return externo ? (
-    <a href={href} className={classe}>{conteudo}</a>
+    <a href={href} className={classe} aria-label={acessivel}>{conteudo}</a>
   ) : (
-    <Link href={href} className={classe}>{conteudo}</Link>
+    <Link href={href} className={classe} aria-label={acessivel}>{conteudo}</Link>
   );
 }
 
@@ -64,7 +67,7 @@ export function AcoesCabecalho({ qtd, total }: { qtd: number; total: number }) {
         rotulo="Vibra Phone"
         valor={EMPRESA.telefone}
         icone={
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="h-5 w-5">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden className="h-5 w-5">
             <path d="M4 4h4l2 5-2.5 1.5a12 12 0 006 6L15 14l5 2v4a1 1 0 01-1.1 1A17 17 0 013 5.1 1 1 0 014 4z" />
           </svg>
         }
@@ -75,7 +78,7 @@ export function AcoesCabecalho({ qtd, total }: { qtd: number; total: number }) {
         rotulo="Seu pedido"
         valor="Acompanhar"
         icone={
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="h-5 w-5">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden className="h-5 w-5">
             <circle cx="12" cy="8" r="3.4" />
             <path d="M4.5 20a7.5 7.5 0 0115 0" />
           </svg>
@@ -84,10 +87,11 @@ export function AcoesCabecalho({ qtd, total }: { qtd: number; total: number }) {
 
       <Link
         href="/carrinho"
+        aria-label={qtd > 0 ? `Meu carrinho: ${qtd} ${qtd === 1 ? "item" : "itens"}, ${brl(total)}` : "Meu carrinho, vazio"}
         className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition hover:bg-superficie-2"
       >
         <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-superficie-2 text-marca">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="h-5 w-5">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden className="h-5 w-5">
             <path d="M2.5 3h2.2l2.3 11.2a1.6 1.6 0 001.6 1.3h8.6a1.6 1.6 0 001.6-1.2l1.6-6.3H6" />
             <circle cx="9.5" cy="19.5" r="1.5" />
             <circle cx="17" cy="19.5" r="1.5" />

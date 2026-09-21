@@ -27,11 +27,16 @@
      em cima dele nunca é branco nem preto puro, é o marrom-ouro abaixo. */
   --color-ouro: #f5b921;
   --color-ouro-escuro: #c9911a;
-  --color-ouro-txt: #6b4c00;
+  /* Escurecido de #6b4c00: o texto do botão dourado ficava em 4,45:1, logo
+     abaixo do mínimo. */
+  --color-ouro-txt: #5c4100;
 
   --color-tinta: #12172a;
   --color-tinta-2: #333b4d;
-  --color-mudo: #7c848f;
+  /* O cinza de apoio passou de #7c848f para cá: no tamanho em que ele é mais
+     usado · 12 e 13 px · o anterior ficava em 3,78:1 sobre branco, abaixo do
+     mínimo legível de 4,5:1. Este passa nos três fundos da loja. */
+  --color-mudo: #656d78;
   --color-tenue: #9aa3ae;
   --color-linha: #dfe4ee;
   --color-linha-2: #c7d0e0;
