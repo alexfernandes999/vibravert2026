@@ -34,6 +34,20 @@ const mapa = redirects as Record<string, string>;
 const categorias = legado.nosso as Record<string, string>;
 const deTerceiro = new Set(legado.alheio as string[]);
 
+/**
+ * Deixa passar dizendo em qual caminho estamos.
+ *
+ * O layout roda no servidor e não conhece a rota · e é ele quem monta o
+ * rodapé. Sem este cabeçalho, esconder um bloco só nas páginas de campanha só
+ * daria para fazer no navegador, e o texto escondido continuaria viajando
+ * dentro do HTML.
+ */
+function segue(req: NextRequest) {
+  const cabecalhos = new Headers(req.headers);
+  cabecalhos.set("x-caminho", req.nextUrl.pathname);
+  return NextResponse.next({ request: { headers: cabecalhos } });
+}
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const limpo = pathname.replace(/\/+$/, "") || "/";
@@ -86,7 +100,7 @@ export function middleware(req: NextRequest) {
 
   // ── produto: o padrão /nome-do-produto/p da VTEX ─────────────────
   const m = limpo.match(/^\/([^/]+)\/p$/);
-  if (!m) return NextResponse.next();
+  if (!m) return segue(req);
 
   const destino = mapa[m[1]];
   if (destino) {

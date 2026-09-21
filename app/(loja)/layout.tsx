@@ -4,8 +4,9 @@ import { configPublica } from "@/lib/marketing";
 import Link from "next/link";
 import Image from "next/image";
 import { bannerAtivo } from "@/lib/banners";
+import { headers } from "next/headers";
 import { RedeLojas } from "@/components/rede-lojas";
-import { SoForaDaCampanha } from "@/components/so-fora-da-campanha";
+
 import { resumoCarrinho } from "@/lib/carrinho";
 import { Revelar } from "@/components/revelar";
 import { FaixaAvisos } from "@/components/faixa-avisos";
@@ -122,6 +123,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // e quem decide o que vai nele é o time comercial, não o desenvolvedor.
   const tarja = await bannerAtivo("TARJA_TOPO");
   const carrinho = await resumoCarrinho();
+  const campanha = ((await headers()).get("x-caminho") ?? "").startsWith("/bomba-sapo");
 
   return (
     <html lang="pt-BR">
@@ -251,9 +253,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Revelar />
 
         <div className="mt-16 border-t border-linha bg-superficie">
-          <SoForaDaCampanha>
-            <RedeLojas />
-          </SoForaDaCampanha>
+          {/* Nas páginas de campanha o rodapé não leva às outras lojas do
+              grupo: paga-se pelo clique, e ele sairia do catálogo antes de
+              ver o preço. Decidido no servidor · escondido no navegador, o
+              texto continuaria dentro do HTML. */}
+          {!campanha && <RedeLojas />}
         </div>
 
         <footer className="border-t border-linha bg-superficie-2">
