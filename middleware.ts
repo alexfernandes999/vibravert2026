@@ -12,40 +12,30 @@ import legado from "@/lib/vtex-categorias.json";
  *  · O que continua aqui   → 301 para o endereço novo. O link segue circulando
  *    em anúncio antigo e no WhatsApp de revendedor, e continua valendo.
  *
- *  · O que é de terceiro   → 301 para a Casa São Paulo, que é a loja do grupo
- *    que vende aquilo, com o MESMO caminho · o slug da VTEX é idêntico lá.
- *    Quem procurava uma bomba Famac encontra uma bomba Famac, e a autoridade
- *    do link vai junto em vez de evaporar.
+ *  · O que é de terceiro   → 410 Gone, servido com a página de fora de linha,
+ *    que oferece a linha atual.
  *
- *  · O que não bate com nada → 410 Gone, nunca 404. O 404 diz "não achei
+ *  · O que não bate com nada → 410 também, nunca 404. O 404 diz "não achei
  *    agora" e o Google insiste por meses; o 410 diz "não existe mais" e ele
- *    tira do índice. A página do 410 oferece a linha atual, porque quem
- *    chegou procurando bomba continua sendo um comprador.
+ *    tira do índice.
  *
- * A versão anterior mandava tudo o que não era nosso para 410. Era o certo
- * enquanto se achava que aqueles produtos tinham sumido · descobrir que eles
- * seguem vivos noutro domínio do grupo transformou 3.804 páginas mortas em
- * 3.804 redirecionamentos úteis.
+ * Por um tempo o que era de terceiro ia em 301 para a Casa São Paulo, onde o
+ * slug da VTEX é o mesmo. Funcionava para o visitante, mas 3.800 endereços do
+ * domínio despachando para outra loja é exatamente o que o Merchant Center
+ * chama de "página criada para direcionar o cliente a outro lugar", e ele
+ * reprovou o catálogo inteiro por isso (Afiliados). Nenhum endereço daqui
+ * leva a outra loja.
  */
-
-const CASA = "https://www.acasasaopaulo.com.br";
 
 const mapa = redirects as Record<string, string>;
 const categorias = legado.nosso as Record<string, string>;
 const deTerceiro = new Set(legado.alheio as string[]);
 
-/**
- * Deixa passar dizendo em qual caminho estamos.
- *
- * O layout roda no servidor e não conhece a rota · e é ele quem monta o
- * rodapé. Sem este cabeçalho, esconder um bloco só nas páginas de campanha só
- * daria para fazer no navegador, e o texto escondido continuaria viajando
- * dentro do HTML.
- */
-function segue(req: NextRequest) {
-  const cabecalhos = new Headers(req.headers);
-  cabecalhos.set("x-caminho", req.nextUrl.pathname);
-  return NextResponse.next({ request: { headers: cabecalhos } });
+/** O que saiu de linha responde 410, com uma página que ainda vende. */
+function foraDeLinha(req: NextRequest) {
+  const url = req.nextUrl.clone();
+  url.pathname = "/fora-de-linha";
+  return NextResponse.rewrite(url, { status: 410 });
 }
 
 export function middleware(req: NextRequest) {
@@ -94,23 +84,18 @@ export function middleware(req: NextRequest) {
   if (nossa) return NextResponse.redirect(new URL(nossa, req.url), 301);
 
   // ── categoria antiga de marca de terceiro ────────────────────────
-  if (deTerceiro.has(limpo)) {
-    return NextResponse.redirect(`${CASA}${limpo}`, 301);
-  }
+  if (deTerceiro.has(limpo)) return foraDeLinha(req);
 
   // ── produto: o padrão /nome-do-produto/p da VTEX ─────────────────
   const m = limpo.match(/^\/([^/]+)\/p$/);
-  if (!m) return segue(req);
+  if (!m) return NextResponse.next();
 
   const destino = mapa[m[1]];
   if (destino) {
     return NextResponse.redirect(new URL(`/produto/${destino}`, req.url), 301);
   }
 
-  // Não é nosso, mas o slug da VTEX é o mesmo lá. Se por acaso não for, quem
-  // responde 404 é a Casa São Paulo · e ela sabe oferecer o similar, coisa
-  // que uma página de erro nossa não saberia.
-  return NextResponse.redirect(`${CASA}${limpo}`, 301);
+  return foraDeLinha(req);
 }
 
 export const config = {

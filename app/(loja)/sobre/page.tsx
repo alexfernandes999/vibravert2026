@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { RedeLojas } from "@/components/rede-lojas";
 
 export const metadata: Metadata = {
   title: "Nossa história · fábrica de bombas desde 1974",
@@ -109,10 +108,6 @@ export default function Sobre() {
           </div>
         </div>
       </section>
-
-      <div className="border-t border-linha bg-superficie">
-        <RedeLojas origem="sobre" />
-      </div>
 
       <script
         type="application/ld+json"
