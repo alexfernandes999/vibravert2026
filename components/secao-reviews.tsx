@@ -19,7 +19,7 @@ import { lerReviews } from "@/lib/reviews";
  */
 function Estrelas({ n, tamanho = 16 }: { n: number; tamanho?: number }) {
   return (
-    <span className="inline-flex gap-[2px]" aria-label={`${n} de 5 estrelas`}>
+    <span role="img" className="inline-flex gap-[2px]" aria-label={`${n} de 5 estrelas`}>
       {[1, 2, 3, 4, 5].map((i) => (
         <svg
           key={i}

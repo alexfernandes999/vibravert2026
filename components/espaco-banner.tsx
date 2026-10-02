@@ -19,6 +19,10 @@ import type { Banner } from "@prisma/client";
  * A imagem de celular é opcional e existe para quem quiser caprichar: numa
  * tela estreita, 2098 × 750 vira uma tira de pouco mais de cem pixels de
  * altura. Sem ela, a de computador é usada do mesmo jeito · nunca fica buraco.
+ *
+ * Sem `priority`: a abertura da home é o carrossel, e todo espaço daqui fica
+ * abaixo da dobra. Pré-carregado, ele disputava a banda com o banner do topo
+ * e atrasava a maior pintura da página no celular.
  */
 export function EspacoBanner({
   banner,
@@ -56,7 +60,6 @@ export function EspacoBanner({
             fill
             sizes="(max-width: 1180px) 100vw, 1180px"
             className={`object-cover ${banner.imagemMobile ? "hidden sm:block" : ""}`}
-            priority
           />
           {banner.imagemMobile && (
             <Image
@@ -65,7 +68,6 @@ export function EspacoBanner({
               fill
               sizes="100vw"
               className="object-cover sm:hidden"
-              priority
             />
           )}
         </>

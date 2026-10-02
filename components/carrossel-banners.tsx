@@ -44,6 +44,8 @@ export function CarrosselBanners() {
     <div
       className="relative w-full overflow-hidden bg-marca-escuro"
       style={{ aspectRatio: "1600 / 533" }}
+      role="region"
+      aria-label="Destaques da loja"
       aria-roledescription="carrossel"
       onMouseEnter={() => setPausado(true)}
       onMouseLeave={() => setPausado(false)}
@@ -65,14 +67,14 @@ export function CarrosselBanners() {
             alt={b.alt}
             fill
             sizes="100vw"
-            quality={95}
+            quality={90}
             priority={i === 0}
             className="object-cover"
           />
         </Link>
       ))}
 
-      <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-2 sm:bottom-3">
+      <div className="absolute bottom-0 left-1/2 flex -translate-x-1/2 gap-1 sm:bottom-1.5">
         {BANNERS.map((b, i) => (
           <button
             key={b.src}
@@ -80,10 +82,16 @@ export function CarrosselBanners() {
             onClick={() => setAtual(i)}
             aria-label={`Banner ${i + 1} de ${BANNERS.length}`}
             aria-current={i === atual}
-            className={`h-2 rounded-full transition-all ${
-              i === atual ? "w-6 bg-ouro" : "w-2 bg-white/50 hover:bg-white/80"
-            }`}
-          />
+            // O ponto é pequeno, mas a área de toque tem 24 px: abaixo disso o
+            // dedo erra no celular.
+            className="group flex h-6 min-w-6 items-center justify-center"
+          >
+            <span
+              className={`block h-2 rounded-full transition-all ${
+                i === atual ? "w-6 bg-ouro" : "w-2 bg-white/50 group-hover:bg-white/80"
+              }`}
+            />
+          </button>
         ))}
       </div>
     </div>
