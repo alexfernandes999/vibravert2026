@@ -152,7 +152,7 @@ export default async function Home() {
                   <dt className="text-[9.5px] font-bold uppercase tracking-[0.13em] text-mudo">{r}</dt>
                 </div>
               ))}
-            </ul>
+            </dl>
           </div>
 
           {/* O produto saiu do topo. A foto da bomba isolada num quadro grande
@@ -389,7 +389,7 @@ export default async function Home() {
                   </p>
                 </li>
               ))}
-            </dl>
+            </ul>
 
             <Link
               href="/sobre"
