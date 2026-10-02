@@ -154,12 +154,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             send_page_view desligado porque a loja não recarrega ao trocar de
             página: quem conta as telas é o roteador, em Rastreio.
 
-            A biblioteca em si (gtag.js, ~330 KB entre GA4 e Ads) só desce
-            depois do load. Baixada logo no início, ela ocupava o processador
-            por mais de meio segundo justo quando o celular tentava pintar o
-            banner, e o PageSpeed cobrava isso na maior pintura da página. A
-            fila acima já existe, então nenhum evento se perde na espera: ele
-            é enviado quando a biblioteca chega. */}
+            A biblioteca em si (gtag.js, ~330 KB entre GA4 e Ads) só desce na
+            primeira interação, ou 3 s depois do load. Baixada logo no início,
+            ela ocupava o processador por mais de meio segundo justo quando o
+            celular tentava pintar o banner. Esperar só o load não bastava: com
+            o HTML em streaming o load às vezes dispara antes da pintura, e o
+            PageSpeed oscilava entre 57 e 83 conforme a corrida. A fila acima
+            já existe, então nenhum evento se perde na espera: ele é enviado
+            quando a biblioteca chega. */}
         {(mkt.ga4 || mkt.googleAds) && (
           <script
             dangerouslySetInnerHTML={{
@@ -167,10 +169,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());" +
                 (mkt.ga4 ? `gtag('config','${mkt.ga4}',{send_page_view:false});` : "") +
                 (mkt.googleAds ? `gtag('config','${mkt.googleAds}');` : "") +
-                "(function(){function c(){var s=document.createElement('script');s.async=true;" +
+                "(function(){var f=0,ev=['scroll','pointerdown','keydown','touchstart','mousemove'];" +
+                "function c(){if(f)return;f=1;ev.forEach(function(e){removeEventListener(e,c)});" +
+                "var s=document.createElement('script');s.async=true;" +
                 `s.src='https://www.googletagmanager.com/gtag/js?id=${mkt.ga4 || mkt.googleAds}';` +
                 "document.head.appendChild(s)}" +
-                "if(document.readyState==='complete')setTimeout(c,0);else addEventListener('load',function(){setTimeout(c,0)})})();",
+                "ev.forEach(function(e){addEventListener(e,c,{once:true,passive:true})});" +
+                "function t(){setTimeout(c,3000)}" +
+                "if(document.readyState==='complete')t();else addEventListener('load',t)})();",
             }}
           />
         )}
