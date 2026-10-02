@@ -4,6 +4,7 @@ import { registrarAcao } from "@/lib/admin-auth";
 import { enviarParaBling } from "@/lib/bling-nota";
 import { brl } from "@/lib/formato";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import type { PedidoStatus } from "@prisma/client";
 import Link from "next/link";
 import { Selo } from "@/components/selo-pedido";
@@ -62,7 +63,8 @@ async function avancar(id: string, para: PedidoStatus) {
  * embora na mesma ação.
  *
  * A falha volta na tela em vez de sumir no log: sem saldo, a expedição precisa
- * saber agora, não depois de imprimir nada.
+ * saber agora, não depois de imprimir nada. Quando só ia para o log, o botão
+ * parecia não fazer nada e era apertado vinte vezes seguidas.
  */
 async function despacharComEtiqueta(id: string) {
   "use server";
@@ -132,9 +134,29 @@ async function despacharComEtiqueta(id: string) {
     await pedidoEnviado(atualizado);
     await registrarAcao("comprou etiqueta e despachou", `#${p.numero}`, etiqueta.rastreio ?? undefined);
   } catch (e) {
-    await registrarAcao("etiqueta falhou", `#${p.numero}`, e instanceof Error ? e.message.slice(0, 300) : undefined);
+    const motivo = e instanceof Error ? e.message.slice(0, 300) : "erro desconhecido";
+    await registrarAcao("etiqueta falhou", `#${p.numero}`, motivo);
+    redirect(`/admin/pedidos?falhou=${p.numero}&motivo=${encodeURIComponent(motivo)}`);
   }
 
+  revalidatePath("/admin/pedidos");
+}
+
+/**
+ * Despachado por fora: etiqueta comprada direto no SuperFrete, entregue no
+ * balcão, retirado na fábrica. Sem esta saída o pedido ficava preso em
+ * "Separando" para sempre sempre que a etiqueta automática não servia.
+ */
+async function marcarEnviado(id: string, form: FormData) {
+  "use server";
+  const rastreio = String(form.get("rastreio") ?? "").trim() || null;
+  const p = await prisma.pedido.update({
+    where: { id },
+    data: { status: "ENVIADO", ...(rastreio ? { rastreio } : {}) },
+    include: { itens: true, endereco: true, cliente: true },
+  });
+  await pedidoEnviado(p);
+  await registrarAcao("marcou enviado sem etiqueta automática", `#${p.numero}`, rastreio ?? undefined);
   revalidatePath("/admin/pedidos");
 }
 
@@ -146,8 +168,12 @@ const FILTROS: { v: string; r: string }[] = [
   { v: "AGUARDANDO_PAGAMENTO", r: "Aguardando" },
 ];
 
-export default async function Pedidos({ searchParams }: { searchParams: Promise<{ s?: string }> }) {
-  const { s } = await searchParams;
+export default async function Pedidos({
+  searchParams,
+}: {
+  searchParams: Promise<{ s?: string; falhou?: string; motivo?: string }>;
+}) {
+  const { s, falhou, motivo } = await searchParams;
   const pedidos = await prisma.pedido.findMany({
     where: s ? { status: s as PedidoStatus } : {},
     orderBy: { criadoEm: "desc" },
@@ -287,6 +313,12 @@ export default async function Pedidos({ searchParams }: { searchParams: Promise<
                   </p>
                 )}
 
+                {falhou === String(p.numero) && (
+                  <p className="mt-3 rounded-lg border-l-[3px] border-critico bg-critico/[0.06] px-3 py-2 text-[12px] leading-relaxed text-tinta-2">
+                    <strong className="text-critico">A etiqueta não saiu.</strong> {motivo}
+                  </p>
+                )}
+
                 {prox && (
                   <form
                     action={
@@ -300,6 +332,23 @@ export default async function Pedidos({ searchParams }: { searchParams: Promise<
                       {prox.r}
                     </button>
                   </form>
+                )}
+
+                {p.status === "SEPARANDO" && !p.etiquetaId && (
+                  <details className="mt-2 text-[12.5px]">
+                    <summary className="cursor-pointer font-bold text-mudo">Já despachei por fora</summary>
+                    <form action={marcarEnviado.bind(null, p.id)} className="mt-2 flex flex-wrap items-center gap-2">
+                      <input
+                        name="rastreio"
+                        placeholder="Código de rastreio (opcional)"
+                        aria-label="Código de rastreio"
+                        className="num rounded-lg border border-linha bg-superficie px-3 py-1.5 text-[12.5px]"
+                      />
+                      <button className="rounded-lg border-[1.5px] border-marca px-3 py-1.5 font-bold text-marca">
+                        Marcar enviado
+                      </button>
+                    </form>
+                  </details>
                 )}
               </li>
             );

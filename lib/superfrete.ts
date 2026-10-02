@@ -19,6 +19,20 @@ export const configurado = Boolean(process.env.SUPERFRETE_TOKEN);
 /** PAC, SEDEX, Mini Envios e Loggi. */
 const SERVICOS = "1,2,17,31";
 
+const ID_POR_NOME: Record<string, number> = { PAC: 1, SEDEX: 2, "MINI ENVIOS": 17, LOGGI: 31 };
+
+/**
+ * O número do serviço no SuperFrete, a partir do que ficou gravado no pedido.
+ *
+ * O checkout grava o nome ("LOGGI", "PAC"), que é o que aparece para o cliente
+ * e vai para o Bling, mas a compra da etiqueta só aceita o número. Mandar o
+ * nome virava `service: NaN`, e toda etiqueta voltava "(service) é inválido".
+ */
+export function idDoServico(servico: string): number | null {
+  if (/^\d+$/.test(servico.trim())) return Number(servico);
+  return ID_POR_NOME[servico.trim().toUpperCase()] ?? null;
+}
+
 /**
  * O SuperFrete recusa User-Agent genérico: quer saber quem está chamando, para
  * conseguir avisar quando uma integração começa a errar.
@@ -179,6 +193,8 @@ export async function comprarEtiqueta(dados: {
   referencia: string;
 }): Promise<Etiqueta> {
   const d = dados.destinatario;
+  const servico = idDoServico(dados.servico);
+  if (!servico) throw new Error(`Serviço de frete desconhecido: "${dados.servico}"`);
   const so = (v: string | null | undefined) => (v ?? "").replace(/\D/g, "");
 
   const pedido = await chamar("/cart", {
@@ -196,7 +212,7 @@ export async function comprarEtiqueta(dados: {
       phone: so(d.telefone),
       document: so(d.documento),
     },
-    service: Number(dados.servico),
+    service: servico,
     products: dados.itens.map((i) => ({
       name: i.nome.slice(0, 60),
       quantity: String(i.quantidade),
