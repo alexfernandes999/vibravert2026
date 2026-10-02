@@ -18,7 +18,7 @@
   --color-marca: #14307a;
   --color-marca-escuro: #0a1b4d;
   --color-marca-claro: #1f6591;
-  --color-ciano: #00a0c6;
+  --color-ciano: #007a99;
   --color-marca-suave: #dee6f7;
   --color-marca-linha: #a8bbe4;
 
@@ -36,7 +36,7 @@
   /* O cinza de apoio passou de #7c848f para cá: no tamanho em que ele é mais
      usado · 12 e 13 px · o anterior ficava em 3,78:1 sobre branco, abaixo do
      mínimo legível de 4,5:1. Este passa nos três fundos da loja. */
-  --color-mudo: #656d78;
+  --color-mudo: #5c6470;
   /* Cinza de contorno e de estado vazio · fica abaixo do contraste mínimo
      para texto e por isso não veste texto que precisa ser lido. */
   --color-tenue: #9aa3ae;

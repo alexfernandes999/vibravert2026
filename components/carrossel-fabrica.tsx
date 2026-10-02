@@ -152,16 +152,21 @@ export function CarrosselFabrica({ fotos }: { fotos: FotoFabrica[] }) {
           </svg>
         </button>
 
-        <ul className="flex items-center gap-1.5">
+        <ul className="flex items-center">
           {fotos.map((f, i) => (
             <li key={f.src}>
+              {/* O traço é fino, mas o alvo de toque tem 24 px. */}
               <button
                 onClick={() => ir(i)}
                 aria-label={`Ir para ${f.titulo}`}
-                className={`block h-1.5 rounded-full transition-all duration-500 ${
-                  i === atual ? "w-7 bg-marca" : "w-1.5 bg-linha-2 hover:bg-marca/50"
-                }`}
-              />
+                className="group flex h-6 min-w-6 items-center justify-center"
+              >
+                <span
+                  className={`block h-1.5 rounded-full transition-all duration-500 ${
+                    i === atual ? "w-7 bg-marca" : "w-1.5 bg-linha-2 group-hover:bg-marca/50"
+                  }`}
+                />
+              </button>
             </li>
           ))}
         </ul>

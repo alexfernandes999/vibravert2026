@@ -107,12 +107,14 @@ export function SecaoErros() {
             devolução indevida. O "11" entra como âncora gráfica, e "queimam" é
             a palavra que faz parar de rolar — recebe o traço dourado. */}
         <div className="flex items-start gap-5 sm:gap-7">
+          {/* O número sai pelo CSS (content), e não como texto: é desenho,
+              claro de propósito, e como texto o PageSpeed o cobrava como
+              contraste baixo. */}
           <span
             aria-hidden
-            className="revelar num shrink-0 select-none text-[clamp(56px,11vw,112px)] font-extrabold leading-[0.78] tracking-[-0.06em] text-marca/15"
-          >
-            11
-          </span>
+            data-n="11"
+            className="revelar num shrink-0 select-none text-[clamp(56px,11vw,112px)] font-extrabold leading-[0.78] tracking-[-0.06em] text-marca/15 before:content-[attr(data-n)]"
+          />
           <div className="min-w-0">
             <p className="inline-flex items-center gap-2 rounded-full border border-ouro-escuro/40 bg-ouro px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-ouro-txt shadow-sm shadow-ouro/40">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"

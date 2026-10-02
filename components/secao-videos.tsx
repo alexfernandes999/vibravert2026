@@ -49,7 +49,7 @@ export function SecaoVideos({
             href={canal}
             target="_blank"
             rel="noopener"
-            className="ml-auto inline-flex items-center gap-2.5 rounded-lg bg-[#FF0000] px-5 py-3 text-[13.5px] font-extrabold text-white transition hover:brightness-110"
+            className="ml-auto inline-flex items-center gap-2.5 rounded-lg bg-[#D40000] px-5 py-3 text-[13.5px] font-extrabold text-white transition hover:brightness-110"
           >
             <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
               <path d="M23 12s0-3.9-.5-5.8a3 3 0 00-2.1-2.1C18.5 3.6 12 3.6 12 3.6s-6.5 0-8.4.5A3 3 0 001.5 6.2C1 8.1 1 12 1 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 8.4.5 8.4.5s6.5 0 8.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8zM9.8 15.5v-7l6.2 3.5z" />

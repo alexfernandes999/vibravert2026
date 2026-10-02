@@ -152,7 +152,7 @@ export default async function Home() {
                   <dt className="text-[9.5px] font-bold uppercase tracking-[0.13em] text-mudo">{r}</dt>
                 </div>
               ))}
-            </dl>
+            </ul>
           </div>
 
           {/* O produto saiu do topo. A foto da bomba isolada num quadro grande
@@ -335,7 +335,7 @@ export default async function Home() {
               São Paulo.
             </p>
 
-            <dl className="mt-8 grid gap-4 sm:grid-cols-3">
+            <ul className="mt-8 grid gap-4 sm:grid-cols-3">
               {[
                 {
                   v: "1958",
@@ -366,7 +366,7 @@ export default async function Home() {
                   i: null,
                 },
               ].map((n) => (
-                <div
+                <li
                   key={n.r}
                   className="rounded-caixa border border-white/10 bg-white/[.04] p-4 transition hover:border-ouro/40 hover:bg-white/[.07]"
                 >
@@ -381,13 +381,13 @@ export default async function Home() {
                       </svg>
                     </span>
                   )}
-                  <dd className="num mt-3 text-2xl font-extrabold leading-none tracking-tight text-ouro">
+                  <p className="num mt-3 text-2xl font-extrabold leading-none tracking-tight text-ouro">
                     {n.v}
-                  </dd>
-                  <dt className="mt-1.5 text-[10.5px] font-bold uppercase leading-snug tracking-[0.1em] text-white/50">
+                  </p>
+                  <p className="mt-1.5 text-[10.5px] font-bold uppercase leading-snug tracking-[0.1em] text-white/70">
                     {n.r}
-                  </dt>
-                </div>
+                  </p>
+                </li>
               ))}
             </dl>
 
