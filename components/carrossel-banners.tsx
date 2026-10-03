@@ -69,6 +69,9 @@ export function CarrosselBanners() {
             sizes="100vw"
             quality={90}
             priority={i === 0}
+            // O `priority` do Next só pré-carrega: a tag sai sem prioridade e o
+            // Chrome pedia o banner como "Low", atrás dos scripts.
+            fetchPriority={i === 0 ? "high" : "low"}
             className="object-cover"
           />
         </Link>
