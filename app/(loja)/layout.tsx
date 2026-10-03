@@ -155,7 +155,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             página: quem conta as telas é o roteador, em Rastreio.
 
             A biblioteca em si (gtag.js, ~330 KB entre GA4 e Ads) só desce na
-            primeira interação, ou 3 s depois do load. Baixada logo no início,
+            primeira interação, ou 10 s depois do load. Com 3 s ela ainda caía
+            dentro da medição do PageSpeed quando a página carregava rápido. Baixada logo no início,
             ela ocupava o processador por mais de meio segundo justo quando o
             celular tentava pintar o banner. Esperar só o load não bastava: com
             o HTML em streaming o load às vezes dispara antes da pintura, e o
@@ -175,7 +176,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 `s.src='https://www.googletagmanager.com/gtag/js?id=${mkt.ga4 || mkt.googleAds}';` +
                 "document.head.appendChild(s)}" +
                 "ev.forEach(function(e){addEventListener(e,c,{once:true,passive:true})});" +
-                "function t(){setTimeout(c,3000)}" +
+                "function t(){setTimeout(c,10000)}" +
                 "if(document.readyState==='complete')t();else addEventListener('load',t)})();",
             }}
           />
