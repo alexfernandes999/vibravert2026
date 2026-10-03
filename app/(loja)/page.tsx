@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { CartaoProduto } from "@/components/cartao-produto";
 import { FaixaConfianca } from "@/components/faixa-lider";
 import { EspacoBanner } from "@/components/espaco-banner";
-import { bannerAtivo } from "@/lib/banners";
+import { bannerAtivo, bannersAtivos } from "@/lib/banners";
 import { CarrosselBanners } from "@/components/carrossel-banners";
 import { Medir } from "@/components/medir";
 import { SecaoVideos } from "@/components/secao-videos";
@@ -45,7 +45,8 @@ const CAMPOS = {
 
 export default async function Home() {
 
-  const [meio, maisVendidas, precos, videos, destaque, modelosCalc] = await Promise.all([
+  const [principais, meio, maisVendidas, precos, videos, destaque, modelosCalc] = await Promise.all([
+    bannersAtivos("PRINCIPAL"),
     bannerAtivo("FAIXA_MEIO"),
     // Marcados como líder primeiro; o resto completa a prateleira.
     prisma.produto.findMany({
@@ -104,7 +105,12 @@ export default async function Home() {
           arredondados ele virava um cartão flutuando acima do herói, e a
           página passava a ter duas aberturas disputando a mesma atenção. */}
       <section className="[&_.rounded-caixa]:rounded-none">
-        <CarrosselBanners />
+        {/* O principal do painel abre, as peças fixas da marca vêm depois. */}
+        <CarrosselBanners
+          principais={principais
+            .filter((b) => b.imagemDesktop)
+            .map((b) => ({ src: b.imagemDesktop!, href: b.link || "/bombas", alt: b.alt }))}
+        />
       </section>
 
       {/* O slogan é o oficial da marca, o mesmo da embalagem. */}
