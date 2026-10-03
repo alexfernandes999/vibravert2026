@@ -67,7 +67,9 @@ export function CarrosselBanners() {
             alt={b.alt}
             fill
             sizes="100vw"
-            quality={90}
+            // O arquivo original, sem recompressão: a arte tem texto miúdo e
+            // ícones finos, e cada passada de compressão borra as bordas.
+            unoptimized
             priority={i === 0}
             // O `priority` do Next só pré-carrega: a tag sai sem prioridade e o
             // Chrome pedia o banner como "Low", atrás dos scripts.
