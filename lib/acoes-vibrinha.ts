@@ -43,6 +43,7 @@ export type BombaNoChat = {
   preco: number;
   garantia: string | null;
   saiaProtecao: boolean;
+  imagem: string | null;
 };
 
 /**
@@ -80,6 +81,7 @@ export async function recomendarNoChat(dados: {
     preco: Number(m.preco),
     garantia: m.garantia,
     saiaProtecao: m.saiaProtecao,
+    imagem: m.imagem?.url ?? null,
   });
 
   return {

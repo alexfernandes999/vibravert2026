@@ -1,10 +1,9 @@
 "use client";
 
 import { whatsappLink } from "@/lib/contato";
-import { guardarConversa, recomendarNoChat, versaoNoChat, type VersaoChat } from "@/lib/acoes-vibrinha";
+import { guardarConversa, recomendarNoChat, versaoNoChat, type BombaNoChat, type VersaoChat } from "@/lib/acoes-vibrinha";
 import { brl, precoPix, parcela, PARCELAS_MAX, litros } from "@/lib/formato";
-import { FRETE_GRATIS_EM_BOMBAS, PRAZO_DESPACHO } from "@/lib/loja";
-import { PERDA_POR_METRO } from "@/lib/recomendacao";
+import { FRETE_GRATIS_EM_BOMBAS, PRAZO_DESPACHO_CURTO } from "@/lib/loja";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -26,7 +25,32 @@ import { ROTEIRO, INICIO, type Opcao } from "@/lib/roteiro-vibrinha";
  * casa, e não um robô genérico com nome de startup.
  */
 
-type Msg = { de: "ela" | "eu"; texto: string; acao?: { rotulo: string; href: string } };
+/**
+ * A bomba indicada vira um cartão, e não um parágrafo: foto, o número que
+ * importa (litros na instalação), preço e um botão. Antes eram quatro balões de
+ * texto e seis botões, e a pessoa tinha de ler tudo para achar onde comprar.
+ */
+type Cartao = {
+  nome: string;
+  versao?: string;
+  imagem: string | null;
+  vazao: number;
+  vazaoMaxima: number;
+  hTotal: number;
+  preco: number;
+  garantia: string | null;
+  saia: boolean;
+  nota?: string;
+  href: string;
+};
+
+type Msg = {
+  de: "ela" | "eu";
+  texto: string;
+  acao?: { rotulo: string; href: string };
+  cartao?: Cartao;
+  lista?: { rotulo: string; detalhe: string; href: string }[];
+};
 
 /**
  * As quatro perguntas da calculadora, uma por vez. Altura e cano se digitam;
@@ -42,13 +66,13 @@ type Conta = {
 };
 
 /** A instalação já respondida e a bomba indicada: base para os pedidos que vêm depois. */
-type Instalacao = { altura: number; tubo: number; poco: number; tensao: string; slug: string; nome: string };
+type Instalacao = { altura: number; tubo: number; poco: number; tensao: string; bomba: BombaNoChat; hTotal: number };
 
 /** Opções que não são do roteiro: agem sobre a última recomendação. */
 const VERSOES: { chave: string; versao: VersaoChat; rotulo: string; descricao: string }[] = [
-  { chave: "acao:boia", versao: "BOIA", rotulo: "Com boia de nível", descricao: "com boia de nível" },
-  { chave: "acao:kit", versao: "KIT", rotulo: "Com kit de manutenção", descricao: "com kit de manutenção" },
-  { chave: "acao:boia_kit", versao: "BOIA_KIT", rotulo: "Com boia e kit", descricao: "com boia de nível e kit de manutenção" },
+  { chave: "acao:boia", versao: "BOIA", rotulo: "Com boia", descricao: "com boia de nível" },
+  { chave: "acao:kit", versao: "KIT", rotulo: "Com kit", descricao: "com kit de manutenção" },
+  { chave: "acao:boia_kit", versao: "BOIA_KIT", rotulo: "Boia + kit", descricao: "com boia e kit" },
 ];
 
 const POCOS = [
@@ -78,6 +102,8 @@ export function Vibrinha() {
   const [apurado, setApurado] = useState<string[]>([]);
   const [conta, setConta] = useState<Conta | null>(null);
   const [instalacao, setInstalacao] = useState<Instalacao | null>(null);
+  const [outras, setOutras] = useState<BombaNoChat[]>([]);
+  const [pediuVazao, setPediuVazao] = useState(false);
   const fim = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -101,6 +127,7 @@ export function Vibrinha() {
     const no = ROTEIRO[chave];
     if (!no) return;
     setConta(no.calcula ? { etapa: "altura" } : null);
+    if (no.calcula) setPediuVazao(false);
     if (rotulo) {
       setMsgs((m) => [...m, { de: "eu", texto: rotulo }]);
       setApurado((a) => [...a, rotulo]);
@@ -152,6 +179,7 @@ export function Vibrinha() {
     } else if (vazao && instalacao) {
       eu(`${m} L/h`, `Precisa de: ${m} L/h`);
       setConta(null);
+      setPediuVazao(true);
       void calcular(instalacao, rotuloTensao(instalacao.tensao), n);
     }
   }
@@ -222,45 +250,38 @@ export function Vibrinha() {
       }
 
       const b = r.indicada;
-      const perda = Math.round(tubo * PERDA_POR_METRO);
-      setInstalacao({ ...dados, slug: b.slug, nome: b.nome });
+      setInstalacao({ ...dados, bomba: b, hTotal: r.hTotal });
+      setOutras(r.alternativas);
       setApurado((a) => [...a, `Indicada: ${b.nome} (${litros(b.vazao)})`]);
 
-      const itens: Msg[] = [
-        {
-          de: "ela",
-          texto: `Para ${ondeTxt}, com a caixa a ${altura.toLocaleString("pt-BR")} m e ${tubo.toLocaleString("pt-BR")} m de cano, ${
-            vazaoMinima
-              ? `a mais em conta que entrega pelo menos ${litros(vazaoMinima)} é a ${b.nome}.`
-              : `a indicada é a ${b.nome}.`
-          }${b.saiaProtecao ? " Ela tem saia de proteção lateral, que evita que bata na parede do poço enquanto vibra." : ""}`,
-        },
-        {
-          de: "ela",
-          texto: `${
-            b.vazao < b.vazaoMaxima
-              ? `Na sua instalação ela entrega ${litros(b.vazao)}. A vazão máxima dela é ${litros(b.vazaoMaxima)}, medida a 0 m: a diferença vem dos ${r.hTotal} m de altura total, já contando ${perda} m de perda no cano.`
-              : `Na sua instalação ela entrega ${litros(b.vazao)}.`
-          } Se o cano tiver muitas curvas e registros, ou um desnível grande no caminho, vale confirmar com o técnico.`,
-        },
-        {
-          de: "ela",
-          texto: `Sai por ${brl(precoPix(b.preco))} no PIX ou ${brl(b.preco)} em ${PARCELAS_MAX}× de ${brl(parcela(b.preco))} sem juros${
-            FRETE_GRATIS_EM_BOMBAS ? ", com frete grátis" : ""
-          }. O pedido ${PRAZO_DESPACHO}.${b.garantia ? ` Garantia de ${b.garantia.toLowerCase()}.` : ""}`,
-          acao: { rotulo: "Ver e comprar", href: `/produto/${b.slug}` },
-        },
-      ];
-      if (r.alternativas.length) {
-        itens.push({
-          de: "ela",
-          texto: `Também servem: ${r.alternativas
-            .map((a) => `${a.nome} (${litros(a.vazao)}, ${brl(precoPix(a.preco))} no PIX)`)
-            .join("; ")}.`,
-        });
-      }
-      itens.push({ de: "ela", texto: "Quer com boia de nível, com kit de manutenção ou com os dois?" });
-      responder(itens, depoisDaIndicacao(vazaoMinima != null));
+      const resumo = `${b.nome}: ${litros(b.vazao)} na instalação, ${brl(precoPix(b.preco))} no PIX`;
+      responder(
+        [
+          {
+            de: "ela",
+            texto: vazaoMinima
+              ? `A mais em conta que entrega ${litros(vazaoMinima)} na sua instalação é esta:`
+              : `Para ${ondeTxt}, com a caixa a ${altura.toLocaleString("pt-BR")} m e ${tubo.toLocaleString("pt-BR")} m de cano, a indicada é esta:`,
+          },
+          {
+            de: "ela",
+            texto: resumo,
+            cartao: {
+              nome: b.nome,
+              imagem: b.imagem,
+              vazao: b.vazao,
+              vazaoMaxima: b.vazaoMaxima,
+              hTotal: r.hTotal,
+              preco: b.preco,
+              garantia: b.garantia,
+              saia: b.saiaProtecao,
+              href: `/produto/${b.slug}`,
+            },
+          },
+          { de: "ela", texto: "Quer com boia de nível ou kit de manutenção?" },
+        ],
+        depoisDaIndicacao(),
+      );
     } catch {
       responder(
         [{
@@ -274,10 +295,18 @@ export function Vibrinha() {
     }
   }
 
-  function depoisDaIndicacao(jaPediuVazao: boolean, sem?: string): Opcao[] {
+  /** Poucas opções à vista; o resto fica atrás de "Mais opções". */
+  function depoisDaIndicacao(sem?: string): Opcao[] {
     return [
       ...VERSOES.filter((v) => v.chave !== sem).map((v) => ({ rotulo: v.rotulo, proximo: v.chave })),
-      ...(jaPediuVazao ? [] : [{ rotulo: "Preciso de uma vazão mínima", proximo: "acao:vazao" }]),
+      { rotulo: "Mais opções", proximo: "acao:mais" },
+    ];
+  }
+
+  function maisOpcoes(): Opcao[] {
+    return [
+      ...(outras.length ? [{ rotulo: "Outras que servem", proximo: "acao:outras" }] : []),
+      ...(pediuVazao ? [] : [{ rotulo: "Preciso de mais água", proximo: "acao:vazao" }]),
       { rotulo: "Refazer a conta", proximo: "escolher" },
       { rotulo: "Voltar ao início", proximo: "menu" },
     ];
@@ -287,13 +316,14 @@ export function Vibrinha() {
   async function mostrarVersao(chave: string) {
     const v = VERSOES.find((x) => x.chave === chave);
     if (!v || !instalacao) return;
+    const b = instalacao.bomba;
     eu(v.rotulo, `Versão: ${v.descricao}`);
     setOpcoes([]);
     setDigitando(true);
-    const p = await versaoNoChat(instalacao.slug, v.versao).catch(() => null);
+    const p = await versaoNoChat(b.slug, v.versao).catch(() => null);
     if (!p) {
       responder(
-        [{ de: "ela", texto: `Essa versão da ${instalacao.nome} não está disponível no site agora. Um vendedor confere para você.` }],
+        [{ de: "ela", texto: `Essa versão da ${b.nome} não está disponível no site agora. Um vendedor confere para você.` }],
         undefined,
         true,
       );
@@ -303,27 +333,50 @@ export function Vibrinha() {
       [
         {
           de: "ela",
-          texto: `A ${instalacao.nome} ${v.descricao} sai por ${brl(precoPix(p.preco))} no PIX ou ${brl(p.preco)} em ${PARCELAS_MAX}× de ${brl(parcela(p.preco))} sem juros${
-            FRETE_GRATIS_EM_BOMBAS ? ", com frete grátis" : ""
-          }.${
-            v.versao !== "KIT"
-              ? " A boia desliga a bomba quando a água do poço baixa: é o que evita ela trabalhar seca, que é o que mais estraga bomba vibratória."
-              : ""
-          }`,
-          acao: { rotulo: "Ver e comprar", href: `/produto/${p.slug}` },
+          texto: `${b.nome} ${v.descricao}: ${brl(precoPix(p.preco))} no PIX`,
+          cartao: {
+            nome: b.nome,
+            versao: v.descricao,
+            imagem: b.imagem,
+            vazao: b.vazao,
+            vazaoMaxima: b.vazaoMaxima,
+            hTotal: instalacao.hTotal,
+            preco: p.preco,
+            garantia: b.garantia,
+            saia: b.saiaProtecao,
+            nota: v.versao !== "KIT" ? "A boia desliga a bomba quando a água baixa e evita que ela trabalhe seca." : undefined,
+            href: `/produto/${p.slug}`,
+          },
         },
       ],
-      depoisDaIndicacao(true, chave),
+      depoisDaIndicacao(chave),
     );
   }
 
   /** Opção clicada: as do roteiro andam no roteiro; as `acao:` agem sobre a indicação. */
   function escolherOpcao(o: Opcao) {
-    if (o.proximo === "acao:vazao") {
+    if (o.proximo === "acao:mais") {
+      setMsgs((m) => [...m, { de: "eu", texto: o.rotulo }]);
+      responder([{ de: "ela", texto: "Claro. O que você quer ver?" }], maisOpcoes());
+    } else if (o.proximo === "acao:outras") {
+      eu(o.rotulo, o.rotulo);
+      responder(
+        [{
+          de: "ela",
+          texto: `Também servem: ${outras.map((a) => a.nome).join(", ")}`,
+          lista: outras.map((a) => ({
+            rotulo: a.nome,
+            detalhe: `${litros(a.vazao)} · ${brl(precoPix(a.preco))} no PIX`,
+            href: `/produto/${a.slug}`,
+          })),
+        }],
+        maisOpcoes().filter((x) => x.proximo !== "acao:outras"),
+      );
+    } else if (o.proximo === "acao:vazao") {
       if (!instalacao) return;
       eu(o.rotulo, o.rotulo);
       setConta({ etapa: "vazao" });
-      responder([{ de: "ela", texto: "Quantos litros de água por hora você precisa? Pode ser aproximado." }]);
+      responder([{ de: "ela", texto: "Quantos litros por hora você precisa? Pode ser aproximado." }]);
     } else if (o.proximo.startsWith("acao:")) {
       void mostrarVersao(o.proximo);
     } else {
@@ -446,6 +499,9 @@ export function Vibrinha() {
           <div className="flex-1 space-y-2.5 overflow-y-auto bg-superficie-2 p-3.5">
             {msgs.map((m, i) => (
               <div key={i} className={m.de === "eu" ? "flex justify-end" : ""}>
+                {m.cartao ? (
+                  <CartaoBomba c={m.cartao} aoComprar={() => setAberto(false)} />
+                ) : (
                 <div
                   className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[13.2px] leading-relaxed ${
                     m.de === "eu"
@@ -453,7 +509,27 @@ export function Vibrinha() {
                       : "rounded-bl-sm bg-superficie text-tinta shadow-sm"
                   }`}
                 >
-                  {m.texto}
+                  {m.lista ? (
+                    <>
+                      <span className="block">Também servem:</span>
+                      <ul className="mt-1.5 divide-y divide-linha">
+                        {m.lista.map((l) => (
+                          <li key={l.href}>
+                            <Link
+                              href={l.href}
+                              onClick={() => setAberto(false)}
+                              className="flex items-center justify-between gap-2 py-1.5 hover:text-marca"
+                            >
+                              <span className="font-bold">{l.rotulo}</span>
+                              <span className="num text-[12px] text-mudo">{l.detalhe}</span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : (
+                    m.texto
+                  )}
                   {m.acao && (
                     <Link
                       href={m.acao.href}
@@ -464,6 +540,7 @@ export function Vibrinha() {
                     </Link>
                   )}
                 </div>
+                )}
               </div>
             ))}
 
@@ -559,7 +636,9 @@ export function Vibrinha() {
                 )}
 
                 {opcoes.length > 0 && (
-                  <div className="flex flex-col gap-1.5">
+                  // Opções curtas viram uma fileira de botões: quatro botões
+                  // empilhados ocupavam metade da janela no celular.
+                  <div className={opcoes.every((o) => o.rotulo.length <= 22) ? "flex flex-wrap gap-1.5" : "flex flex-col gap-1.5"}>
                     {opcoes.map((o) => (
                       <button
                         key={o.proximo + o.rotulo}
@@ -629,5 +708,59 @@ export function Vibrinha() {
         </span>
       </button>
     </>
+  );
+}
+
+function CartaoBomba({ c, aoComprar }: { c: Cartao; aoComprar: () => void }) {
+  const detalhes = [
+    FRETE_GRATIS_EM_BOMBAS && "Frete grátis",
+    PRAZO_DESPACHO_CURTO,
+    c.garantia && `Garantia ${c.garantia.toLowerCase()}`,
+    c.saia && "Saia de proteção",
+  ].filter(Boolean) as string[];
+
+  return (
+    <div className="max-w-[92%] overflow-hidden rounded-2xl rounded-bl-sm border border-linha bg-superficie shadow-sm">
+      <div className="flex gap-3 p-3">
+        {c.imagem && (
+          <Image
+            src={c.imagem}
+            alt=""
+            width={64}
+            height={96}
+            sizes="64px"
+            className="h-24 w-16 shrink-0 object-contain"
+          />
+        )}
+        <div className="min-w-0">
+          <p className="text-[14px] font-extrabold leading-tight">{c.nome}</p>
+          {c.versao && <p className="text-[11.5px] font-semibold text-mudo">{c.versao}</p>}
+          <p className="num mt-1.5 text-[17px] font-extrabold leading-none text-marca">{litros(c.vazao)}</p>
+          <p className="num mt-0.5 text-[11px] leading-snug text-mudo">
+            na sua instalação ({c.hTotal} m) · máx. {litros(c.vazaoMaxima)}
+          </p>
+          <p className="num mt-2 text-[15px] font-extrabold leading-none">
+            {brl(precoPix(c.preco))} <span className="text-[11.5px] font-bold text-bom">no PIX</span>
+          </p>
+          <p className="num mt-0.5 text-[11px] text-mudo">
+            ou {PARCELAS_MAX}× de {brl(parcela(c.preco))} sem juros
+          </p>
+        </div>
+      </div>
+      <p className="border-t border-linha px-3 py-1.5 text-[11px] font-semibold text-tinta-2">
+        {detalhes.join(" · ")}
+      </p>
+      {c.nota && <p className="px-3 pb-1.5 text-[11px] leading-snug text-mudo">{c.nota}</p>}
+      <Link
+        href={c.href}
+        onClick={aoComprar}
+        className="block bg-ouro py-2.5 text-center text-[13px] font-extrabold text-ouro-txt"
+      >
+        Ver e comprar
+      </Link>
+      <p className="bg-superficie-2 px-3 py-1.5 text-[10.5px] leading-snug text-mudo">
+        Cano com muitas curvas ou registros? Confirme com o técnico.
+      </p>
+    </div>
   );
 }

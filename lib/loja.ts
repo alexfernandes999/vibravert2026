@@ -17,7 +17,11 @@ export const FRETE_GRATIS_EM_BOMBAS = true;
  * junto com a tabela de preços. Prazo anunciado obriga a ser cumprido: se a
  * fábrica mudar o ritmo, muda aqui e todo lugar que cita acompanha.
  */
-export const PRAZO_DESPACHO = "sai da fábrica em até 1 dia útil após a confirmação do pagamento";
+export const DIAS_DESPACHO = 1;
+const DIAS_TXT = `${DIAS_DESPACHO} ${DIAS_DESPACHO === 1 ? "dia útil" : "dias úteis"}`;
+export const PRAZO_DESPACHO = `sai da fábrica em até ${DIAS_TXT} após a confirmação do pagamento`;
+/** A mesma promessa, curta, para selo e cartão. */
+export const PRAZO_DESPACHO_CURTO = `Sai em ${DIAS_TXT}`;
 
 /** Frete fixo, só quando a transportadora não responde. */
 export const FRETE_PADRAO = 39.9;
