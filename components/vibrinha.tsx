@@ -126,8 +126,11 @@ export function Vibrinha() {
   function responderMetros(valor: string) {
     if (!conta) return;
     const vazao = conta.etapa === "vazao";
+    // Pega o número de dentro do que a pessoa escreveu: "20m", "20 metros",
+    // "uns 20", "1.200 litros". Pedir só o número obrigava a reescrever uma
+    // resposta que já estava certa.
     // Em litros o ponto separa milhar ("1.200"); em metros é decimal ("2.5").
-    const bruto = valor.trim();
+    const bruto = valor.match(/\d[\d.,]*/)?.[0]?.replace(/[.,]$/, "") ?? "";
     const n = Number((vazao ? bruto.replace(/\./g, "") : bruto).replace(",", "."));
     setRascunho("");
     if (!(n > 0) || n > (vazao ? 20000 : 500)) {
