@@ -93,12 +93,12 @@ export default async function Carrinho() {
 
         {c.freteGratis ? (
           <p className="mt-3 rounded-caixa border border-bom/30 bg-bom-suave px-4 py-3 text-[13px] font-extrabold text-bom">
-            Frete grátis · toda bomba sai sem custo de entrega, para qualquer estado.
+            Frete grátis · com bomba no carrinho, o pedido inteiro sai sem custo de entrega, para qualquer estado.
           </p>
         ) : (
           <p className="mt-3 rounded-caixa border border-linha bg-superficie-2 px-4 py-3 text-[13px] font-semibold text-tinta-2">
-            O frete grátis vale para as bombas. Peças e kits avulsos têm entrega calculada pelo
-            seu CEP na próxima etapa.
+            O frete grátis vale para pedidos com bomba. Só peças e kits avulsos têm entrega
+            calculada pelo seu CEP na próxima etapa.
           </p>
         )}
       </div>

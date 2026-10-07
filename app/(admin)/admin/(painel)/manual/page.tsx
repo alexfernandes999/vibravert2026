@@ -286,7 +286,7 @@ export default function Manual() {
                 itens={[
                   [1, "SKU", "o código do produto. Vai marcado com asterisco porque sem ele não dá para cadastrar"],
                   [2, "O aviso amarelo", "leia antes de digitar o SKU. É o erro que mais custa caro depois"],
-                  [3, "Tipo", "decide o frete grátis. Bomba nunca paga frete; peça, kit e acessório pagam"],
+                  [3, "Tipo", "decide o frete grátis. Pedido com bomba nunca paga frete; só peça, kit e acessório pagam"],
                   [4, "Fotos", "dá para escolher várias de uma vez. A primeira vira a capa"],
                   [5, "Cadastrar e continuar", "leva direto para a ficha completa. O produto nasce desativado · você publica quando terminar"],
                 ]}
@@ -301,7 +301,8 @@ export default function Manual() {
             </Passo>
 
             <Passo o="O tipo decide o frete">
-              Bomba tem frete grátis sempre. Peça, kit avulso e acessório pagam frete calculado.
+              Pedido com bomba tem frete grátis sempre, mesmo levando peças junto. Pedido só de
+              peça, kit avulso ou acessório paga frete calculado.
               Marcar uma peça como bomba faz a loja pagar o envio de um item de trinta reais.
             </Passo>
 

@@ -83,10 +83,10 @@ export async function calcular(
   cepDestino: string,
   volumes: Volume[],
   subtotal: number,
-  soBombas = true,
+  temBomba = true,
 ): Promise<Opcao[]> {
   const cep = cepDestino.replace(/\D/g, "");
-  const gratis = FRETE_GRATIS_EM_BOMBAS && soBombas;
+  const gratis = FRETE_GRATIS_EM_BOMBAS && temBomba;
 
   if (!configurado() || cep.length !== 8 || !volumes.length) return fixo(gratis);
 

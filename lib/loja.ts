@@ -6,8 +6,9 @@
  * Frete grátis em toda bomba, sem valor mínimo.
  *
  * O piso de R$ 399 que existia aqui era inalcançável: nenhuma bomba passa de
- * R$ 350, então a promessa da vitrine nunca se cumpria. Peça, kit avulso e
- * qualquer item que não seja bomba pagam frete normal.
+ * R$ 350, então a promessa da vitrine nunca se cumpria. Basta uma bomba no
+ * carrinho para o pedido inteiro sair grátis; pedido só de peça, kit avulso ou
+ * acessório paga frete normal.
  */
 export const FRETE_GRATIS_EM_BOMBAS = true;
 

@@ -111,7 +111,7 @@ export async function obterCarrinho() {
       totalPix: 0,
       economiaPix: 0,
       freteGratis: false,
-      soBombas: true,
+      temBomba: false,
       abaixoDoMinimo: false,
       faltaParaMinimo: 0,
       minimoPecas: MINIMO_PECAS,
@@ -158,8 +158,14 @@ export async function obterCarrinho() {
   const subtotal = itens.reduce((s, i) => s + i.total, 0);
   // Frete grátis é da bomba, não do valor do pedido. Uma ventosa de trinta
   // reais com frete grátis custaria mais em entrega do que em produto.
-  const soBombas = itens.every((i) => i.tipo === "BOMBA");
-  const freteGratis = FRETE_GRATIS_EM_BOMBAS && soBombas;
+  //
+  // Basta ter uma bomba no carrinho: a peça que vai junto viaja na mesma
+  // caixa. Antes valia só para carrinho 100% de bombas, e quem levava a bomba
+  // com um kit avulso via aparecer frete no fim da compra · regra confirmada
+  // pelo Gustavo em 07/10/2026 (frete grátis acima de R$ 198, e toda bomba
+  // passa disso).
+  const temBomba = itens.some((i) => i.tipo === "BOMBA");
+  const freteGratis = FRETE_GRATIS_EM_BOMBAS && temBomba;
 
   // Pedido só de peça tem mínimo: abaixo dele o frete custa mais que a peça,
   // e a loja gasta uma etiqueta inteira para vender uma arruela.
@@ -178,7 +184,7 @@ export async function obterCarrinho() {
     totalPix,
     economiaPix: total - totalPix,
     freteGratis,
-    soBombas,
+    temBomba,
     abaixoDoMinimo,
     faltaParaMinimo,
     minimoPecas: MINIMO_PECAS,
