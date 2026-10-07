@@ -1,7 +1,7 @@
 "use client";
 
 import { whatsappLink } from "@/lib/contato";
-import { guardarConversa, recomendarNoChat } from "@/lib/acoes-vibrinha";
+import { guardarConversa, recomendarNoChat, versaoNoChat, type VersaoChat } from "@/lib/acoes-vibrinha";
 import { brl, precoPix, parcela, PARCELAS_MAX, litros } from "@/lib/formato";
 import { FRETE_GRATIS_EM_BOMBAS, PRAZO_DESPACHO } from "@/lib/loja";
 import { PERDA_POR_METRO } from "@/lib/recomendacao";
@@ -33,7 +33,23 @@ type Msg = { de: "ela" | "eu"; texto: string; acao?: { rotulo: string; href: str
  * poço e tensão se escolhem, porque as opções são poucas e um "110" escrito à
  * mão viraria dúvida sobre qual bomba mandar.
  */
-type Conta = { etapa: "altura" | "tubo" | "poco" | "tensao"; altura?: number; tubo?: number; poco?: number };
+type Conta = {
+  etapa: "altura" | "tubo" | "poco" | "tensao" | "vazao";
+  altura?: number;
+  tubo?: number;
+  poco?: number;
+  tensao?: string;
+};
+
+/** A instalação já respondida e a bomba indicada: base para os pedidos que vêm depois. */
+type Instalacao = { altura: number; tubo: number; poco: number; tensao: string; slug: string; nome: string };
+
+/** Opções que não são do roteiro: agem sobre a última recomendação. */
+const VERSOES: { chave: string; versao: VersaoChat; rotulo: string; descricao: string }[] = [
+  { chave: "acao:boia", versao: "BOIA", rotulo: "Com boia de nível", descricao: "com boia de nível" },
+  { chave: "acao:kit", versao: "KIT", rotulo: "Com kit de manutenção", descricao: "com kit de manutenção" },
+  { chave: "acao:boia_kit", versao: "BOIA_KIT", rotulo: "Com boia e kit", descricao: "com boia de nível e kit de manutenção" },
+];
 
 const POCOS = [
   { v: 4, r: "4 polegadas" },
@@ -61,6 +77,7 @@ export function Vibrinha() {
   // do zero, e ninguém repete a mesma história duas vezes.
   const [apurado, setApurado] = useState<string[]>([]);
   const [conta, setConta] = useState<Conta | null>(null);
+  const [instalacao, setInstalacao] = useState<Instalacao | null>(null);
   const fim = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -105,13 +122,19 @@ export function Vibrinha() {
     setApurado((a) => [...a, nota]);
   }
 
-  /** Altura e cano chegam digitados: aceita vírgula e recusa o que não é medida. */
+  /** Altura, cano e vazão chegam digitados: aceita vírgula e recusa o que não é medida. */
   function responderMetros(valor: string) {
     if (!conta) return;
-    const n = Number(valor.trim().replace(",", "."));
+    const vazao = conta.etapa === "vazao";
+    // Em litros o ponto separa milhar ("1.200"); em metros é decimal ("2.5").
+    const bruto = valor.trim();
+    const n = Number((vazao ? bruto.replace(/\./g, "") : bruto).replace(",", "."));
     setRascunho("");
-    if (!(n > 0) || n > 500) {
-      responder([{ de: "ela", texto: "Me diz só o número, em metros. Por exemplo: 25." }]);
+    if (!(n > 0) || n > (vazao ? 20000 : 500)) {
+      responder([{
+        de: "ela",
+        texto: vazao ? "Me diz só o número, em litros por hora. Por exemplo: 1200." : "Me diz só o número, em metros. Por exemplo: 25.",
+      }]);
       return;
     }
     const m = n.toLocaleString("pt-BR");
@@ -119,10 +142,14 @@ export function Vibrinha() {
       eu(`${m} m`, `Altura até a caixa: ${m} m`);
       setConta({ etapa: "tubo", altura: n });
       responder([{ de: "ela", texto: "E o comprimento do cano, do poço até a caixa? Também em metros." }]);
-    } else {
+    } else if (conta.etapa === "tubo") {
       eu(`${m} m`, `Cano: ${m} m`);
       setConta({ ...conta, etapa: "poco", tubo: n });
       responder([{ de: "ela", texto: "Qual o diâmetro do poço?" }]);
+    } else if (vazao && instalacao) {
+      eu(`${m} L/h`, `Precisa de: ${m} L/h`);
+      setConta(null);
+      void calcular(instalacao, rotuloTensao(instalacao.tensao), n);
     }
   }
 
@@ -133,21 +160,33 @@ export function Vibrinha() {
     responder([{ de: "ela", texto: "Última: a tensão aí é 127 V (que muita gente chama de 110) ou 220 V?" }]);
   }
 
-  async function escolherTensao(v: string, rotulo: string) {
+  const rotuloTensao = (v: string) => TENSOES.find((t) => t.v === v)?.r ?? v;
+
+  function escolherTensao(v: string, rotulo: string) {
     if (!conta || conta.altura == null || conta.tubo == null || conta.poco == null) return;
-    const { altura, tubo, poco } = conta;
     eu(rotulo, `Tensão: ${rotulo}`);
     setConta(null);
+    void calcular({ altura: conta.altura, tubo: conta.tubo, poco: conta.poco, tensao: v }, rotulo);
+  }
+
+  /**
+   * Roda a conta no servidor e responde.
+   *
+   * Sem `vazaoMinima`, indica a que mais entrega água na instalação. Com ela,
+   * a mais barata que alcança o que a pessoa pediu · o mesmo critério do motor
+   * que o Gustavo montou para o atendimento.
+   */
+  async function calcular(
+    dados: { altura: number; tubo: number; poco: number; tensao: string },
+    rotulo: string,
+    vazaoMinima?: number,
+  ) {
+    const { altura, tubo, poco, tensao } = dados;
     setOpcoes([]);
     setDigitando(true);
 
-    const depois: Opcao[] = [
-      { rotulo: "Refazer a conta", proximo: "escolher" },
-      { rotulo: "Voltar ao início", proximo: "menu" },
-    ];
-
     try {
-      const r = await recomendarNoChat({ altura, tubo, poco, tensao: v });
+      const r = await recomendarNoChat({ altura, tubo, poco, tensao, vazaoMinima });
       const ondeTxt =
         poco === 99 ? "cisterna ou cacimbão" : `poço de ${poco === 8 ? "8 polegadas ou mais" : `${poco} polegadas`}`;
 
@@ -167,8 +206,9 @@ export function Vibrinha() {
         responder(
           [{
             de: "ela",
-            texto:
-              poco === 4
+            texto: vazaoMinima
+              ? `Nenhuma bomba vibratória entrega ${litros(vazaoMinima)} a ${r.hTotal} m de altura total nessa instalação. Fala com o técnico, que ele te mostra o caminho.`
+              : poco === 4
                 ? "Poço de 4 polegadas é estreito demais para a nossa linha: a menor bomba pede 6. Fala com o técnico, que ele te mostra o caminho."
                 : `Não temos bomba de ${rotulo} que sirva para ${ondeTxt}. Fala com o técnico, que ele te mostra o caminho.`,
           }],
@@ -180,27 +220,31 @@ export function Vibrinha() {
 
       const b = r.indicada;
       const perda = Math.round(tubo * PERDA_POR_METRO);
+      setInstalacao({ ...dados, slug: b.slug, nome: b.nome });
       setApurado((a) => [...a, `Indicada: ${b.nome} (${litros(b.vazao)})`]);
 
       const itens: Msg[] = [
         {
           de: "ela",
-          texto: `Para ${ondeTxt}, com a caixa a ${altura.toLocaleString("pt-BR")} m e ${tubo.toLocaleString("pt-BR")} m de cano, a indicada é a ${b.nome}.${
-            b.saiaProtecao ? " Ela tem saia de proteção lateral, que evita que bata na parede do poço enquanto vibra." : ""
-          }`,
+          texto: `Para ${ondeTxt}, com a caixa a ${altura.toLocaleString("pt-BR")} m e ${tubo.toLocaleString("pt-BR")} m de cano, ${
+            vazaoMinima
+              ? `a mais em conta que entrega pelo menos ${litros(vazaoMinima)} é a ${b.nome}.`
+              : `a indicada é a ${b.nome}.`
+          }${b.saiaProtecao ? " Ela tem saia de proteção lateral, que evita que bata na parede do poço enquanto vibra." : ""}`,
         },
         {
           de: "ela",
-          texto:
+          texto: `${
             b.vazao < b.vazaoMaxima
               ? `Na sua instalação ela entrega ${litros(b.vazao)}. A vazão máxima dela é ${litros(b.vazaoMaxima)}, medida a 0 m: a diferença vem dos ${r.hTotal} m de altura total, já contando ${perda} m de perda no cano.`
-              : `Na sua instalação ela entrega ${litros(b.vazao)}.`,
+              : `Na sua instalação ela entrega ${litros(b.vazao)}.`
+          } Se o cano tiver muitas curvas e registros, ou um desnível grande no caminho, vale confirmar com o técnico.`,
         },
         {
           de: "ela",
           texto: `Sai por ${brl(precoPix(b.preco))} no PIX ou ${brl(b.preco)} em ${PARCELAS_MAX}× de ${brl(parcela(b.preco))} sem juros${
             FRETE_GRATIS_EM_BOMBAS ? ", com frete grátis" : ""
-          }. O pedido ${PRAZO_DESPACHO}.${b.garantia ? ` Garantia de ${b.garantia.toLowerCase()}.` : ""} Boia de nível e kit de manutenção você escolhe na página dela.`,
+          }. O pedido ${PRAZO_DESPACHO}.${b.garantia ? ` Garantia de ${b.garantia.toLowerCase()}.` : ""}`,
           acao: { rotulo: "Ver e comprar", href: `/produto/${b.slug}` },
         },
       ];
@@ -212,7 +256,8 @@ export function Vibrinha() {
             .join("; ")}.`,
         });
       }
-      responder(itens, depois);
+      itens.push({ de: "ela", texto: "Quer com boia de nível, com kit de manutenção ou com os dois?" });
+      responder(itens, depoisDaIndicacao(vazaoMinima != null));
     } catch {
       responder(
         [{
@@ -223,6 +268,63 @@ export function Vibrinha() {
         undefined,
         true,
       );
+    }
+  }
+
+  function depoisDaIndicacao(jaPediuVazao: boolean, sem?: string): Opcao[] {
+    return [
+      ...VERSOES.filter((v) => v.chave !== sem).map((v) => ({ rotulo: v.rotulo, proximo: v.chave })),
+      ...(jaPediuVazao ? [] : [{ rotulo: "Preciso de uma vazão mínima", proximo: "acao:vazao" }]),
+      { rotulo: "Refazer a conta", proximo: "escolher" },
+      { rotulo: "Voltar ao início", proximo: "menu" },
+    ];
+  }
+
+  /** A mesma bomba indicada, na versão que a pessoa pediu, com preço e link próprios. */
+  async function mostrarVersao(chave: string) {
+    const v = VERSOES.find((x) => x.chave === chave);
+    if (!v || !instalacao) return;
+    eu(v.rotulo, `Versão: ${v.descricao}`);
+    setOpcoes([]);
+    setDigitando(true);
+    const p = await versaoNoChat(instalacao.slug, v.versao).catch(() => null);
+    if (!p) {
+      responder(
+        [{ de: "ela", texto: `Essa versão da ${instalacao.nome} não está disponível no site agora. Um vendedor confere para você.` }],
+        undefined,
+        true,
+      );
+      return;
+    }
+    responder(
+      [
+        {
+          de: "ela",
+          texto: `A ${instalacao.nome} ${v.descricao} sai por ${brl(precoPix(p.preco))} no PIX ou ${brl(p.preco)} em ${PARCELAS_MAX}× de ${brl(parcela(p.preco))} sem juros${
+            FRETE_GRATIS_EM_BOMBAS ? ", com frete grátis" : ""
+          }.${
+            v.versao !== "KIT"
+              ? " A boia desliga a bomba quando a água do poço baixa: é o que evita ela trabalhar seca, que é o que mais estraga bomba vibratória."
+              : ""
+          }`,
+          acao: { rotulo: "Ver e comprar", href: `/produto/${p.slug}` },
+        },
+      ],
+      depoisDaIndicacao(true, chave),
+    );
+  }
+
+  /** Opção clicada: as do roteiro andam no roteiro; as `acao:` agem sobre a indicação. */
+  function escolherOpcao(o: Opcao) {
+    if (o.proximo === "acao:vazao") {
+      if (!instalacao) return;
+      eu(o.rotulo, o.rotulo);
+      setConta({ etapa: "vazao" });
+      responder([{ de: "ela", texto: "Quantos litros de água por hora você precisa? Pode ser aproximado." }]);
+    } else if (o.proximo.startsWith("acao:")) {
+      void mostrarVersao(o.proximo);
+    } else {
+      ir(o.proximo, o.rotulo);
     }
   }
 
@@ -398,7 +500,7 @@ export function Vibrinha() {
               </form>
             ) : (
               <>
-                {conta && !digitando && (conta.etapa === "altura" || conta.etapa === "tubo") && (
+                {conta && !digitando && (conta.etapa === "altura" || conta.etapa === "tubo" || conta.etapa === "vazao") && (
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
@@ -410,8 +512,14 @@ export function Vibrinha() {
                       value={rascunho}
                       onChange={(e) => setRascunho(e.target.value)}
                       inputMode="decimal"
-                      placeholder="Em metros, por exemplo 25"
-                      aria-label={conta.etapa === "altura" ? "Altura até a caixa d'água, em metros" : "Comprimento do cano, em metros"}
+                      placeholder={conta.etapa === "vazao" ? "Litros por hora, por exemplo 1200" : "Em metros, por exemplo 25"}
+                      aria-label={
+                        conta.etapa === "altura"
+                          ? "Altura até a caixa d'água, em metros"
+                          : conta.etapa === "tubo"
+                            ? "Comprimento do cano, em metros"
+                            : "Vazão que você precisa, em litros por hora"
+                      }
                       autoFocus
                       className="num flex-1 rounded-lg border border-linha-2 px-3 py-2 text-[13.5px] font-semibold"
                     />
@@ -429,7 +537,7 @@ export function Vibrinha() {
                         onClick={() =>
                           conta.etapa === "poco"
                             ? escolherPoco(o.v as number, o.r)
-                            : void escolherTensao(o.v as string, o.r)
+                            : escolherTensao(o.v as string, o.r)
                         }
                         className="rounded-lg border border-linha-2 px-3 py-2 text-left text-[12.5px] font-semibold text-tinta-2 transition hover:border-marca hover:bg-marca-suave hover:text-marca"
                       >
@@ -452,7 +560,7 @@ export function Vibrinha() {
                     {opcoes.map((o) => (
                       <button
                         key={o.proximo + o.rotulo}
-                        onClick={() => ir(o.proximo, o.rotulo)}
+                        onClick={() => escolherOpcao(o)}
                         className="rounded-lg border border-linha-2 px-3 py-2 text-left text-[12.5px] font-semibold text-tinta-2 transition hover:border-marca hover:bg-marca-suave hover:text-marca"
                       >
                         {o.rotulo}

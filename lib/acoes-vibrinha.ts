@@ -57,6 +57,8 @@ export async function recomendarNoChat(dados: {
   tubo: number;
   poco: number;
   tensao: string;
+  /** Litros por hora que o cliente disse precisar. Muda o critério para a mais barata que entrega isso. */
+  vazaoMinima?: number;
 }): Promise<{ hTotal: number; semSaida: boolean; indicada: BombaNoChat | null; alternativas: BombaNoChat[] }> {
   const altura = Math.min(Math.max(Number(dados.altura) || 0, 0), 500);
   const tubo = Math.min(Math.max(Number(dados.tubo) || 0, 0), 2000);
@@ -65,6 +67,7 @@ export async function recomendarNoChat(dados: {
     hTotal,
     poco: Number(dados.poco),
     tensao: String(dados.tensao),
+    vazaoMinima: dados.vazaoMinima ? Math.max(Number(dados.vazaoMinima) || 0, 0) : undefined,
   });
 
   const resumo = ({ m, vazao }: NonNullable<typeof r.indicada>): BombaNoChat => ({
@@ -85,4 +88,26 @@ export async function recomendarNoChat(dados: {
     indicada: r.indicada ? resumo(r.indicada) : null,
     alternativas: r.alternativas.map(resumo),
   };
+}
+
+export type VersaoChat = "BOIA" | "KIT" | "BOIA_KIT";
+
+/**
+ * A mesma bomba com boia, com kit ou com os dois.
+ *
+ * As quatro montagens são produtos da mesma família, cada um com preço e
+ * link próprios. A pessoa escolhe no chat e recebe o link da versão exata,
+ * em vez de cair na página e ter de achar o seletor.
+ */
+export async function versaoNoChat(
+  slug: string,
+  versao: VersaoChat,
+): Promise<{ slug: string; preco: number } | null> {
+  const base = await prisma.produto.findUnique({ where: { slug }, select: { familia: true } });
+  if (!base?.familia) return null;
+  const p = await prisma.produto.findFirst({
+    where: { familia: base.familia, versao, ativo: true },
+    select: { slug: true, preco: true },
+  });
+  return p ? { slug: p.slug, preco: Number(p.preco) } : null;
 }

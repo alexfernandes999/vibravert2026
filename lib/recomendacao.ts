@@ -34,7 +34,12 @@ export type Recomendacao = {
 
 export function recomendar(
   modelos: ModeloCalc[],
-  { hTotal, poco, tensao }: { hTotal: number; poco: number; tensao: string },
+  {
+    hTotal,
+    poco,
+    tensao,
+    vazaoMinima,
+  }: { hTotal: number; poco: number; tensao: string; vazaoMinima?: number },
 ): Recomendacao {
   // A bomba precisa caber no poço antes de qualquer outra coisa: a errada
   // simplesmente não desce. Depois, a tensão da rede.
@@ -47,6 +52,15 @@ export function recomendar(
     .filter((x): x is { m: ModeloCalc; vazao: number } => x.vazao != null && x.vazao > 0)
     // mais vazão na altura real da instalação; empate desempata pelo preço
     .sort((a, b) => b.vazao - a.vazao || Number(a.m.preco) - Number(b.m.preco));
+
+  // Quem já sabe quanta água precisa não quer a bomba que mais entrega, quer a
+  // mais barata que dá conta: das que alcançam a vazão pedida, a de menor preço.
+  if (vazaoMinima) {
+    const servem = comVazao
+      .filter((x) => x.vazao >= vazaoMinima)
+      .sort((a, b) => Number(a.m.preco) - Number(b.m.preco) || b.vazao - a.vazao);
+    return { indicada: servem[0] ?? null, alternativas: servem.slice(1, 4), semSaida: hTotal > ALTURA_LIMITE };
+  }
 
   return {
     indicada: comVazao[0] ?? null,
