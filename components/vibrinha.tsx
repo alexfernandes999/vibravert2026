@@ -1,7 +1,10 @@
 "use client";
 
 import { whatsappLink } from "@/lib/contato";
-import { guardarConversa } from "@/lib/acoes-vibrinha";
+import { guardarConversa, recomendarNoChat } from "@/lib/acoes-vibrinha";
+import { brl, precoPix, parcela, PARCELAS_MAX, litros } from "@/lib/formato";
+import { FRETE_GRATIS_EM_BOMBAS, PRAZO_DESPACHO } from "@/lib/loja";
+import { PERDA_POR_METRO } from "@/lib/recomendacao";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -25,6 +28,25 @@ import { ROTEIRO, INICIO, type Opcao } from "@/lib/roteiro-vibrinha";
 
 type Msg = { de: "ela" | "eu"; texto: string; acao?: { rotulo: string; href: string } };
 
+/**
+ * As quatro perguntas da calculadora, uma por vez. Altura e cano se digitam;
+ * poço e tensão se escolhem, porque as opções são poucas e um "110" escrito à
+ * mão viraria dúvida sobre qual bomba mandar.
+ */
+type Conta = { etapa: "altura" | "tubo" | "poco" | "tensao"; altura?: number; tubo?: number; poco?: number };
+
+const POCOS = [
+  { v: 4, r: "4 polegadas" },
+  { v: 6, r: "6 polegadas" },
+  { v: 8, r: "8 polegadas ou mais" },
+  { v: 99, r: "Cisterna ou cacimbão" },
+];
+
+const TENSOES = [
+  { v: "110/127V", r: "127 V (110)" },
+  { v: "220V", r: "220 V" },
+];
+
 const OI = "Oi! Eu sou a Vibrinha, da Vibra Vert. Antes de mais nada, como posso te chamar?";
 
 export function Vibrinha() {
@@ -38,6 +60,7 @@ export function Vibrinha() {
   // O que já foi apurado vai junto para o WhatsApp: o vendedor não recomeça
   // do zero, e ninguém repete a mesma história duas vezes.
   const [apurado, setApurado] = useState<string[]>([]);
+  const [conta, setConta] = useState<Conta | null>(null);
   const fim = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,6 +83,7 @@ export function Vibrinha() {
   function ir(chave: string, rotulo?: string) {
     const no = ROTEIRO[chave];
     if (!no) return;
+    setConta(no.calcula ? { etapa: "altura" } : null);
     if (rotulo) {
       setMsgs((m) => [...m, { de: "eu", texto: rotulo }]);
       setApurado((a) => [...a, rotulo]);
@@ -73,6 +97,133 @@ export function Vibrinha() {
       no.opcoes,
       Boolean(no.encaminha),
     );
+  }
+
+  /** O que a pessoa respondeu, na conversa e no resumo que vai ao vendedor. */
+  function eu(texto: string, nota: string) {
+    setMsgs((m) => [...m, { de: "eu", texto }]);
+    setApurado((a) => [...a, nota]);
+  }
+
+  /** Altura e cano chegam digitados: aceita vírgula e recusa o que não é medida. */
+  function responderMetros(valor: string) {
+    if (!conta) return;
+    const n = Number(valor.trim().replace(",", "."));
+    setRascunho("");
+    if (!(n > 0) || n > 500) {
+      responder([{ de: "ela", texto: "Me diz só o número, em metros. Por exemplo: 25." }]);
+      return;
+    }
+    const m = n.toLocaleString("pt-BR");
+    if (conta.etapa === "altura") {
+      eu(`${m} m`, `Altura até a caixa: ${m} m`);
+      setConta({ etapa: "tubo", altura: n });
+      responder([{ de: "ela", texto: "E o comprimento do cano, do poço até a caixa? Também em metros." }]);
+    } else {
+      eu(`${m} m`, `Cano: ${m} m`);
+      setConta({ ...conta, etapa: "poco", tubo: n });
+      responder([{ de: "ela", texto: "Qual o diâmetro do poço?" }]);
+    }
+  }
+
+  function escolherPoco(v: number, rotulo: string) {
+    if (!conta) return;
+    eu(rotulo, `Poço: ${rotulo}`);
+    setConta({ ...conta, etapa: "tensao", poco: v });
+    responder([{ de: "ela", texto: "Última: a tensão aí é 127 V (que muita gente chama de 110) ou 220 V?" }]);
+  }
+
+  async function escolherTensao(v: string, rotulo: string) {
+    if (!conta || conta.altura == null || conta.tubo == null || conta.poco == null) return;
+    const { altura, tubo, poco } = conta;
+    eu(rotulo, `Tensão: ${rotulo}`);
+    setConta(null);
+    setOpcoes([]);
+    setDigitando(true);
+
+    const depois: Opcao[] = [
+      { rotulo: "Refazer a conta", proximo: "escolher" },
+      { rotulo: "Voltar ao início", proximo: "menu" },
+    ];
+
+    try {
+      const r = await recomendarNoChat({ altura, tubo, poco, tensao: v });
+      const ondeTxt =
+        poco === 99 ? "cisterna ou cacimbão" : `poço de ${poco === 8 ? "8 polegadas ou mais" : `${poco} polegadas`}`;
+
+      if (r.semSaida) {
+        responder(
+          [{
+            de: "ela",
+            texto: `Com a perda no cano, a altura total dá ${r.hTotal} metros, e isso passa do limite de 65 m de toda bomba vibratória. Para essa instalação o caminho é bomba multiestágio ou submersa tipo caneta. Melhor falar com o técnico antes de comprar.`,
+          }],
+          undefined,
+          true,
+        );
+        return;
+      }
+
+      if (!r.indicada) {
+        responder(
+          [{
+            de: "ela",
+            texto:
+              poco === 4
+                ? "Poço de 4 polegadas é estreito demais para a nossa linha: a menor bomba pede 6. Fala com o técnico, que ele te mostra o caminho."
+                : `Não temos bomba de ${rotulo} que sirva para ${ondeTxt}. Fala com o técnico, que ele te mostra o caminho.`,
+          }],
+          undefined,
+          true,
+        );
+        return;
+      }
+
+      const b = r.indicada;
+      const perda = Math.round(tubo * PERDA_POR_METRO);
+      setApurado((a) => [...a, `Indicada: ${b.nome} (${litros(b.vazao)})`]);
+
+      const itens: Msg[] = [
+        {
+          de: "ela",
+          texto: `Para ${ondeTxt}, com a caixa a ${altura.toLocaleString("pt-BR")} m e ${tubo.toLocaleString("pt-BR")} m de cano, a indicada é a ${b.nome}.${
+            b.saiaProtecao ? " Ela tem saia de proteção lateral, que evita que bata na parede do poço enquanto vibra." : ""
+          }`,
+        },
+        {
+          de: "ela",
+          texto:
+            b.vazao < b.vazaoMaxima
+              ? `Na sua instalação ela entrega ${litros(b.vazao)}. A vazão máxima dela é ${litros(b.vazaoMaxima)}, medida a 0 m: a diferença vem dos ${r.hTotal} m de altura total, já contando ${perda} m de perda no cano.`
+              : `Na sua instalação ela entrega ${litros(b.vazao)}.`,
+        },
+        {
+          de: "ela",
+          texto: `Sai por ${brl(precoPix(b.preco))} no PIX ou ${brl(b.preco)} em ${PARCELAS_MAX}× de ${brl(parcela(b.preco))} sem juros${
+            FRETE_GRATIS_EM_BOMBAS ? ", com frete grátis" : ""
+          }. O pedido ${PRAZO_DESPACHO}.${b.garantia ? ` Garantia de ${b.garantia.toLowerCase()}.` : ""} Boia de nível e kit de manutenção você escolhe na página dela.`,
+          acao: { rotulo: "Ver e comprar", href: `/produto/${b.slug}` },
+        },
+      ];
+      if (r.alternativas.length) {
+        itens.push({
+          de: "ela",
+          texto: `Também servem: ${r.alternativas
+            .map((a) => `${a.nome} (${litros(a.vazao)}, ${brl(precoPix(a.preco))} no PIX)`)
+            .join("; ")}.`,
+        });
+      }
+      responder(itens, depois);
+    } catch {
+      responder(
+        [{
+          de: "ela",
+          texto: "Não consegui fazer a conta agora. A calculadora da loja faz a mesma coisa, ou fala com um vendedor.",
+          acao: { rotulo: "Abrir a calculadora", href: "/qual-bomba" },
+        }],
+        undefined,
+        true,
+      );
+    }
   }
 
   function enviarNome(valor: string) {
@@ -247,6 +398,55 @@ export function Vibrinha() {
               </form>
             ) : (
               <>
+                {conta && !digitando && (conta.etapa === "altura" || conta.etapa === "tubo") && (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      responderMetros(rascunho);
+                    }}
+                    className="flex gap-2"
+                  >
+                    <input
+                      value={rascunho}
+                      onChange={(e) => setRascunho(e.target.value)}
+                      inputMode="decimal"
+                      placeholder="Em metros, por exemplo 25"
+                      aria-label={conta.etapa === "altura" ? "Altura até a caixa d'água, em metros" : "Comprimento do cano, em metros"}
+                      autoFocus
+                      className="num flex-1 rounded-lg border border-linha-2 px-3 py-2 text-[13.5px] font-semibold"
+                    />
+                    <button className="rounded-lg bg-marca px-4 py-2 text-[13px] font-bold text-white">
+                      Enviar
+                    </button>
+                  </form>
+                )}
+
+                {conta && !digitando && (conta.etapa === "poco" || conta.etapa === "tensao") && (
+                  <div className="flex flex-col gap-1.5">
+                    {(conta.etapa === "poco" ? POCOS : TENSOES).map((o) => (
+                      <button
+                        key={o.r}
+                        onClick={() =>
+                          conta.etapa === "poco"
+                            ? escolherPoco(o.v as number, o.r)
+                            : void escolherTensao(o.v as string, o.r)
+                        }
+                        className="rounded-lg border border-linha-2 px-3 py-2 text-left text-[12.5px] font-semibold text-tinta-2 transition hover:border-marca hover:bg-marca-suave hover:text-marca"
+                      >
+                        {o.r}
+                      </button>
+                    ))}
+                    {conta.etapa === "poco" && (
+                      <button
+                        onClick={() => ir("escolher_nao_sei", "Não sei medir")}
+                        className="rounded-lg border border-linha-2 px-3 py-2 text-left text-[12.5px] font-semibold text-tinta-2 transition hover:border-marca hover:bg-marca-suave hover:text-marca"
+                      >
+                        Não sei medir
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 {opcoes.length > 0 && (
                   <div className="flex flex-col gap-1.5">
                     {opcoes.map((o) => (

@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { SeloGarantia } from "@/components/selo-garantia";
-import { brl, precoPix, parcela, PARCELAS_MAX, ALTURAS_MCA, vazaoNaAltura, litros } from "@/lib/formato";
+import { brl, precoPix, parcela, PARCELAS_MAX, litros } from "@/lib/formato";
+import { PERDA_POR_METRO, alturaTotal, recomendar } from "@/lib/recomendacao";
 
 export type ModeloCalc = {
   slug: string;
@@ -23,17 +24,6 @@ export type ModeloCalc = {
   recalque: string | null;
 };
 
-/**
- * Perda de carga da tubulação, como fração do comprimento.
- *
- * O cálculo exato depende de diâmetro, vazão e material — a fórmula de
- * Hazen-Williams pede dados que o cliente não tem à mão no formulário. Os 4%
- * são a regra de bolso usada no setor para PVC nas vazões desta linha, e é o
- * mesmo critério do briefing. Fica explícito na tela para o instalador poder
- * conferir, em vez de ser um número que sai de lugar nenhum.
- */
-const PERDA_POR_METRO = 0.04;
-
 const DIAMETROS = [
   { v: 4, r: "4 polegadas" },
   { v: 6, r: "6 polegadas" },
@@ -47,27 +37,12 @@ export function Calculadora({ modelos }: { modelos: ModeloCalc[] }) {
   const [poco, setPoco] = useState(6);
   const [tensao, setTensao] = useState("220V");
 
-  const hTotal = Math.round(altura + tubo * PERDA_POR_METRO);
+  const hTotal = alturaTotal(altura, tubo);
 
-  const { indicada, alternativas, semSaida } = useMemo(() => {
-    // A bomba precisa caber no poço antes de qualquer outra coisa: a errada
-    // simplesmente não desce. Depois, a tensão da rede.
-    const cabem = modelos.filter(
-      (m) => m.pocoPolegadas != null && m.pocoPolegadas <= poco && m.voltagem === tensao,
-    );
-
-    const comVazao = cabem
-      .map((m) => ({ m, vazao: vazaoNaAltura(m.curvaVazao, hTotal) }))
-      .filter((x): x is { m: ModeloCalc; vazao: number } => x.vazao != null && x.vazao > 0)
-      // mais vazão na altura real da instalação; empate desempata pelo preço
-      .sort((a, b) => b.vazao - a.vazao || Number(a.m.preco) - Number(b.m.preco));
-
-    return {
-      indicada: comVazao[0] ?? null,
-      alternativas: comVazao.slice(1, 4),
-      semSaida: hTotal > 65,
-    };
-  }, [modelos, poco, tensao, hTotal]);
+  const { indicada, alternativas, semSaida } = useMemo(
+    () => recomendar(modelos, { hTotal, poco, tensao }),
+    [modelos, poco, tensao, hTotal],
+  );
 
   // `items-start` porque o formulário é curto e o resultado é alto: sem isso a
   // coluna da esquerda estica até a altura da direita e deixa um vazio branco

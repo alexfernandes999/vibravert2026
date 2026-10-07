@@ -11,6 +11,13 @@
  */
 export const FRETE_GRATIS_EM_BOMBAS = true;
 
+/**
+ * Prazo de despacho, prometido ao cliente. Veio do Gustavo em 07/10/2026,
+ * junto com a tabela de preços. Prazo anunciado obriga a ser cumprido: se a
+ * fábrica mudar o ritmo, muda aqui e todo lugar que cita acompanha.
+ */
+export const PRAZO_DESPACHO = "sai da fábrica em até 1 dia útil após a confirmação do pagamento";
+
 /** Frete fixo, só quando a transportadora não responde. */
 export const FRETE_PADRAO = 39.9;
 

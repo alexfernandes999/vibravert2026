@@ -13,7 +13,9 @@
  * embalagens do fabricante e as regras da loja.
  */
 
-export type Opcao = { rotulo: string; proximo: string };
+import { PRAZO_DESPACHO } from "@/lib/loja";
+
+export type Opcao ={ rotulo: string; proximo: string };
 
 export type No = {
   /** O que a Vibrinha fala ao chegar neste ponto. */
@@ -24,6 +26,11 @@ export type No = {
   acao?: { rotulo: string; href: string };
   /** Encerra sugerindo o vendedor humano, levando o que já foi apurado. */
   encaminha?: boolean;
+  /**
+   * Abre as quatro perguntas da calculadora dentro da conversa: altura, cano,
+   * poço e tensão. A primeira pergunta é a última linha de `fala`.
+   */
+  calcula?: boolean;
 };
 
 export const INICIO = "menu";
@@ -43,30 +50,11 @@ export const ROTEIRO: Record<string, No> = {
 
   // ── escolher a bomba ─────────────────────────────────────────
   escolher: {
-    fala: ["Antes de tudo: qual o diâmetro do seu poço?"],
-    opcoes: [
-      { rotulo: "6 polegadas", proximo: "escolher_6" },
-      { rotulo: "8 polegadas ou mais", proximo: "escolher_8" },
-      { rotulo: "Não sei medir", proximo: "escolher_nao_sei" },
-    ],
-  },
-  escolher_6: {
     fala: [
-      "Poço de 6 polegadas é a linha Rymer.",
-      "Se o poço for justo, vale a Rymer 2500: ela tem saia de proteção lateral, uma borracha que envolve o corpo e evita que a bomba bata nas paredes enquanto vibra. Se for folgado, a 2000 resolve.",
-      "Agora, para saber quanto ela vai entregar de fato, preciso da altura até a caixa d'água e do comprimento da tubulação. A calculadora faz essa conta.",
+      "Eu faço a conta com você. São quatro perguntas rápidas, e no fim te digo qual bomba serve e quanto ela entrega de água na sua casa.",
+      "Primeiro: quantos metros a água precisa subir, do nível da água no poço até a caixa d'água? Pode ser aproximado.",
     ],
-    acao: { rotulo: "Abrir a calculadora", href: "/qual-bomba" },
-    opcoes: [{ rotulo: "Voltar ao início", proximo: "menu" }],
-  },
-  escolher_8: {
-    fala: [
-      "Com 8 polegadas ou mais você tem a Vibra Vert 900 e a Vibrinha, que é a que me deu o nome.",
-      "A 900 é a de maior vazão da linha, 2.500 litros por hora, com saída de 1 polegada.",
-      "Mas vazão sozinha engana: o que importa é quanto ela entrega na altura da sua instalação. A calculadora mostra esse número.",
-    ],
-    acao: { rotulo: "Abrir a calculadora", href: "/qual-bomba" },
-    opcoes: [{ rotulo: "Voltar ao início", proximo: "menu" }],
+    calcula: true,
   },
   escolher_nao_sei: {
     fala: [
@@ -195,7 +183,7 @@ export const ROTEIRO: Record<string, No> = {
     fala: [
       "O frete é calculado pelo seu CEP e aparece no carrinho antes de você finalizar.",
       "Entregamos nos 27 estados, e o frete é grátis em todas as bombas · sem valor mínimo.",
-      "O prazo também depende da região e aparece junto com o valor.",
+      `O pedido ${PRAZO_DESPACHO}. O prazo de entrega depende da região e aparece junto com o valor.`,
     ],
     acao: { rotulo: "Ver a linha completa", href: "/bombas" },
     opcoes: [{ rotulo: "Voltar ao início", proximo: "menu" }],
