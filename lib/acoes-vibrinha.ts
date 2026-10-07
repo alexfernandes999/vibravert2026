@@ -104,12 +104,16 @@ export type VersaoChat = "BOIA" | "KIT" | "BOIA_KIT";
 export async function versaoNoChat(
   slug: string,
   versao: VersaoChat,
-): Promise<{ slug: string; preco: number } | null> {
+): Promise<{ slug: string; preco: number; imagem: string | null } | null> {
   const base = await prisma.produto.findUnique({ where: { slug }, select: { familia: true } });
   if (!base?.familia) return null;
   const p = await prisma.produto.findFirst({
     where: { familia: base.familia, versao, ativo: true },
-    select: { slug: true, preco: true },
+    select: {
+      slug: true,
+      preco: true,
+      imagens: { where: { principal: true }, select: { url: true }, take: 1 },
+    },
   });
-  return p ? { slug: p.slug, preco: Number(p.preco) } : null;
+  return p ? { slug: p.slug, preco: Number(p.preco), imagem: p.imagens[0]?.url ?? null } : null;
 }

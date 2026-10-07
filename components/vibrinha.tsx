@@ -42,6 +42,8 @@ type Cartao = {
   saia: boolean;
   nota?: string;
   href: string;
+  /** Trocado por outra versão: perde o botão, para só existir um "comprar" na conversa. */
+  substituido?: boolean;
 };
 
 type Msg = {
@@ -329,6 +331,9 @@ export function Vibrinha() {
       );
       return;
     }
+    // O cartão anterior encolhe e perde o botão: com dois "Ver e comprar" na
+    // tela, a pessoa escolhia a boia e comprava a bomba sem ela.
+    setMsgs((m) => m.map((x) => (x.cartao ? { ...x, cartao: { ...x.cartao, substituido: true } } : x)));
     responder(
       [
         {
@@ -337,7 +342,7 @@ export function Vibrinha() {
           cartao: {
             nome: b.nome,
             versao: v.descricao,
-            imagem: b.imagem,
+            imagem: p.imagem ?? b.imagem,
             vazao: b.vazao,
             vazaoMaxima: b.vazaoMaxima,
             hTotal: instalacao.hTotal,
@@ -712,6 +717,17 @@ export function Vibrinha() {
 }
 
 function CartaoBomba({ c, aoComprar }: { c: Cartao; aoComprar: () => void }) {
+  if (c.substituido) {
+    return (
+      <p className="max-w-[92%] rounded-2xl rounded-bl-sm border border-linha bg-superficie px-3 py-2 text-[11.5px] text-mudo">
+        <span className="font-bold line-through">
+          {c.nome} {c.versao ?? "só a bomba"}
+        </span>{" "}
+        · trocada pela versão abaixo
+      </p>
+    );
+  }
+
   const detalhes = [
     FRETE_GRATIS_EM_BOMBAS && "Frete grátis",
     PRAZO_DESPACHO_CURTO,
