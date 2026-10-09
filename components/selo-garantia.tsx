@@ -31,7 +31,7 @@ export function SeloGarantia({
   return (
     <Image
       src="/selo-2-anos.png"
-      alt="Selo de 2 anos de garantia de fábrica"
+      alt="Selo de 2 anos de garantia de fábrica no motor e na carcaça"
       width={tamanho}
       height={tamanho}
       className={`drop-shadow-md ${className}`}

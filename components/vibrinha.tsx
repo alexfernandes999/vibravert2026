@@ -731,7 +731,7 @@ function CartaoBomba({ c, aoComprar }: { c: Cartao; aoComprar: () => void }) {
   const detalhes = [
     FRETE_GRATIS_EM_BOMBAS && "Frete grátis",
     PRAZO_DESPACHO_CURTO,
-    c.garantia && `Garantia ${c.garantia.toLowerCase()}`,
+    c.garantia && `Garantia ${c.garantia.toLowerCase()} no motor`,
     c.saia && "Saia de proteção",
   ].filter(Boolean) as string[];
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TROCA_EXPRESSA_CONDICAO } from "@/lib/loja";
 
 /**
  * Troca Expressa em 30 dias.
@@ -26,8 +27,8 @@ export function SecaoTrocaExpressa() {
             Troca Expressa em 30 dias
           </h2>
           <p className="revelar mt-4 max-w-xl text-[16px] leading-relaxed text-white/85">
-            Deu problema nos primeiros 30 dias? A gente busca a sua bomba, avalia na nossa bancada
-            e resolve. <strong className="font-bold text-white">O frete de ida é por nossa conta.</strong>
+            Deu problema nos primeiros 30 dias? A gente manda o código de postagem, avalia na nossa
+            bancada em até 48 horas e resolve. <strong className="font-bold text-white">O frete de ida é por nossa conta.</strong>
           </p>
           <p className="revelar mt-3 max-w-xl text-[16px] font-bold leading-relaxed text-white">
             Quem fabrica é quem conserta · e quem conserta responde.
@@ -49,7 +50,8 @@ export function SecaoTrocaExpressa() {
           </div>
 
           <p className="mt-5 max-w-xl text-[12px] leading-relaxed text-white/55">
-            Sujeito a avaliação técnica. Após 30 dias, o envio fica por conta do cliente.
+            {TROCA_EXPRESSA_CONDICAO} Compras em marketplace seguem a devolução do próprio
+            marketplace nos primeiros 30 dias. Após 30 dias, o envio fica por conta do cliente.
           </p>
         </div>
 

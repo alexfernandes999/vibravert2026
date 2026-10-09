@@ -10,7 +10,8 @@
  * cartão — por isso ficam linkadas no rodapé de todas as páginas.
  */
 
-import { TELEFONE } from "@/lib/contato";
+import { TELEFONE, WHATSAPP_BONITO, SAC_EMAIL } from "@/lib/contato";
+import { GARANTIA_ALCANCE, GARANTIA_BORRACHAS, TROCA_EXPRESSA_CONDICAO } from "@/lib/loja";
 export const EMPRESA = {
   nome: "Vibra Vert Bombas Submersas Vibratórias",
   cnpj: "21.276.576/0001-56",
@@ -48,15 +49,19 @@ export const PAGINAS: Institucional[] = [
     corpo: [
       "## Arrependimento · 7 dias",
       "O artigo 49 do Código de Defesa do Consumidor dá a você o direito de desistir de uma compra feita pela internet em até **7 dias corridos** a partir do recebimento, sem precisar justificar. O produto deve estar sem uso e na embalagem original.",
-      "Nesse caso, devolvemos o valor integral, incluindo o frete que você pagou.",
-      "## Produto com defeito",
-      "Se a bomba apresentar defeito de fabricação, a assistência é nossa: quem conserta é a fábrica, não um posto terceirizado. Fale com a gente antes de enviar qualquer coisa · na maior parte dos casos o técnico identifica o problema pelo telefone.",
-      "## Garantia",
-      "O prazo de garantia varia por modelo e está informado na ficha técnica de cada produto. É a garantia de fábrica contra defeito de fabricação, e não cobre mau uso · em especial, deixar a bomba trabalhar sem água, que é o que mais queima motor.",
+      "Nesse caso, devolvemos o valor integral, incluindo o frete que você pagou, e o envio de volta para a fábrica também é por nossa conta.",
+      "## Troca Expressa · 30 dias, compras no site",
+      `Se a bomba comprada aqui no site apresentar problema nos primeiros 30 dias, enviamos o código de postagem e o frete de ida é por nossa conta. A bomba é avaliada na nossa bancada em até 48 horas da chegada. ${TROCA_EXPRESSA_CONDICAO}`,
+      "Compras feitas em marketplace (Mercado Livre, Shopee, Magalu, Amazon) seguem, nos primeiros 30 dias, a devolução do próprio marketplace.",
+      "## Depois de 30 dias",
+      "O envio da bomba até a fábrica é por conta do cliente. Confirmado o defeito de fabricação, o reparo é por nossa conta. A assistência é nossa: quem conserta é a fábrica, não um posto terceirizado.",
+      "## Prazo de garantia",
+      `Rymer 1500: 6 meses. Rymer 2000 e 2500: 1 ano. Vibrinha, Vibra Vert 800 e Vibra Vert 900: 2 anos. O prazo é contado a partir da emissão da nota fiscal e vale ${GARANTIA_ALCANCE}.`,
+      `As peças de borracha · canopla, ventosa, amortecedor e válvula · são de desgaste natural e têm garantia de ${GARANTIA_BORRACHAS} em todos os modelos.`,
+      "A garantia cobre defeito de fabricação e não cobre mau uso · em especial, deixar a bomba trabalhar sem água, que é o que mais queima motor. Produto aberto ou violado perde a garantia.",
       "Para acionar a garantia, guarde a nota fiscal e o certificado que vem na caixa.",
-      "Quem compra aqui no site tem cobertura estendida em relação ao prazo de fábrica. O prazo total aplicável ao seu modelo está informado na ficha técnica do produto.",
       "## Como solicitar",
-      `Entre em contato pelo telefone ${EMPRESA.telefone} ou pelo e-mail ${EMPRESA.email}, informando o número do pedido.`,
+      `Pelo WhatsApp ${WHATSAPP_BONITO} ou pelo e-mail ${SAC_EMAIL}, informando o número do pedido ou da nota fiscal.`,
     ],
   },
   {

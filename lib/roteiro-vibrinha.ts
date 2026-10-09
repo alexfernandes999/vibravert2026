@@ -161,7 +161,8 @@ export const ROTEIRO: Record<string, No> = {
   },
   garantia_aqui: {
     fala: [
-      "O prazo aparece na ficha técnica do modelo que você comprou, e vale contra defeito de fabricação.",
+      "O prazo aparece na ficha técnica do modelo que você comprou, e vale contra defeito de fabricação no motor e na carcaça.",
+      "As borrachas · canopla, ventosa, amortecedor e válvula · são peças de desgaste e têm 90 dias de garantia em todos os modelos.",
       "Para acionar, guarde a nota fiscal e o certificado que vem dentro da caixa: são eles que valem.",
       "O que não entra é mau uso, principalmente rodar sem água.",
       "Se quiser, consulte o seu pedido pelo número e pelo e-mail da compra.",

@@ -34,6 +34,9 @@ export const WHATSAPP_BONITO = WHATSAPP.replace(/^(\d{2})(\d{4})(\d{4})$/, "$1 $
   "$1 $2-$3",
 );
 
+/** E-mail da assistência e da garantia. Pedidos e nota fiscal vão para pedido@. */
+export const SAC_EMAIL = "sac@vibravert.com.br";
+
 /** wa.me quer o número com país e sem sinal nenhum. */
 export const whatsappLink = (texto?: string) =>
   `https://wa.me/55${WHATSAPP}${texto ? `?text=${encodeURIComponent(texto)}` : ""}`;

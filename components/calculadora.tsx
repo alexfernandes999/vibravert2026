@@ -261,7 +261,7 @@ function Ficha({ item, hTotal }: { item: { m: ModeloCalc; vazao: number }; hTota
               m.potenciaWatts && ["potência", `${m.potenciaWatts} W`],
               m.recalque && ["saída de recalque", m.recalque],
               ["poço", `${m.pocoPolegadas} polegadas${m.saiaProtecao ? " · com saia de proteção" : ""}`],
-              m.garantia && ["garantia", m.garantia],
+              m.garantia && ["garantia", `${m.garantia} (motor e carcaça)`],
             ]
               .filter(Boolean)
               .map((linha) => {

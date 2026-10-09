@@ -3,6 +3,7 @@ import Image from "next/image";
 import { BandeiraBrasil } from "@/components/bandeira-brasil";
 import type { Banner } from "@prisma/client";
 import { EspacoBanner } from "@/components/espaco-banner";
+import { GARANTIA_ALCANCE, GARANTIA_BORRACHAS } from "@/lib/loja";
 
 /**
  * Coroa de louros desenhada por geometria, não por caminho copiado.
@@ -226,7 +227,9 @@ const PONTOS = [
     // convence ninguém. Dois anos é o dobro do que a categoria pratica, e é o
     // argumento mais forte da linha — então entra com o selo, não com ícone.
     t: "2 anos de garantia",
-    d: "de fábrica, nas bombas Vibra Vert. Ninguém no mercado dá mais",
+    // O prazo é do motor e da carcaça; as borrachas têm 90 dias (Termo de
+    // Garantia). Dizer só "2 anos" prometia mais do que a fábrica cobre.
+    d: `${GARANTIA_ALCANCE}, nas bombas Vibra Vert · borrachas ${GARANTIA_BORRACHAS}`,
     selo: "/selo-2-anos.png",
     icone: null,
   },

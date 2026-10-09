@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import { CONTROLA_ESTOQUE, DESCONTO_PIX, FRETE_GRATIS_EM_BOMBAS, FRETE_PADRAO } from "@/lib/loja";
+import { CONTROLA_ESTOQUE, DESCONTO_PIX, FRETE_GRATIS_EM_BOMBAS, FRETE_PADRAO, GARANTIA_ALCANCE, GARANTIA_BORRACHAS } from "@/lib/loja";
 import { SeletorVersao } from "@/components/seletor-versao";
 import { CartaoProduto } from "@/components/cartao-produto";
 import { Medir } from "@/components/medir";
@@ -428,7 +428,10 @@ function Confianca({ especificacoes }: { especificacoes: { nome: string; valor: 
   const acompanha = especificacoes.find((e) => e.nome === "Acompanha")?.valor;
 
   const itens = [
-    garantia && { t: `Garantia de ${garantia}`, d: "de fábrica, contra defeito de fabricação" },
+    garantia && {
+      t: `Garantia de ${garantia}`,
+      d: `${GARANTIA_ALCANCE}, contra defeito de fabricação · borrachas ${GARANTIA_BORRACHAS}`,
+    },
     acompanha && { t: "Kit de instalação incluso", d: acompanha },
     {
       t: "A assistência é nossa",

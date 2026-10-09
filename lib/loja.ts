@@ -23,6 +23,19 @@ export const PRAZO_DESPACHO = `sai da fábrica em até ${DIAS_TXT} após a confi
 /** A mesma promessa, curta, para selo e cartão. */
 export const PRAZO_DESPACHO_CURTO = `Sai em ${DIAS_TXT}`;
 
+/**
+ * O que a garantia longa cobre. Os 6 meses, 1 ano ou 2 anos do Termo de
+ * Garantia valem para o motor (caneca) e para furo na carcaça; as borrachas
+ * (canopla, ventosa, amortecedor e válvula) são peças de desgaste e têm 90
+ * dias em todos os modelos. Dizer só "2 anos de garantia" prometia mais do
+ * que o Termo cobre · e prazo anunciado obriga a ser honrado.
+ */
+export const GARANTIA_ALCANCE = "no motor e na carcaça";
+export const GARANTIA_BORRACHAS = "90 dias";
+
+/** A condição da Troca Expressa, dita junto da promessa e não no rodapé. */
+export const TROCA_EXPRESSA_CONDICAO = "Sujeito a conferência por foto e avaliação técnica.";
+
 /** Frete fixo, só quando a transportadora não responde. */
 export const FRETE_PADRAO = 39.9;
 
