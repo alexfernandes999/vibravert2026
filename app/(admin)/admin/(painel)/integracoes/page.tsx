@@ -1,6 +1,8 @@
 import { revalidatePath } from "next/cache";
 import { conexao, conferir, trocarCodigo, configurado } from "@/lib/bling";
-import { registrarAcao } from "@/lib/admin-auth";
+import { registrarAcao, podeGerirEquipe } from "@/lib/admin-auth";
+import Anthropic from "@anthropic-ai/sdk";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -32,11 +34,46 @@ async function colarCodigo(dados: FormData) {
   revalidatePath("/admin/integracoes");
 }
 
+/**
+ * Chave da API da Claude para a assistência técnica.
+ *
+ * Fica no banco para ser trocada aqui, sem Vercel nem deploy. Antes de gravar,
+ * a chave é testada numa chamada gratuita (lista de modelos): chave errada não
+ * entra, e o portal não descobre o erro só no primeiro chamado do cliente.
+ * Nunca volta para a tela.
+ */
+async function salvarChaveClaude(dados: FormData) {
+  "use server";
+  if (!(await podeGerirEquipe())) return;
+  const chave = String(dados.get("chave") ?? "").trim();
+  if (!chave.startsWith("sk-ant-")) return;
+  try {
+    await new Anthropic({ apiKey: chave, maxRetries: 0, timeout: 15_000 }).models.list({ limit: 1 });
+  } catch {
+    await registrarAcao("chave da Claude recusada no teste");
+    revalidatePath("/admin/integracoes");
+    return;
+  }
+  const longe = new Date("2999-01-01T00:00:00Z");
+  await prisma.integracao.upsert({
+    where: { nome: "anthropic" },
+    create: { nome: "anthropic", accessToken: chave, refreshToken: "", expiraEm: longe },
+    update: { accessToken: chave, expiraEm: longe, renovadoEm: new Date() },
+  });
+  await registrarAcao("configurou a chave da Claude");
+  revalidatePath("/admin/integracoes");
+}
+
 const quando = (d: Date) =>
   d.toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 
 export default async function Integracoes() {
   const bling = await conexao();
+  const claude = process.env.ANTHROPIC_API_KEY
+    ? { fonte: "ambiente", fim: process.env.ANTHROPIC_API_KEY.slice(-4), em: null as Date | null }
+    : await prisma.integracao
+        .findUnique({ where: { nome: "anthropic" }, select: { accessToken: true, renovadoEm: true } })
+        .then((r) => (r ? { fonte: "painel", fim: r.accessToken.slice(-4), em: r.renovadoEm } : null));
 
   // Só perguntamos quem é a conta quando já há token · a chamada custa uma
   // requisição e não faz sentido antes de autorizar.
@@ -152,6 +189,32 @@ export default async function Integracoes() {
             </button>
           </form>
         </div>
+      </section>
+
+      <section className="mt-7 rounded-caixa border border-linha bg-superficie p-6">
+        <h2 className="text-[18px] font-extrabold">Claude · assistência técnica</h2>
+        <p className="mt-1 text-[13.5px] text-tinta-2">
+          Lê as fotos dos chamados de garantia (lista fechada) e redige os laudos. Sem a chave, o portal funciona igual,
+          mas todo chamado vai para a fila de decisão.
+        </p>
+        <p className={`mt-3 text-[13.5px] font-bold ${claude ? "text-bom" : "text-atencao"}`}>
+          {claude
+            ? `Configurada (${claude.fonte}) · termina em …${claude.fim}${claude.em ? ` · ${quando(claude.em)}` : ""}`
+            : "Não configurada"}
+        </p>
+        <form action={salvarChaveClaude} className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <input
+            name="chave"
+            type="password"
+            autoComplete="off"
+            placeholder="sk-ant-… (console.anthropic.com → API keys)"
+            className="num min-w-0 flex-1 rounded-lg border border-linha bg-fundo px-3 py-2.5 text-[13.5px]"
+          />
+          <button className="rounded-lg border border-linha-2 px-4 py-2.5 text-[14px] font-bold">Testar e salvar</button>
+        </form>
+        <p className="mt-2 text-[12px] text-mudo">
+          A chave é testada antes de salvar e nunca aparece de novo nesta tela. Fixe um limite mensal de gasto no console da Anthropic.
+        </p>
       </section>
     </div>
   );

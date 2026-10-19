@@ -56,11 +56,26 @@ export class FalhaIA extends Error {
   }
 }
 
-let cliente: Anthropic | null = null;
-function api() {
+let cliente: { chave: string; api: Anthropic } | null = null;
+
+/**
+ * A chave vem do ambiente ou, sem ela, do painel (Integrações), gravada na
+ * tabela de integrações. Assim quem cuida da conta da Anthropic troca a chave
+ * sem precisar de acesso à Vercel nem de um deploy.
+ */
+export async function chaveAnthropic(): Promise<string | null> {
+  if (process.env.ANTHROPIC_API_KEY) return process.env.ANTHROPIC_API_KEY;
+  const { prisma } = await import("@/lib/prisma");
+  const r = await prisma.integracao.findUnique({ where: { nome: "anthropic" }, select: { accessToken: true } });
+  return r?.accessToken || null;
+}
+
+async function api() {
+  const chave = await chaveAnthropic();
+  if (!chave) throw new FalhaIA("chave da API da Claude não configurada (painel → Integrações)", null);
   // Uma tentativa extra só para 429/5xx/rede, feita pelo SDK. Nada de loop.
-  cliente ??= new Anthropic({ maxRetries: 1, timeout: 90_000 });
-  return cliente;
+  if (cliente?.chave !== chave) cliente = { chave, api: new Anthropic({ apiKey: chave, maxRetries: 1, timeout: 90_000 }) };
+  return cliente.api;
 }
 
 /**
@@ -115,7 +130,7 @@ export async function identificarListaFechada(
 
   let r;
   try {
-    r = await api().messages.parse({
+    r = await (await api()).messages.parse({
       model: MODELO_FOTOS,
       max_tokens: 8000,
       output_config: { effort: "medium", format: zodOutputFormat(SaidaLista) },
@@ -163,7 +178,7 @@ Regras de redação (Guia, seções 9 e 10):
 export async function redigir(dados: Record<string, unknown>): Promise<{ texto: Texto; uso: Uso }> {
   let r;
   try {
-    r = await api().messages.parse({
+    r = await (await api()).messages.parse({
       model: MODELO_TEXTO,
       max_tokens: 4000,
       output_config: { effort: "low", format: zodOutputFormat(SaidaTexto) },
