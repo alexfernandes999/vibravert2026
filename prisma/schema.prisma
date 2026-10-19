@@ -824,6 +824,8 @@ model Marketing {
 // prisma/sql/assistencia.sql · aplicar depois do db push.
 
 enum StatusChamado {
+  /// Recebido; o motor e a análise das fotos estão rodando (segundos).
+  ANALISANDO
   /// Falta foto ou dado; o cliente foi avisado do que falta.
   PENDENTE_INFORMACAO
   /// Na fila humana.
