@@ -18,7 +18,8 @@
     "usuarios": "tsx --env-file=.env.local prisma/usuarios.ts",
     "db:reiniciar": "tsx --env-file=.env.local prisma/reiniciar.ts --aplicar",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:assistencia": "prisma db execute --file prisma/sql/assistencia.sql --schema prisma/schema.prisma"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -41,6 +42,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.10",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.10.5",
     "@types/react": "^19.0.4",

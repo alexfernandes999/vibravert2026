@@ -11,7 +11,7 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")      // pooler (6543) — usado pela aplicação
   directUrl = env("DIRECT_URL")        // conexão direta (5432) — usada nas migrações
-  schemas   = ["vibravert"]
+  schemas   = ["vibravert", "assistencia"]
 }
 
 // ─────────────────────────── catálogo ───────────────────────────
@@ -539,6 +539,11 @@ model Usuario {
 
   registros Registro[]
 
+  // Assistência técnica: quem confirmou, assinou ou liberou.
+  decisoesAssistencia Decisao[]
+  bancadasAssinadas   Bancada[]
+  laudosLiberados     Laudo[]
+
   @@schema("vibravert")
 }
 
@@ -549,6 +554,8 @@ enum PapelUsuario {
   MASTER
   /// Quem cuida do sistema. Tudo do master, mais integrações e diagnóstico.
   DESENVOLVEDOR
+  /// Bancada da assistência técnica. Só ele assina laudo de bancada.
+  TECNICO
 
   @@schema("vibravert")
 }
@@ -807,4 +814,299 @@ model Marketing {
 
   @@map("marketing")
   @@schema("vibravert")
+}
+
+// ═════════════════════ assistência técnica (garantia) ═════════════════════
+//
+// Schema próprio, "assistencia": os nomes ficam os do briefing sem colidir com
+// `emails` e `conversas` da loja, e o papel do conector da Claude recebe
+// permissão só aqui. Triggers, papéis e RLS que o Prisma não expressa estão em
+// prisma/sql/assistencia.sql · aplicar depois do db push.
+
+enum StatusChamado {
+  /// Falta foto ou dado; o cliente foi avisado do que falta.
+  PENDENTE_INFORMACAO
+  /// Na fila humana.
+  EM_ANALISE
+  /// Aprovado ou autorizado: esperando o cliente enviar a bomba.
+  AGUARDANDO_ENVIO
+  A_CAMINHO
+  /// Na bancada · 48 h para o laudo.
+  NA_BANCADA
+  CONCLUIDO
+  /// Só com decisão de uma pessoa (trigger).
+  NEGADO
+  /// Só com decisão de uma pessoa (trigger).
+  RECUSADO
+  ORIENTADO_MARKETPLACE
+  ARREPENDIMENTO
+  /// Pendência de foto sem resposta por 15 dias.
+  ENCERRADO
+
+  @@schema("assistencia")
+}
+
+/// Um chamado de garantia.
+model Chamado {
+  id        String @id @default(cuid())
+  /// AT-AAAA-NNNNNN. É o único identificador que aparece no laudo.
+  protocolo String @unique
+  /// Linha da planilha antiga, para os casos migrados.
+  controleLegado String?
+
+  status StatusChamado
+  /// Faixa calculada pelo motor (lib/regras) e a versão das regras usada.
+  faixa       String
+  regrasVersao String
+  pendenciaRegra String?
+
+  // cliente
+  nome      String
+  /// CPF ou CNPJ, só dígitos.
+  documento String
+  telefone  String
+  email     String
+
+  // compra
+  canal           String
+  canalConfirmado Boolean   @default(false)
+  usou            Boolean
+  recebimento     DateTime? @db.Date
+  /// O que o cliente digitou no campo da NF, intacto.
+  nfTexto         String
+  nfNumero        Int?
+  nfChave         String?
+  nfSerie         Int?
+  nfCnpjEmitente  String?
+  emissao         DateTime? @db.Date
+  /// bling | chave_mes | operador
+  emissaoFonte    String?
+  blingPedido     String?
+
+  // produto
+  modelo String?
+  tensao String?
+  serie  String?
+
+  ocorrido String @db.Text
+
+  // envio e logística
+  codigoReversa String?
+  rastreio      String?
+  rastreioStatus String?
+
+  /// Aceite de LGPD com a finalidade, no envio.
+  lgpdEm DateTime
+  /// Dia civil do envio do formulário · conta a faixa.
+  enviadoEm DateTime @db.Date
+  criadoEm  DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  respostas  Resposta[]
+  fotos      Foto[]
+  avaliacoes Avaliacao[]
+  decisoes   Decisao[]
+  bancada    Bancada?
+  laudos     Laudo[]
+  chamadasIA ChamadaIA[]
+  conversas  ConversaAssistencia[]
+  emails     EmailAssistencia[]
+
+  @@index([documento])
+  @@index([nfNumero])
+  @@index([nfChave])
+  @@index([status])
+  @@index([serie])
+  @@map("chamados")
+  @@schema("assistencia")
+}
+
+/// Uma linha por pergunta, com o texto que o cliente viu e escolheu.
+model Resposta {
+  id        String @id @default(cuid())
+  chamadoId String
+  chamado   Chamado @relation(fields: [chamadoId], references: [id], onDelete: Restrict)
+  pergunta  String
+  valor     String
+  /// Rótulo exibido, intacto.
+  texto     String
+  ordem     Int
+  criadoEm  DateTime @default(now())
+
+  @@index([chamadoId])
+  @@map("respostas")
+  @@schema("assistencia")
+}
+
+/// Foto em espaço guiado. Reenvio cria nova linha; a ativa é a mais recente.
+model Foto {
+  id        String @id @default(cuid())
+  chamadoId String
+  chamado   Chamado @relation(fields: [chamadoId], references: [id], onDelete: Restrict)
+  /// frente | verso | cabo_emenda | etiqueta | local_longe | local_perto
+  espaco    String
+  /// Caminho no bucket privado "assistencia".
+  caminho   String
+  /// Versão de ~1000 px · é a que vai para a IA e para o portal.
+  caminhoReduzido String
+  largura   Int?
+  altura    Int?
+  bytes     Int?
+  criadoEm  DateTime @default(now())
+
+  @@index([chamadoId, espaco])
+  @@map("fotos")
+  @@schema("assistencia")
+}
+
+/// Sinal da triagem ou item da lista fechada, um por linha.
+model Avaliacao {
+  id        String @id @default(cuid())
+  chamadoId String
+  chamado   Chamado @relation(fields: [chamadoId], references: [id], onDelete: Restrict)
+  /// sinal | lista_fechada
+  categoria String
+  codigo    String
+  /// vermelho | amarelo  ·  encontrado | nao_encontrado | inconclusivo
+  resultado String
+  texto     String?
+  fotoRef   String?
+  motivoInconclusivo String?
+  /// codigo | claude | pessoa
+  origem    String
+  criadoEm  DateTime @default(now())
+
+  @@index([chamadoId])
+  @@map("avaliacoes")
+  @@schema("assistencia")
+}
+
+/// Histórico de decisões. APPEND-ONLY: trigger bloqueia UPDATE e DELETE.
+model Decisao {
+  id        String @id @default(cuid())
+  chamadoId String
+  chamado   Chamado @relation(fields: [chamadoId], references: [id], onDelete: Restrict)
+  /// codigo | claude | pessoa
+  autor     String
+  usuarioId String?
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  /// O que foi sugerido (motor ou Claude).
+  sugestao  String?
+  /// O que foi decidido. negativa e recusa exigem autor "pessoa" (CHECK).
+  decisaoFinal String?
+  /// Quando a pessoa decidiu diferente da sugestão.
+  motivoAlteracao String?
+  /// "Conferi as 6 fotos" marcado por quem confirmou.
+  conferiuFotos Boolean @default(false)
+  nota      String? @db.Text
+  detalhes  Json?
+  criadoEm  DateTime @default(now())
+
+  @@index([chamadoId])
+  @@map("decisoes")
+  @@schema("assistencia")
+}
+
+/// Registro de bancada. Assinatura só por usuário TECNICO (trigger).
+model Bancada {
+  id        String @id @default(cuid())
+  chamadoId String @unique
+  chamado   Chamado @relation(fields: [chamadoId], references: [id], onDelete: Restrict)
+  recebidoEm DateTime
+  /// etiqueta_reversa | protocolo_caixa | rastreio | busca
+  identificadoPor String
+  checklist Json?
+  resistenciaOhm Decimal? @db.Decimal(10, 2)
+  isolacaoMOhm   Decimal? @db.Decimal(10, 2)
+  correnteA      Decimal? @db.Decimal(10, 2)
+  pecas     Json?
+  /// Exatamente como o técnico digitou: vai assim para o laudo.
+  observacao String? @db.Text
+  fotos     Json?
+  conclusaoSugerida String?
+  conclusaoFinal    String?
+  assinadoPorId String?
+  assinadoPor   Usuario? @relation(fields: [assinadoPorId], references: [id], onDelete: Restrict)
+  assinadoEm    DateTime?
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+
+  @@map("bancada")
+  @@schema("assistencia")
+}
+
+/// Laudo gerado. Nova versão = nova linha.
+model Laudo {
+  id        String @id @default(cuid())
+  chamadoId String
+  chamado   Chamado @relation(fields: [chamadoId], references: [id], onDelete: Restrict)
+  /// autorizacao_troca | aprovacao_31_90 | aprovacao_91 | negativa | recusa | bancada
+  tipo      String
+  versao    Int
+  /// Texto redigido (rascunho ou final).
+  conteudo  Json
+  caminhoPdf String?
+  liberado  Boolean @default(false)
+  /// codigo | claude | pessoa
+  liberadoPorAutor String?
+  liberadoPorId String?
+  liberadoPor   Usuario? @relation(fields: [liberadoPorId], references: [id], onDelete: Restrict)
+  liberadoEm DateTime?
+  criadoEm  DateTime @default(now())
+
+  @@unique([chamadoId, tipo, versao])
+  @@map("laudos")
+  @@schema("assistencia")
+}
+
+/// Toda chamada à API da Claude, com o custo.
+model ChamadaIA {
+  id        String @id @default(cuid())
+  chamadoId String?
+  chamado   Chamado? @relation(fields: [chamadoId], references: [id], onDelete: Restrict)
+  /// lista_fechada | laudo | mensagem | bancada
+  finalidade String
+  modelo    String
+  tokensEntrada Int @default(0)
+  tokensSaida   Int @default(0)
+  cacheLeitura  Int @default(0)
+  cacheEscrita  Int @default(0)
+  custoUsd  Decimal @db.Decimal(10, 6)
+  sucesso   Boolean
+  erro      String?
+  criadoEm  DateTime @default(now())
+
+  @@index([criadoEm])
+  @@map("chamadas_ia")
+  @@schema("assistencia")
+}
+
+/// Fase 3 (WhatsApp e chat do site): só a tabela.
+model ConversaAssistencia {
+  id        String  @id @default(cuid())
+  chamadoId String?
+  chamado   Chamado? @relation(fields: [chamadoId], references: [id], onDelete: Restrict)
+  canal     String
+  mensagens Json
+  escalada  Boolean @default(false)
+  criadoEm  DateTime @default(now())
+
+  @@map("conversas")
+  @@schema("assistencia")
+}
+
+/// Fase 2 (sac@): só a tabela.
+model EmailAssistencia {
+  id        String  @id @default(cuid())
+  chamadoId String?
+  chamado   Chamado? @relation(fields: [chamadoId], references: [id], onDelete: Restrict)
+  remetente String
+  assunto   String
+  corpo     String  @db.Text
+  classificacao String?
+  respondido Boolean @default(false)
+  criadoEm  DateTime @default(now())
+
+  @@map("emails")
+  @@schema("assistencia")
 }
