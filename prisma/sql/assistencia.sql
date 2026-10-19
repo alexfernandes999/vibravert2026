@@ -170,7 +170,7 @@ SELECT
     WHEN length(documento) = 11 THEN '***.' || substr(documento, 4, 3) || '.' || substr(documento, 7, 3) || '-**'
     ELSE substr(documento, 1, 2) || '.***.***/' || substr(documento, 9, 4) || '-**'
   END AS documento,
-  canal, "canalConfirmado", usou, recebimento, "nfNumero", "nfSerie", "nfCnpjEmitente",
+  canal, "canalConfirmado", usou, recebimento, "nfTexto", "nfNumero", "nfChave", "nfSerie", "nfCnpjEmitente",
   emissao, "emissaoFonte", modelo, tensao, serie, ocorrido, rastreio, "rastreioStatus",
   "enviadoEm", "criadoEm"
 FROM assistencia.chamados;
