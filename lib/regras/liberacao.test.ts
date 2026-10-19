@@ -111,7 +111,7 @@ describe("fila humana: negativa e recusa nunca saem sozinhas", () => {
     expect(decidir(e({ faixa: faixa("troca_expressa", { canalConfirmado: false }) })).rota).toBe("fila_humana");
   });
   it("pendência de regra → fila com o motivo", () => {
-    const d = decidir(e({ faixa: faixa("indefinida", { pendencia: "revenda_ate_30" }) }));
+    const d = decidir(e({ faixa: faixa("indefinida", { pendencia: "regra_futura" }) }));
     expect(d.rota).toBe("fila_humana");
     expect(d.motivos[0]).toMatch(/Regra não definida/);
   });
@@ -123,10 +123,12 @@ describe("91+ dias: garantia longa do modelo", () => {
     expect(d.rota).toBe("automatica");
     expect(d.documento?.tipo).toBe("aprovacao_91");
   });
-  it("Rymer 1500 com 8 meses → fora da garantia longa: fila, regra pendente", () => {
+  it("Rymer 1500 com 8 meses → fora do prazo do motor: sugere negativa, só uma pessoa confirma", () => {
     const d = decidir(e({ faixa: faixa("normal_91"), modelo: "r1500", emissaoExata: "2026-02-10" }));
     expect(d.rota).toBe("fila_humana");
-    expect(d.motivos[0]).toMatch(/Regra não definida/);
+    expect(d.sugestao).toBe("negativa");
+    expect(d.motivos[0]).toMatch(/Fora do prazo/);
+    expect(d.documento?.tipo).toBe("negativa");
   });
   it("sem data exata de emissão → fila", () => {
     expect(decidir(e({ faixa: faixa("normal_91"), emissaoExata: null })).rota).toBe("fila_humana");

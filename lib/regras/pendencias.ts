@@ -6,10 +6,10 @@
  * responder, a regra entra no motor e a pendência sai daqui.
  */
 export const PENDENCIAS = {
-  revenda_ate_30: "Compra em loja/revenda até 30 dias: o fluxo não está definido (só venda direta tem Troca Expressa).",
-  venda_direta_fora_do_site: "Venda direta fora do site (telefone, WhatsApp): não está definido se conta como Troca Expressa.",
-  marketplace_arrependimento: "Marketplace até 7 dias e sem uso: arrependimento pela Vibra Vert ou devolução no marketplace?",
-  fora_da_garantia_longa: "Fora do prazo do motor e da carcaça do modelo: o destino (negativa, fila, orçamento) não está definido.",
-} as const;
+  // Todas as pendências da fase 1 foram decididas pela diretoria em out/2026:
+  // revenda até 30 dias → fluxo normal; venda direta fora do site → Troca
+  // Expressa; marketplace sem uso até 7 dias → devolução no marketplace; fora
+  // do prazo do motor → sugestão de negativa, confirmada por uma pessoa.
+} as const satisfies Record<string, string>;
 
-export type Pendencia = keyof typeof PENDENCIAS;
+export type Pendencia = keyof typeof PENDENCIAS | (string & {});

@@ -79,7 +79,7 @@ export function decidir(e: EntradaLiberacao): Decisao {
   if (f.faixa === "marketplace_30")
     return { rota: "automatica", acao: "orientar_marketplace", sugestao: "orientacao_marketplace", motivos: ["Compra em marketplace há até 30 dias"], pontosAVerificar: [], documento: null };
 
-  if (f.pendencia) return fila("revisar", [`Regra não definida: ${PENDENCIAS[f.pendencia]}`], e);
+  if (f.pendencia) return fila("revisar", [`Regra não definida: ${(PENDENCIAS as Record<string, string>)[f.pendencia] ?? f.pendencia}`], e);
 
   // ── falta foto ou dado: pede ao cliente ────────────────────────
   if (e.faltando.length)
@@ -92,8 +92,13 @@ export function decidir(e: EntradaLiberacao): Decisao {
   // ── garantia longa: motor e carcaça no prazo do modelo ─────────
   if (f.faixa === "normal_91") {
     if (!e.modelo || !e.emissaoExata) return fila("revisar", ["Modelo ou data exata de emissão não confirmados"], e);
-    if (!cobertura(e.modelo, e.emissaoExata, e.envio).motorCarcaca)
-      return fila("revisar", [`Regra não definida: ${PENDENCIAS.fora_da_garantia_longa}`], e);
+    // Fora do prazo do motor e da carcaça: sugere negativa por prazo, e uma
+    // pessoa confirma (o banco não deixa sair sem ela).
+    const cob = cobertura(e.modelo, e.emissaoExata, e.envio);
+    if (!cob.motorCarcaca)
+      return fila("negativa", [`Fora do prazo de garantia do motor e da carcaça (até ${cob.fimMotorCarcaca.split("-").reverse().join("/")})`], e, {
+        documento: documentoPara(f.faixa, "desfavoravel"),
+      });
   }
 
   // ── lista fechada ─────────────────────────────────────────────

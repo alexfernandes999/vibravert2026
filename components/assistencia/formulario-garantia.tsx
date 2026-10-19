@@ -125,7 +125,9 @@ export function FormularioGarantia() {
         form.setError("recebimento", { message: "A data de recebimento não pode ser no futuro." });
         return;
       }
-      if (v.usou === "nao" && dias <= 7) {
+      // Arrependimento é com quem vendeu: só compra no site. Marketplace cai na
+      // orientação abaixo; revenda segue o fluxo normal.
+      if (v.usou === "nao" && dias <= 7 && v.canal === "site") {
         setFluxo("arrependimento");
         setEtapa(6);
         return;

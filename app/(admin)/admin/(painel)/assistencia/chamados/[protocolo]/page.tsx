@@ -10,7 +10,7 @@ import { urlAssinada } from "@/lib/assistencia/storage";
 import { ROTULO_ITEM, type ItemListaFechada } from "@/lib/regras/lista-fechada";
 import { decomporChave } from "@/lib/regras/nf";
 import { NOME_MODELO, type Faixa, type Modelo } from "@/lib/regras/tipos";
-import { PENDENCIAS, type Pendencia } from "@/lib/regras/pendencias";
+import { PENDENCIAS } from "@/lib/regras/pendencias";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Assistência · Ficha do chamado" };
@@ -72,7 +72,7 @@ export default async function Ficha({ params }: { params: Promise<{ protocolo: s
               </ul>
               {c.pendenciaRegra && (
                 <p className="mt-2 rounded-lg bg-atencao/10 px-3 py-2 text-[12.5px] text-atencao">
-                  Regra não definida: {PENDENCIAS[c.pendenciaRegra as Pendencia] ?? c.pendenciaRegra}
+                  Regra não definida: {(PENDENCIAS as Record<string, string>)[c.pendenciaRegra] ?? c.pendenciaRegra}
                 </p>
               )}
             </section>

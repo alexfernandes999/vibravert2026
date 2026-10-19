@@ -48,14 +48,16 @@ describe("arrependimento (conta do recebimento)", () => {
     const r = calcularFaixa(base({ usou: true, recebimento: antes(7), emissao: { tipo: "exata", data: antes(9) } }));
     expect(r.faixa).toBe("troca_expressa");
   });
-  it("marketplace até 7 dias sem uso → pendência, não decide sozinho", () => {
+  it("marketplace até 7 dias sem uso → devolução no marketplace", () => {
     const r = calcularFaixa(base({ usou: false, canal: "ml", recebimento: antes(3) }));
-    expect(r.faixa).toBe("indefinida");
-    expect(r.pendencia).toBe("marketplace_arrependimento");
+    expect(r.faixa).toBe("marketplace_30");
   });
-  it("revenda até 7 dias sem uso → pendência", () => {
-    const r = calcularFaixa(base({ usou: false, canal: "revenda", recebimento: antes(3) }));
-    expect(r.pendencia).toBe("revenda_ate_30");
+  it("revenda até 7 dias sem uso → sem arrependimento com a Vibra Vert, segue pela NF", () => {
+    const r = calcularFaixa(base({ usou: false, canal: "revenda", recebimento: antes(3), emissao: { tipo: "exata", data: antes(5) } }));
+    expect(r.faixa).toBe("normal_31_90");
+  });
+  it("venda direta fora do site até 7 dias sem uso → arrependimento", () => {
+    expect(calcularFaixa(base({ usou: false, canal: "venda_direta_outra", recebimento: antes(3) })).faixa).toBe("arrependimento");
   });
 });
 
@@ -80,13 +82,12 @@ describe("faixas pela emissão da NF", () => {
   it("marketplace dia 31 → fluxo normal", () => {
     expect(exata(31, { canal: "shopee" }).faixa).toBe("normal_31_90");
   });
-  it("revenda até 30 dias → pendência (fluxo não definido)", () => {
-    const r = exata(10, { canal: "revenda" });
-    expect(r.faixa).toBe("indefinida");
-    expect(r.pendencia).toBe("revenda_ate_30");
+  it("revenda até 30 dias → fluxo normal (quem vendeu foi a loja)", () => {
+    expect(exata(10, { canal: "revenda" }).faixa).toBe("normal_31_90");
+    expect(exata(30, { canal: "revenda" }).faixa).toBe("normal_31_90");
   });
-  it("venda direta fora do site até 30 dias → pendência", () => {
-    expect(exata(10, { canal: "venda_direta_outra" }).pendencia).toBe("venda_direta_fora_do_site");
+  it("venda direta fora do site até 30 dias → Troca Expressa", () => {
+    expect(exata(10, { canal: "venda_direta_outra" }).faixa).toBe("troca_expressa");
   });
   it("revenda com 45 dias → fluxo normal, a revenda não muda nada", () => {
     expect(exata(45, { canal: "revenda" }).faixa).toBe("normal_31_90");

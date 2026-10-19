@@ -54,8 +54,12 @@ function porDias(dias: number, canal: Canal | null): { faixa: Faixa; pendencia?:
   if (canal === null) return { faixa: "indefinida" };
   if (ehMarketplace(canal)) return { faixa: "marketplace_30" };
   if (canal === "site") return { faixa: "troca_expressa" };
-  if (canal === "venda_direta_outra") return { faixa: "indefinida", pendencia: "venda_direta_fora_do_site" };
-  return { faixa: "indefinida", pendencia: "revenda_ate_30" };
+  // Venda direta fora do site: a Vibra Vert vendeu, vale a Troca Expressa
+  // (decisão da diretoria, out/2026).
+  if (canal === "venda_direta_outra") return { faixa: "troca_expressa" };
+  // Revenda até 30 dias: quem vendeu foi a loja, não há Troca Expressa. Segue o
+  // fluxo normal: ida do cliente, volta da Vibra Vert se houver defeito.
+  return { faixa: "normal_31_90" };
 }
 
 /**
@@ -71,12 +75,11 @@ export function calcularFaixa(e: EntradaFaixa): ResultadoFaixa {
   if (!e.usou && e.recebimento) {
     const d = diasEntre(e.recebimento, e.envio);
     if (d >= 0 && d <= ARREPENDIMENTO_DIAS) {
+      // Marketplace sem uso até 7 dias: a devolução é no próprio marketplace.
       if (e.canal && ehMarketplace(e.canal)) {
-        return { ...base, faixa: "indefinida", dias: null, dataConfirmada: false, pendencia: "marketplace_arrependimento" };
+        return { ...base, faixa: "marketplace_30", dias: { min: d, max: d }, dataConfirmada: true };
       }
-      if (e.canal === "revenda") {
-        return { ...base, faixa: "indefinida", dias: null, dataConfirmada: false, pendencia: "revenda_ate_30" };
-      }
+      // Revenda não tem arrependimento com a Vibra Vert: segue pela NF.
       if (e.canal === "site" || e.canal === "venda_direta_outra") {
         return { ...base, faixa: "arrependimento", dias: { min: d, max: d }, dataConfirmada: true };
       }
