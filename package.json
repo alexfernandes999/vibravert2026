@@ -16,7 +16,9 @@
     "db:demo": "tsx prisma/demo.ts",
     "db:demo:limpar": "tsx prisma/demo.ts --limpar",
     "usuarios": "tsx --env-file=.env.local prisma/usuarios.ts",
-    "db:reiniciar": "tsx --env-file=.env.local prisma/reiniciar.ts --aplicar"
+    "db:reiniciar": "tsx --env-file=.env.local prisma/reiniciar.ts --aplicar",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -46,6 +48,7 @@
     "prisma": "^6.2.1",
     "tailwindcss": "^4.0.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.7"
   }
 }

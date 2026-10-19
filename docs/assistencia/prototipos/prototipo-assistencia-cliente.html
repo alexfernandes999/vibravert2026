@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Assistência Vibra Vert · Protótipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700;800&family=Red+Hat+Mono:wght@500&display=swap">
+<style>
+/* Layout: réplica da aba Assistência técnica do site, com o fluxo novo (formulário em etapas, protocolo e laudo) no lugar do link para o Fale Conosco. Visual único, igual ao site. */
+:root{
+  --night:#0A1B4D; --navy:#14307A; --brand:#13357F; --steel:#545452;
+  --ink:#12172A; --muted:#5a6276; --line:#dbe2ef; --ground:#F2F5FA; --paper:#ffffff; --foot:#EEF2F9; --tint:#DEE6F7;
+  --sun:#F5B921; --sun-ink:#5C4100;
+  --ok:#1f7a4d; --ok-bg:#e2f4ea; --warn:#8a5d00; --warn-bg:#fdf1d2; --bad:#9b2c2c; --bad-bg:#f9e3e3;
+  --f:"Red Hat Display", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"Red Hat Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--ground);color:var(--ink);font:400 16px/1.55 var(--f);-webkit-font-smoothing:antialiased}
+img{max-width:100%}
+a{color:var(--brand)}
+button{font-family:inherit}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+.in{max-width:1180px;margin:0 auto;padding-inline:20px}
+
+/* Faixa de protótipo */
+.proto-strip{background:#fff7dd;color:var(--sun-ink);font:600 12.5px/1.4 var(--f);text-align:center;padding:6px 16px;border-bottom:1px solid #f0dca0}
+
+/* Barras do topo */
+.bar1{background:var(--night);color:#fff;font:600 13px/1 var(--f);padding:11px 0;text-align:center;position:relative;overflow:hidden}
+.bar1::before{content:"";position:absolute;inset:0;background:radial-gradient(600px 200px at 50% 0%, rgba(245,185,33,.28), transparent 70%)}
+.bar1 span{position:relative}
+.bar1 .hl{color:var(--sun)}
+.bar1 .sep{opacity:.5;margin:0 10px}
+.bar2{background:var(--navy);color:#fff;font:600 13px/1 var(--f);padding:12px 0;white-space:nowrap;overflow:hidden}
+.bar2 .track{display:flex;gap:48px;justify-content:center}
+@media (max-width:900px){.bar2 .track{justify-content:flex-start}.bar1{font-size:12px}}
+
+/* Cabeçalho */
+header.site{background:var(--paper);border-bottom:1px solid var(--line)}
+.hrow{display:flex;align-items:center;gap:24px;padding-block:14px}
+.logo{display:inline-flex;flex-direction:column;gap:2px;text-decoration:none;flex:none}
+.logo b{font:800 27px/1 var(--f);color:var(--brand);letter-spacing:.01em}
+.logo b sup{font-size:10px;vertical-align:top}
+.logo i{display:block;height:3px;background:var(--steel)}
+.logo i+i{background:var(--brand)}
+.logo span{font:400 13px/1.1 var(--f);color:var(--steel);letter-spacing:-.02em}
+.search{flex:1;min-width:0;background:#f3f6fb;border:1px solid var(--line);border-radius:8px;padding:10px 14px;color:#7a8296;font-size:14px}
+.hico{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);flex:none}
+.hico b{display:block;color:var(--ink);font-size:14px}
+.ic{width:38px;height:38px;border-radius:50%;background:#eef2f9;display:grid;place-items:center;color:var(--brand)}
+.ic.dark{background:var(--night);color:#fff}
+.ic svg{width:18px;height:18px}
+nav.main{display:flex;gap:28px;padding-block:6px 14px;font:500 14.5px/1 var(--f);overflow-x:auto}
+nav.main a{color:var(--ink);text-decoration:none;white-space:nowrap;padding-bottom:6px;border-bottom:2px solid transparent}
+nav.main a.on{border-color:var(--brand);color:var(--brand);font-weight:700}
+@media (max-width:900px){.search,.hico.hide-sm{display:none}.hrow{justify-content:space-between}}
+
+/* Botões */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:800 14px/1 var(--f);padding:14px 20px;border-radius:8px;border:1.5px solid transparent;cursor:pointer;text-decoration:none}
+.btn.sun{background:var(--sun);color:var(--sun-ink)}
+.btn.sun:hover{background:#ffc63a}
+.btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.4)}
+.btn.ghost:hover{border-color:#fff}
+.btn.navy{background:var(--brand);color:#fff}
+.btn.line{background:var(--paper);color:var(--ink);border-color:var(--line)}
+.btn.line:hover{border-color:var(--brand)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+/* Hero */
+.hero{background:var(--night);color:#fff;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(760px 380px at 15% 40%, rgba(245,185,33,.16), transparent 62%)}
+.hero .in{position:relative;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:40px;padding-block:52px 56px;align-items:center}
+@media (max-width:860px){.hero .in{grid-template-columns:minmax(0,1fr)}}
+.eyebrow{font:700 11.5px/1 var(--f);letter-spacing:.14em;text-transform:uppercase;color:var(--sun);margin:0 0 12px}
+.hero h1{font:800 clamp(28px,4.4vw,38px)/1.12 var(--f);margin:0 0 14px;text-wrap:balance}
+.hero p{margin:0 0 22px;color:#c9d2ea;max-width:52ch}
+.hero .ctas{display:flex;gap:12px;flex-wrap:wrap}
+.infobox{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:22px;font-size:14px;display:grid;gap:14px}
+.infobox h4{margin:0 0 4px;font:700 11px/1 var(--f);letter-spacing:.12em;text-transform:uppercase;color:var(--sun)}
+.infobox p{margin:0;color:#fff}
+.infobox hr{border:0;border-top:1px solid rgba(255,255,255,.12);margin:0}
+
+/* Seções */
+section.blk{padding-block:48px}
+h2{font:800 clamp(22px,3vw,26px)/1.2 var(--f);margin:0 0 8px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 24px;max-width:62ch}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:20px;min-width:0}
+.card .num{font:700 12px/1 var(--mono);color:var(--sun-ink);background:#fdf1d2;display:inline-block;padding:4px 7px;border-radius:5px;margin-bottom:10px}
+.card h3{margin:0 0 6px;font:700 17px/1.3 var(--f)}
+.card p{margin:0;font-size:14.5px;color:var(--muted)}
+.prazos{margin-top:22px;overflow-x:auto;background:var(--paper);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;font-variant-numeric:tabular-nums}
+th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 11.5px/1.3 var(--f);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:#f7f9fd}
+tr:last-child td{border-bottom:0}
+.band{background:var(--paper);border-block:1px solid var(--line)}
+.express{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:32px;align-items:center}
+@media (max-width:800px){.express{grid-template-columns:minmax(0,1fr)}}
+.tag{display:inline-block;font:700 11px/1 var(--f);letter-spacing:.12em;text-transform:uppercase;color:var(--brand);background:var(--tint);padding:6px 9px;border-radius:5px;margin-bottom:10px}
+.fine{font-size:13px;color:var(--muted);margin:10px 0 0}
+
+/* Formulário */
+.formwrap{max-width:780px;margin:0 auto;padding-block:36px 64px}
+.back{display:inline-flex;gap:6px;align-items:center;font:600 14px/1 var(--f);color:var(--brand);background:none;border:0;cursor:pointer;padding:0;margin-bottom:18px}
+.progress{display:flex;gap:4px;margin:0 0 6px}
+.progress i{flex:1;height:5px;border-radius:3px;background:var(--line)}
+.progress i.done{background:var(--brand)}
+.progress i.now{background:var(--sun)}
+.steplbl{font:600 13px/1 var(--f);color:var(--muted);margin:0 0 20px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:28px}
+@media (max-width:560px){.panel{padding:20px 16px}}
+.panel h2{margin-bottom:4px}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 18px;margin-top:20px}
+@media (max-width:600px){.fields{grid-template-columns:minmax(0,1fr)}}
+.f{display:grid;gap:6px;min-width:0}
+.f.full{grid-column:1/-1}
+.f label,.f .lbl{font:700 14px/1.3 var(--f)}
+.f .hint{font-size:13px;color:var(--muted);font-weight:400}
+.f input[type=text],.f input[type=email],.f input[type=tel],.f input[type=date],.f input[type=number],.f select,.f textarea{font:400 15.5px/1.3 var(--f);padding:12px 13px;border:1.5px solid var(--line);border-radius:8px;background:#fbfcfe;color:var(--ink);width:100%}
+.f textarea{min-height:120px;resize:vertical}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--brand);outline:none;background:#fff}
+.f.err input,.f.err select,.f.err textarea{border-color:var(--bad)}
+.f .msg{font-size:13px;color:var(--bad);display:none}
+.f.err .msg{display:block}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.opt span{display:inline-block;padding:10px 14px;border:1.5px solid var(--line);border-radius:8px;font:600 14px/1.2 var(--f);background:#fbfcfe;cursor:pointer}
+.opt input:checked+span{border-color:var(--brand);background:var(--tint);color:var(--brand)}
+.opt input:focus-visible+span{outline:3px solid var(--sun);outline-offset:2px}
+.f.err .opt span{border-color:#e7b4b4}
+.navrow{display:flex;justify-content:space-between;gap:12px;margin-top:26px;flex-wrap:wrap}
+.note{background:#f4f7fc;border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:14px;color:var(--muted);margin-top:18px}
+.note b{color:var(--ink)}
+
+/* Perguntas de instalação */
+.qhead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.qcount{font:700 12.5px/1 var(--f);color:var(--brand);background:var(--tint);padding:7px 10px;border-radius:999px;white-space:nowrap}
+.qcount.all{background:var(--ok-bg);color:var(--ok)}
+.qs{margin-top:8px}
+.q{display:grid;grid-template-columns:44px minmax(0,1fr);gap:16px;padding-block:22px;border-top:1px solid var(--line)}
+.q:first-child{border-top:0}
+@media (max-width:520px){.q{grid-template-columns:minmax(0,1fr);gap:10px}}
+.qi{width:44px;height:44px;border-radius:12px;background:var(--tint);color:var(--brand);display:grid;place-items:center}
+.qi svg{width:22px;height:22px}
+.q.done .qi{background:var(--brand);color:#fff}
+.qt{font:700 16.5px/1.3 var(--f);margin:2px 0 2px;display:block}
+.qh{font-size:13.5px;color:var(--muted);margin:0}
+.q.err .qh{color:var(--bad)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px}
+.tiles.pics{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+.tile{position:relative;display:block;min-width:0}
+.tile input{position:absolute;opacity:0;width:1px;height:1px}
+.tile .tb{display:flex;gap:10px;align-items:center;height:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:#fbfcfe;cursor:pointer;transition:border-color .15s, background .15s}
+.tile .tb:hover{border-color:#9fb1d8}
+.tile .rd{flex:none;width:18px;height:18px;border-radius:50%;border:2px solid #b7c3dc;background:#fff;display:grid;place-items:center}
+.tile .tx{min-width:0}
+.tile .tx b{display:block;font:700 14.5px/1.25 var(--f)}
+.tile .tx small{display:block;font:400 12.5px/1.3 var(--f);color:var(--muted);margin-top:2px}
+.tiles.five{grid-template-columns:repeat(auto-fit,minmax(112px,1fr))}
+.tiles.five .tb{padding:12px 10px;gap:8px}
+.tiles.five .tx b{font-size:14px}
+.tile input:checked+.tb{border-color:var(--brand);background:#f1f5ff;box-shadow:inset 0 0 0 1px var(--brand)}
+.tile input:checked+.tb .rd{border-color:var(--brand);background:var(--brand)}
+.tile input:checked+.tb .rd::after{content:"";width:6px;height:6px;border-radius:50%;background:#fff}
+.tile input:focus-visible+.tb{outline:3px solid var(--sun);outline-offset:2px}
+.tile.ns .tb{border-style:dashed;background:transparent}
+.tile.ns .tx b{font-weight:600;color:var(--muted)}
+.tiles.pics .tb{flex-direction:column;align-items:stretch;gap:8px;padding:10px}
+.tiles.pics .pic{display:block;width:100%;height:76px;border-radius:7px;background:#eef3fb}
+.tiles.pics .row{display:flex;gap:8px;align-items:center}
+.q.err .tile .tb{border-color:#e7b4b4}
+.more{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;border-radius:10px;background:#f4f7fc;border:1px solid var(--line);flex-wrap:wrap}
+.more label{font:600 14px/1.3 var(--f)}
+.stepper{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:8px;background:#fff;overflow:hidden}
+.stepper button{width:40px;height:42px;border:0;background:transparent;font:700 18px/1 var(--f);color:var(--brand);cursor:pointer}
+.stepper button:hover{background:var(--tint)}
+.f .stepper input{width:70px;height:42px;border:0;border-inline:1px solid var(--line);text-align:center;font:700 16px/1 var(--f);color:var(--ink);-moz-appearance:textfield}
+.stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.more span.u{font-size:14px;color:var(--muted)}
+
+/* Fotos */
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:10px}
+.slot{position:relative;aspect-ratio:4/3;max-width:100%;border:2px dashed #c4cfe3;border-radius:10px;background:#f8faff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px;cursor:pointer;overflow:hidden}
+.slot:hover{border-color:var(--brand)}
+.slot input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.slot b{font:700 13.5px/1.25 var(--f);display:block}
+.slot small{font-size:12px;color:var(--muted)}
+.slot .plus{width:30px;height:30px;border-radius:50%;background:var(--tint);color:var(--brand);display:grid;place-items:center;font:700 20px/1 var(--f);margin-bottom:6px}
+.slot.done{border-style:solid;border-color:var(--ok);padding:0}
+.slot.done img{width:100%;height:100%;object-fit:cover}
+.slot.done .cap{position:absolute;left:0;right:0;bottom:0;background:rgba(10,27,77,.82);color:#fff;font:700 12px/1.2 var(--f);padding:6px 8px;display:flex;justify-content:space-between;gap:6px}
+.slot.missing{border-color:var(--bad);background:var(--bad-bg)}
+.phgroup{margin-top:22px}
+.phgroup h3{font:700 15.5px/1.3 var(--f);margin:0}
+.phgroup p{margin:2px 0 0;font-size:13.5px;color:var(--muted)}
+
+/* Revisão */
+.review{display:grid;gap:14px;margin-top:18px}
+.rv{border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.rv h4{margin:0 0 8px;font:700 14px/1 var(--f);display:flex;justify-content:space-between}
+.rv h4 button{background:none;border:0;color:var(--brand);font:600 13px/1 var(--f);cursor:pointer}
+.kv{display:grid;grid-template-columns:minmax(120px,auto) minmax(0,1fr);gap:4px 14px;font-size:14px;margin:0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;overflow-wrap:anywhere}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;margin-top:18px}
+.check input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--brand)}
+
+/* Processando */
+.proc{text-align:center;padding:60px 20px}
+.spin{width:46px;height:46px;border-radius:50%;border:4px solid var(--tint);border-top-color:var(--brand);margin:0 auto 18px;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.proc ul{list-style:none;padding:0;margin:18px auto 0;max-width:340px;text-align:left;font-size:14.5px;display:grid;gap:8px}
+.proc li{color:var(--muted)}
+.proc li.ok{color:var(--ok)}
+.proc li.ok::before{content:"✓ ";font-weight:800}
+.proc li.run::before{content:"• ";color:var(--sun-ink);font-weight:800}
+
+/* Protocolo */
+.protohead{background:var(--night);color:#fff;border-radius:12px;padding:26px 28px;position:relative;overflow:hidden}
+.protohead::before{content:"";position:absolute;inset:0;background:radial-gradient(500px 220px at 85% 0%, rgba(245,185,33,.2), transparent 70%)}
+.protohead>*{position:relative}
+.protohead .lbl{font:700 11px/1 var(--f);letter-spacing:.14em;text-transform:uppercase;color:var(--sun)}
+.protohead .num{font:500 clamp(26px,5vw,38px)/1.1 var(--mono);margin:8px 0 6px;letter-spacing:.02em}
+.protohead p{margin:0;color:#c9d2ea;font-size:14.5px}
+.protohead .copy{margin-top:14px}
+.phrow{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.phrow .btn{flex:none}
+.anote{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px;background:#fff7dd;color:var(--sun-ink);border:1.5px solid var(--sun);border-radius:10px;padding:14px 16px}
+.anote .ai{flex:none;width:38px;height:38px;border-radius:50%;background:var(--sun);color:var(--sun-ink);display:grid;place-items:center}
+.anote .ai svg{width:20px;height:20px}
+.anote .at{flex:1;min-width:200px}
+.anote .at b{display:block;font:800 15.5px/1.3 var(--f);color:var(--sun-ink)}
+.anote .at span{display:block;font-size:14px;line-height:1.45;color:#6b5210}
+.anote .btn{padding:11px 16px;flex:none}
+.devnote{margin-top:14px;border:1.5px dashed #8fa2cf;border-radius:8px;padding:10px 12px;font:500 13px/1.45 var(--mono);color:#c9d2ea;background:rgba(255,255,255,.04)}
+.devnote b{color:var(--sun);font-weight:500;letter-spacing:.06em;text-transform:uppercase;font-size:11.5px;display:block;margin-bottom:2px}
+.status{display:inline-flex;align-items:center;gap:8px;font:800 13px/1 var(--f);padding:8px 12px;border-radius:999px;margin-top:14px}
+.st-ok{background:var(--ok-bg);color:var(--ok)}
+.st-warn{background:var(--warn-bg);color:var(--warn)}
+.st-bad{background:var(--bad-bg);color:var(--bad)}
+.st-info{background:var(--tint);color:var(--brand)}
+.cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;margin-top:20px;align-items:start}
+@media (max-width:860px){.cols{grid-template-columns:minmax(0,1fr)}}
+.stack{display:grid;gap:20px;min-width:0}
+.box{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:22px;min-width:0}
+.box h3{margin:0 0 12px;font:800 17px/1.3 var(--f)}
+.box p{margin:0 0 10px;font-size:15px}
+.box p:last-child{margin-bottom:0}
+.tl{list-style:none;margin:0;padding:0}
+.tl li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:12px;padding-bottom:16px;position:relative}
+.tl li:not(:last-child)::after{content:"";position:absolute;left:8px;top:20px;bottom:0;width:2px;background:var(--line)}
+.tl li.done:not(:last-child)::after{background:var(--ok)}
+.tl .d{width:18px;height:18px;border-radius:50%;border:2.5px solid var(--line);background:var(--paper);margin-top:2px;z-index:1}
+.tl li.done .d{background:var(--ok);border-color:var(--ok)}
+.tl li.now .d{background:var(--sun);border-color:var(--sun)}
+.tl li.stop .d{background:var(--bad);border-color:var(--bad)}
+.tl b{display:block;font-size:15px}
+.tl small{color:var(--muted);font-size:13px}
+.steps-ol{margin:0;padding-left:20px;font-size:15px;display:grid;gap:8px}
+.addr{background:#f4f7fc;border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-size:14.5px;line-height:1.6}
+.addr b{font-size:15px}
+.big-ctrl{font:500 26px/1 var(--mono);color:var(--brand);display:block;margin:4px 0}
+.pill{display:inline-block;font:700 12px/1.6 var(--f);padding:2px 9px;border-radius:999px}
+
+/* Laudo (miniatura) */
+.laudo{background:#fff;border:1px solid #cfd6e4;border-radius:4px;box-shadow:0 8px 24px rgba(10,27,77,.10);padding:22px 22px 14px;font-size:11.5px;line-height:1.5;color:#1d2433;aspect-ratio:auto}
+.lhead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;border-bottom:2px solid var(--brand);padding-bottom:10px}
+.lhead .logo b{font-size:19px}
+.lhead .logo span{font-size:9.5px}
+.lhead .t{text-align:right}
+.lhead .t b{display:block;font:800 13px/1.2 var(--f);color:var(--brand)}
+.lhead .t span{font-size:10.5px;color:var(--steel)}
+.lgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 14px;margin:12px 0}
+.lgrid div{display:flex;gap:6px;min-width:0}
+.lgrid div span{color:var(--steel);flex:none}
+.lgrid div b{font-weight:700;overflow-wrap:anywhere}
+.lbanner{color:#fff;font:800 12.5px/1.3 var(--f);padding:9px 12px;border-radius:3px;letter-spacing:.03em;margin:4px 0 10px}
+.lbanner.ok{background:var(--brand)}
+.lbanner.bad{background:#9b2c2c}
+.laudo h5{margin:10px 0 3px;font:800 11.5px/1.2 var(--f);color:var(--brand);text-transform:uppercase;letter-spacing:.05em}
+.laudo p{margin:0 0 6px;font-size:11.5px}
+.laudo ul{margin:0 0 6px;padding-left:16px}
+.lfoot{border-top:1px solid #d6dbe6;margin-top:12px;padding-top:7px;text-align:center;font-size:9.5px;color:var(--steel)}
+.lsig{margin:16px 0 4px;text-align:center;font-size:10.5px;color:var(--steel)}
+.lsig i{display:block;width:60%;margin:0 auto 4px;border-top:1px solid #9aa3b5}
+.lpages{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.lpages span{font:600 11px/1 var(--f);padding:5px 8px;border-radius:4px;background:#f1f4fa;color:var(--steel);border:1px solid var(--line)}
+.dlrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;font:600 14px/1.3 var(--f);padding:12px 16px;border-radius:8px;z-index:60;max-width:calc(100% - 32px)}
+
+/* Acompanhar */
+.lookup{max-width:520px;margin:0 auto;padding-block:48px 72px}
+
+/* Rodapé */
+footer.site{background:var(--foot);border-top:1px solid var(--line);margin-top:0}
+.footbar{background:var(--tint)}
+.footbar .in{display:flex;flex-wrap:wrap;gap:12px 40px;padding-block:22px;font-size:14px}
+.footbar b{display:block;color:var(--brand)}
+.footmain .in{padding-block:28px 40px;font-size:13px;color:var(--muted)}
+
+/* Vibrinha */
+.vibrinha{position:fixed;right:20px;bottom:20px;background:#1f9b55;color:#fff;border-radius:999px;padding:10px 18px 10px 10px;display:flex;align-items:center;gap:10px;font:700 13.5px/1.2 var(--f);box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:40;text-decoration:none}
+.vibrinha i{width:34px;height:34px;border-radius:50%;background:#ffd84d;display:grid;place-items:center;font-style:normal;color:#1d3a10;font-weight:800}
+.vibrinha small{display:block;font-weight:500;opacity:.85;font-size:11.5px}
+@media (max-width:640px){.vibrinha span{display:none}.vibrinha{padding:8px}}
+
+/* Painel de demonstração */
+.demo{position:fixed;left:16px;bottom:16px;z-index:50;background:var(--ink);color:#fff;border-radius:12px;padding:12px 14px;width:min(300px,calc(100% - 32px));font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.demo summary{cursor:pointer;font:800 12px/1.2 var(--f);letter-spacing:.1em;text-transform:uppercase;color:var(--sun);list-style:none}
+.demo summary::-webkit-details-marker{display:none}
+.demo[open] summary{margin-bottom:10px}
+.demo label{display:block;font-weight:600;margin:8px 0 4px;color:#cdd5ea}
+.demo select{width:100%;padding:8px;border-radius:6px;border:0;font:500 13px/1.2 var(--f);background:#fff;color:var(--ink)}
+.demo .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.demo button{background:var(--sun);color:var(--sun-ink);border:0;border-radius:6px;padding:8px 10px;font:800 12px/1 var(--f);cursor:pointer}
+.demo button.alt{background:#2b3552;color:#fff}
+.demo p{margin:8px 0 0;color:#a9b3cc;font-size:12px;line-height:1.45}
+</style>
+</head>
+<body>
+
+<div class="proto-strip">Protótipo da nova aba Assistência técnica · nada é enviado de verdade · use o painel "Demonstração" para ver todos os resultados possíveis</div>
+
+<div class="bar1"><span>A bomba sapo nº 1 dos marketplaces<span class="sep">•</span>Aqui você compra direto da fábrica<span class="sep">•</span><span class="hl">Frete grátis em todas as bombas</span><span class="sep">•</span>10% de desconto no PIX</span></div>
+<div class="bar2"><div class="track"><span>Frete grátis em todas as bombas · sem valor mínimo</span><span>Vibra Phone 11 5033-2829 · falamos de bomba, não é SAC</span><span>Fábrica e assistência técnica própria em São Paulo</span></div></div>
+
+<header class="site">
+  <div class="in">
+    <div class="hrow">
+      <a class="logo" href="#" data-go="home" aria-label="Vibra Vert, página de assistência"><b>VIBRAVERT<sup>®</sup></b><i></i><i></i><span>Bombas Submersas Vibratórias</span></a>
+      <div class="search" aria-hidden="true">bomba sapo, Rymer 1500, 220V, peça...</div>
+      <div class="hico hide-sm"><span class="ic dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></span><div>Vibra Phone<b>11 5033-2829</b></div></div>
+      <div class="hico hide-sm"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span><div>Seu pedido<b>Acompanhar</b></div></div>
+      <div class="hico"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.6 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.5L21.5 8H6"/></svg></span><div class="hide-sm">Meu carrinho<b>R$ 0,00</b></div></div>
+    </div>
+    <nav class="main" aria-label="Menu principal">
+      <a href="#" data-noop>Bombas Vibratórias</a><a href="#" data-noop>Com Boia de Nível</a><a href="#" data-noop>Kits de Manutenção</a><a href="#" data-noop>Peças Originais</a><a href="#" data-noop>Revenda</a><a href="#" data-noop>Qual bomba eu preciso?</a><a href="#" class="on" data-go="home">Assistência técnica</a>
+    </nav>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<footer class="site">
+  <div class="footbar"><div class="in">
+    <div><b>Vibra Phone</b>11 5033-2829 · seg a sex, 08h30 às 17h00</div>
+    <div><b>Assistência e garantia</b>WhatsApp 11 5033-2828 · sac@vibravert.com.br</div>
+    <div><b>Fábrica</b>Rua Charles Darwin, 707 · Vila Santa Catarina · São Paulo/SP</div>
+  </div></div>
+  <div class="footmain"><div class="in">© 2026 Vibra Vert Bombas Submersas Vibratórias · Indústria Brasileira · CEP 04379-074</div></div>
+</footer>
+
+<a class="vibrinha" href="#" data-noop><i>V</i><span>Falar com um vendedor agora<small>a Vibrinha responde na hora</small></span></a>
+
+<details class="demo" id="demo">
+  <summary>Demonstração ▴</summary>
+  <label for="cen">Resultado do chamado</label>
+  <select id="cen">
+    <option value="auto">Automático (pelas respostas)</option>
+    <option value="troca">Troca Expressa autorizada (1–30 dias, site)</option>
+    <option value="a3190">Aprovado para envio (31–90 dias)</option>
+    <option value="a91">Aprovado para envio (91 dias ou mais)</option>
+    <option value="analise">Em análise (negativa aguardando equipe)</option>
+    <option value="negado">Negativa confirmada pela equipe</option>
+    <option value="pendente">Pendente: falta foto</option>
+    <option value="mkt">Compra em marketplace até 30 dias</option>
+    <option value="arrep">Arrependimento (até 7 dias, sem uso)</option>
+  </select>
+  <div class="row">
+    <button type="button" id="fill">Preencher exemplo</button>
+    <button type="button" class="alt" id="reset">Recomeçar</button>
+  </div>
+  <p>"Automático" decide pela data de recebimento, pelo canal e pelas respostas de instalação. No sistema real, a data vem da NF e do Bling.</p>
+</details>
+
+<script>
+(function(){
+"use strict";
+var app=document.getElementById('app');
+var TODAY=new Date(); TODAY.setHours(0,0,0,0);
+var MKT={ml:'Mercado Livre',shopee:'Shopee',magalu:'Magalu',amazon:'Amazon'};
+var CANAIS=[['site','Site Vibra Vert'],['ml','Mercado Livre'],['shopee','Shopee'],['magalu','Magalu'],['amazon','Amazon'],['revenda','Loja ou revenda']];
+var MODELOS=[['r1500','Rymer 1500',180],['r2000','Rymer 2000',365],['r2500','Rymer 2500',365],['vibrinha','Vibrinha',730],['vv800','Vibra Vert 800',730],['vv900','Vibra Vert 900',730]];
+var FOTOS=[['frente','Frente','bomba inteira'],['verso','Verso','lado oposto'],['cabo','Cabo e emenda','do motor até a emenda'],['etiqueta','Etiqueta','marca e nº de série'],['longe','Local de longe','poço ou cisterna inteiro'],['perto','Local de perto','ponto onde a bomba fica']];
+var STEPS=['Seus dados','Compra','Produto','Instalação','O que aconteceu','Fotos','Revisão'];
+
+var S={view:'home',step:0,d:fresh(),chamados:{},atual:null};
+function fresh(){return {nome:'',doc:'',tel:'',email:'',canal:'',nf:'',receb:'',usou:'',modelo:'',tensao:'',serie:'',tempoF:'',tempo:'',submersa:'',dist:'',rede:'',energia:'',emenda:'',sust:'',agua:'',ocorrido:'',fotos:{},lgpd:false};}
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]});}
+function $(sel,root){return (root||document).querySelector(sel);}
+function $$(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel));}
+function fmt(d){return d.toLocaleDateString('pt-BR');}
+function addDays(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x;}
+function iso(d){var z=new Date(d.getTime()-d.getTimezoneOffset()*60000);return z.toISOString().slice(0,10);}
+function dias(){if(!S.d.receb)return null;var r=new Date(S.d.receb+'T00:00:00');return Math.round((TODAY-r)/86400000);}
+function lab(list,v){for(var i=0;i<list.length;i++)if(list[i][0]===v)return list[i][1];return '';}
+function onlyDigits(s){return String(s).replace(/\D/g,'');}
+function cpfOk(v){var c=onlyDigits(v);if(c.length===14)return true;if(c.length!==11||/^(\d)\1+$/.test(c))return false;var s=0,i,r;for(i=0;i<9;i++)s+=+c[i]*(10-i);r=(s*10)%11%10;if(r!==+c[9])return false;s=0;for(i=0;i<10;i++)s+=+c[i]*(11-i);r=(s*10)%11%10;return r===+c[10];}
+function maskDoc(v){var c=onlyDigits(v);if(c.length===11)return '***.'+c.slice(3,6)+'.'+c.slice(6,9)+'-**';return v;}
+function nfLabel(v){var c=onlyDigits(v);if(c.length===44)return 'nº '+String(+c.slice(25,34))+' (lido da chave)';return 'nº '+c;}
+var DL_ICON='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>';
+/* ---------- PDF do laudo, gerado sem bibliotecas ---------- */
+var CP={0x20AC:128,0x201A:130,0x201E:132,0x2026:133,0x2018:145,0x2019:146,0x201C:147,0x201D:148,0x2022:149,0x2013:150,0x2014:151};
+function pdfStr(t){var o='';for(var i=0;i<t.length;i++){var c=t.charCodeAt(i);if(c>255)c=CP[c]||63;var ch=String.fromCharCode(c);if(ch==='('||ch===')'||ch==='\\')ch='\\'+ch;o+=ch;}return o;}
+function tw(t,size,bold){var w=0;for(var i=0;i<t.length;i++){var c=t[i];w+=/[il.,:;'|!\s]/.test(c)?.28:/[mwMW]/.test(c)?.83:/[A-Z0-9ÁÉÍÓÚÂÊÔÃÕÇ]/.test(c)?.66:/[ftrj]/.test(c)?.34:.54;}return w*size*(bold?1.06:1);}
+function wrap(t,size,maxw,bold){var words=String(t).split(/\s+/),lines=[],cur='';words.forEach(function(w){var n=cur?cur+' '+w:w;if(tw(n,size,bold)>maxw&&cur){lines.push(cur);cur=w;}else cur=n;});if(cur)lines.push(cur);return lines;}
+function Page(){this.ops=[];this.y=800;}
+Page.prototype.text=function(x,y,t,size,o){o=o||{};var c=o.color||[0.11,0.14,0.2];var f=o.bold?'F2':'F1';var X=o.align==='right'?x-tw(t,size,o.bold):o.align==='center'?x-tw(t,size,o.bold)/2:x;this.ops.push(c.join(' ')+' rg BT /'+f+' '+size+' Tf '+X.toFixed(1)+' '+y.toFixed(1)+' Td ('+pdfStr(t)+') Tj ET');};
+Page.prototype.rect=function(x,y,w,h,c){this.ops.push(c.join(' ')+' rg '+[x,y,w,h].map(function(n){return n.toFixed(1)}).join(' ')+' re f');};
+Page.prototype.line=function(x1,y1,x2,y2,c,wd){this.ops.push((wd||0.6)+' w '+c.join(' ')+' RG '+x1+' '+y1+' m '+x2+' '+y2+' l S');};
+Page.prototype.para=function(x,t,size,maxw,o){var self=this,lh=size*1.42;wrap(t,size,maxw,o&&o.bold).forEach(function(l){self.text(x,self.y,l,size,o);self.y-=lh;});};
+var NAVY=[0.075,0.208,0.498],GREY=[0.33,0.33,0.32],RED=[0.608,0.173,0.173],SUN=[0.96,0.725,0.13],INK=[0.11,0.14,0.2],MUT=[0.4,0.43,0.5],WHITE=[1,1,1];
+function pdfHeader(pg,sub){
+  pg.text(50,792,'VIBRAVERT',24,{bold:true,color:NAVY});pg.text(191,805,'®',8,{color:NAVY});
+  pg.rect(50,782,150,2.4,GREY);pg.rect(50,778,150,2.4,NAVY);
+  pg.text(50,766,'Bombas Submersas Vibratórias',9.5,{color:GREY});
+  pg.text(545,792,'Laudo Técnico',14,{bold:true,color:NAVY,align:'right'});
+  pg.text(545,776,sub,10,{color:GREY,align:'right'});
+  pg.rect(50,752,495,1.6,NAVY);pg.y=728;
+}
+function pdfFooter(pg,n,total,p){
+  pg.line(50,58,545,58,[0.84,0.86,0.9],0.6);
+  pg.text(297.5,44,'VIBRAVERT · Rua Charles Darwin, 707 · Vila Santa Catarina · São Paulo/SP · CEP 04379-074',8,{color:GREY,align:'center'});
+  pg.text(297.5,32,'WhatsApp 11 5033-2828 · sac@vibravert.com.br · www.vibravert.com.br',8,{color:GREY,align:'center'});
+  pg.text(545,18,p+' · página '+n+' de '+total,7.5,{color:MUT,align:'right'});
+}
+function pdfSection(pg,t){pg.y-=6;pg.text(50,pg.y,t.toUpperCase(),9.5,{bold:true,color:NAVY});pg.y-=15;}
+function montarPdf(ch,tipo){
+  var d=ch.d,L=laudoData(ch,tipo),pages=[];
+  var p1=new Page();pdfHeader(p1,'Análise Preliminar');
+  var rows=[['Protocolo',ch.p],['Data da análise',fmt(ch.quando)],['Proprietário',d.nome],['CPF/CNPJ',maskDoc(d.doc)],['Telefone',fmtTel(d.tel)],['Nota fiscal',nfLabel(d.nf)],['Produto',lab(MODELOS,d.modelo)+' '+d.tensao+'V'],['Faixa',FAIXA_TXT[ch.faixa]||'—']];
+  for(var i=0;i<rows.length;i+=2){[0,1].forEach(function(k){var r=rows[i+k];if(!r)return;var x=k?300:50;p1.text(x,p1.y,r[0],8.5,{color:MUT});p1.text(x,p1.y-12,String(r[1]).slice(0,48),10.5,{bold:true});});p1.y-=32;}
+  p1.y-=4;p1.rect(50,p1.y-12,495,28,L.ok?NAVY:RED);p1.text(62,p1.y-1,L.titulo,11.5,{bold:true,color:WHITE});p1.y-=40;
+  pdfSection(p1,'Fundamentação técnica');p1.para(50,L.fund,10.5,495);
+  if(L.ok&&L.pontos.length){pdfSection(p1,'Pontos a verificar na bancada');L.pontos.slice(0,5).forEach(function(x){p1.text(54,p1.y,'•',10.5);var y0=p1.y;p1.para(66,x,10.5,479);});}
+  if(!L.ok){pdfSection(p1,'Cortesia');p1.para(50,'Reposição de peças pelo custo, sem lucro, com nova garantia de 3 meses no produto reparado. Frete de devolução cobrado à parte.',10.5,495);
+    [['Ventosa / pistão','R$ 3,65'],['Canopla','R$ 8,50'],['Válvula completa','R$ 2,00'],['Motor elétrico / caneca','R$ 55,00']].forEach(function(r){p1.text(66,p1.y,r[0],10.5);p1.text(300,p1.y,r[1],10.5,{bold:true});p1.y-=15;});}
+  pdfSection(p1,'Conclusão');p1.para(50,(L.ok?'Liberado conforme as instruções da página 2. ':'')+'Caso o proprietário discorde, pode enviar a bomba para análise física definitiva.',10.5,495);
+  var sy=Math.max(p1.y-40,110);p1.line(180,sy,415,sy,[0.6,0.64,0.71],0.8);p1.text(297.5,sy-13,'Responsável técnico · Assistência Técnica',9,{color:GREY,align:'center'});
+  pages.push(p1);
+  var p2=new Page();pdfHeader(p2,L.ok?'Instruções de Envio':'Análise Física Definitiva');
+  p2.text(50,p2.y,'NÚMERO DO PROTOCOLO',9,{bold:true,color:MUT});p2.y-=34;p2.text(50,p2.y,ch.p,30,{bold:true,color:NAVY});p2.y-=24;
+  p2.para(50,'Escreva este número do lado de fora da caixa, em local visível.',10.5,495,{bold:true});p2.y-=10;
+  if(tipo==='troca'){pdfSection(p2,'Como enviar (Troca Expressa)');
+    ['Você recebe o código de postagem da logística reversa por WhatsApp e e-mail. O frete de ida é por conta da Vibra Vert.','Embale a bomba com proteção. A etiqueta de postagem já identifica o seu chamado.','Se puder, imprima este laudo e coloque dentro da caixa. Se não puder, escreva o protocolo '+ch.p+' num papel dentro da caixa.','Leve a caixa a uma agência com o código de postagem.','A bomba é avaliada na bancada em até 48 horas da chegada.'].forEach(function(t,i){p2.text(54,p2.y,(i+1)+'.',10.5,{bold:true});p2.para(70,t,10.5,475);p2.y-=3;});
+  } else {
+    pdfSection(p2,'Endereço de envio');
+    ['Vibra Vert · A/C Assistência Técnica · Ref. Protocolo '+ch.p,'Rua Charles Darwin, 707 · Vila Santa Catarina','São Paulo/SP · CEP 04379-074'].forEach(function(t,i){p2.text(50,p2.y,t,11,{bold:i===0});p2.y-=16;});
+    p2.y-=4;p2.para(50,{a3190:'O envio é por conta do proprietário. Confirmado o defeito de fabricação, o reparo e a devolução são por conta da Vibra Vert.',a91:'O frete de envio e de devolução é por conta do proprietário. Confirmado o defeito de fabricação, o reparo é por conta da Vibra Vert.',negado:'O envio para a análise física definitiva é por conta do proprietário.'}[tipo],10.5,495);
+    pdfSection(p2,'Antes de despachar');
+    ['Escreva o protocolo '+ch.p+' do lado de fora da caixa, em local visível.','Se puder, imprima este laudo e coloque dentro da caixa. Se não puder, escreva o protocolo num papel dentro da caixa.','Embale a bomba com proteção (plástico bolha ou papelão).','Depois de postar, informe o código de rastreio na página do protocolo, no site.'].forEach(function(t,i){p2.text(54,p2.y,(i+1)+'.',10.5,{bold:true});p2.para(70,t,10.5,475);p2.y-=3;});
+  }
+  p2.y-=14;p2.rect(50,p2.y-30,495,40,[1,0.97,0.87]);p2.text(62,p2.y-6,'Anexos deste laudo no sistema oficial: '+L.anexos.join(' e ')+'.',9.5,{color:[0.36,0.25,0]});p2.text(62,p2.y-20,'Protótipo: o PDF oficial com todas as páginas é gerado pelo servidor.',9.5,{color:[0.36,0.25,0]});
+  pages.push(p2);
+  pages.forEach(function(pg,i){pdfFooter(pg,i+1,pages.length,ch.p);});
+  // montar o arquivo
+  var objs=[],n=pages.length;
+  objs.push('<< /Type /Catalog /Pages 2 0 R >>');
+  var kids=[];for(var k=0;k<n;k++)kids.push((5+k*2)+' 0 R');
+  objs.push('<< /Type /Pages /Kids ['+kids.join(' ')+'] /Count '+n+' >>');
+  objs.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+  objs.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+  pages.forEach(function(pg,k){var st=pg.ops.join('\n');objs.push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents '+(6+k*2)+' 0 R >>');objs.push('<< /Length '+st.length+' >>\nstream\n'+st+'\nendstream');});
+  objs.push('<< /Title ('+pdfStr('Laudo '+ch.p)+') /Producer (Vibra Vert prototipo) >>');
+  var out='%PDF-1.4\n%\xE2\xE3\xCF\xD3\n',off=[];
+  objs.forEach(function(o,i){off.push(out.length);out+=(i+1)+' 0 obj\n'+o+'\nendobj\n';});
+  var xref=out.length;out+='xref\n0 '+(objs.length+1)+'\n0000000000 65535 f \n';
+  off.forEach(function(o){out+=('0000000000'+o).slice(-10)+' 00000 n \n';});
+  out+='trailer\n<< /Size '+(objs.length+1)+' /Root 1 0 R /Info '+objs.length+' 0 R >>\nstartxref\n'+xref+'\n%%EOF';
+  var bytes=new Uint8Array(out.length);for(var j=0;j<out.length;j++)bytes[j]=out.charCodeAt(j)&255;
+  return new Blob([bytes],{type:'application/pdf'});
+}
+function baixarPdf(btn){
+  var ch=S.chamados[S.atual];if(!ch)return;
+  try{
+    var blob=montarPdf(ch,ch.tipo),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='Laudo-'+ch.p+'.pdf';document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(url);},4000);toast('Laudo '+ch.p+' baixado.');
+  }catch(err){toast('Não foi possível gerar o PDF agora. Tente de novo.');}
+}
+function fmtTel(v){var c=onlyDigits(v);if(c.length===11)return '('+c.slice(0,2)+') '+c.slice(2,7)+'-'+c.slice(7);if(c.length===10)return '('+c.slice(0,2)+') '+c.slice(2,6)+'-'+c.slice(6);return v;}
+function toast(t){var el=document.createElement('div');el.className='toast';el.setAttribute('role','status');el.textContent=t;document.body.appendChild(el);setTimeout(function(){el.remove();},2600);}
+function go(v){S.view=v;render();window.scrollTo(0,0);}
+
+/* ---------- Página inicial da assistência ---------- */
+function vHome(){
+  return ''+
+  '<section class="hero"><div class="in"><div>'+
+    '<p class="eyebrow">Assistência técnica própria</p>'+
+    '<h1>Quem conserta a sua bomba somos nós</h1>'+
+    '<p>Na nossa fábrica em São Paulo, sem posto terceirizado. Abra o chamado aqui no site, envie as fotos e receba o protocolo na hora. O resultado da análise sai por aqui mesmo.</p>'+
+    '<div class="ctas"><button class="btn sun" data-go="form">Abrir chamado de garantia</button><button class="btn ghost" data-go="lookup">Acompanhar protocolo</button></div>'+
+  '</div><div class="infobox">'+
+    '<div><h4>Fábrica e assistência presencial</h4><p>Rua Charles Darwin, 707<br>Vila Santa Catarina, São Paulo/SP</p></div><hr>'+
+    '<div><h4>Resposta da análise</h4><p>Na hora, para a maioria dos casos. Quando precisa de um técnico, em até 1 dia útil.</p></div><hr>'+
+    '<div><h4>Chamados técnicos</h4><p>Segunda a sexta, 7h às 17h</p></div>'+
+  '</div></div></section>'+
+
+  '<section class="blk"><div class="in">'+
+    '<h2>Como funciona</h2><p class="sub">Leva uns 5 minutos. Tenha em mãos a nota fiscal e o celular para as fotos.</p>'+
+    '<div class="grid4">'+
+      card('1','Preencha o chamado','Seus dados, a nota fiscal, como a bomba estava instalada e o que aconteceu.')+
+      card('2','Envie 6 fotos','4 da bomba e 2 do local de instalação. Mostramos o que fotografar em cada uma.')+
+      card('3','Receba o protocolo','Na hora, na tela, por e-mail e por WhatsApp. Com ele você acompanha tudo.')+
+      card('4','Veja o resultado','O laudo da análise sai aqui no site, com as instruções de envio da bomba.')+
+    '</div>'+
+  '</div></section>'+
+
+  '<section class="band blk"><div class="in express"><div>'+
+    '<span class="tag">Só para quem compra no site</span>'+
+    '<h2>Troca Expressa em 30 dias</h2>'+
+    '<p class="sub" style="margin-bottom:0">Deu problema nos primeiros 30 dias de uma compra feita aqui no site? A gente manda a etiqueta de postagem, avalia na bancada em até 48 horas e resolve. O frete de ida é por nossa conta.</p>'+
+    '<p class="fine">Sujeito a conferência por foto e avaliação técnica. Compras em marketplace seguem a devolução do próprio marketplace nos primeiros 30 dias. Após 30 dias, o envio fica por conta do cliente.</p>'+
+  '</div><div class="card"><h3>Comprou há mais de 30 dias?</h3><p>Abra o chamado do mesmo jeito. Depois da análise preliminar, você envia a bomba para a fábrica. Confirmado o defeito de fabricação, o reparo é por nossa conta.</p><div style="margin-top:14px"><button class="btn navy" data-go="form">Abrir chamado</button></div></div></div></section>'+
+
+  '<section class="blk"><div class="in">'+
+    '<h2>Antes de abrir o chamado, veja se é isso</h2><p class="sub">A maior parte das bombas que chegam na bancada não queimou: parou por um motivo que se resolve.</p>'+
+    '<div class="grid3">'+
+      card('01','Não puxa água','Costuma ser o diafragma ou entupimento na entrada. A bomba liga, vibra, e nada sobe.')+
+      card('02','Só faz barulho','Vibra e não bombeia. Quase sempre é peça de desgaste, não o motor.')+
+      card('03','Queima seguido','Rodar sem água queima. É para isso que existe a boia de nível.')+
+    '</div>'+
+    '<h2 style="margin-top:40px">Prazo de garantia por modelo</h2><p class="sub">Contado a partir da nota fiscal. O prazo longo vale para o motor (caneca) e para furo na carcaça.</p>'+
+    '<div class="prazos"><table><thead><tr><th>Modelo</th><th>Motor e carcaça</th><th>Borrachas</th></tr></thead><tbody>'+
+      '<tr><td>Rymer 1500</td><td>6 meses</td><td>90 dias</td></tr>'+
+      '<tr><td>Rymer 2000 e 2500</td><td>1 ano</td><td>90 dias</td></tr>'+
+      '<tr><td>Vibrinha, Vibra Vert 800 e 900</td><td>2 anos</td><td>90 dias</td></tr>'+
+    '</tbody></table></div>'+
+    '<p class="fine">Borrachas: canopla, ventosa, amortecedor e válvula. São peças de desgaste natural; toda bomba precisa de uma troca por ano.</p>'+
+  '</div></section>';
+}
+function card(n,t,p){return '<div class="card"><span class="num">'+n+'</span><h3>'+t+'</h3><p>'+p+'</p></div>';}
+
+/* ---------- Formulário ---------- */
+function opts(name,list){var v=S.d[name];return '<div class="opts" role="radiogroup">'+list.map(function(o){return '<label class="opt"><input type="radio" name="'+name+'" value="'+o[0]+'"'+(v===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>';}).join('')+'</div>';}
+function fld(name,label,inner,opt){opt=opt||{};return '<div class="f'+(opt.full?' full':'')+'" data-f="'+name+'">'+(opt.radio?'<span class="lbl" id="l-'+name+'">':'<label for="i-'+name+'">')+esc(label)+(opt.hint?' <span class="hint">'+opt.hint+'</span>':'')+(opt.radio?'</span>':'</label>')+inner+'<span class="msg">'+(opt.msg||'Preencha este campo.')+'</span></div>';}
+function inp(name,type,ph,extra){return '<input id="i-'+name+'" name="'+name+'" type="'+type+'" value="'+esc(S.d[name])+'" placeholder="'+esc(ph||'')+'" '+(extra||'')+'>';}
+function sel(name,list,ph){return '<select id="i-'+name+'" name="'+name+'"><option value="">'+esc(ph)+'</option>'+list.map(function(o){return '<option value="'+o[0]+'"'+(S.d[name]===o[0]?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select>';}
+
+function stepBody(){
+  var d=S.d;
+  switch(S.step){
+  case 0: return '<h2>Seus dados</h2><p class="sub">Usamos para identificar a nota fiscal e te avisar do resultado.</p><div class="fields">'+
+    fld('nome','Nome completo',inp('nome','text','Como está na nota fiscal','autocomplete="name"'),{full:true})+
+    fld('doc','CPF ou CNPJ',inp('doc','text','000.000.000-00','inputmode="numeric"'),{msg:'Confira o CPF ou CNPJ.'})+
+    fld('tel','WhatsApp com DDD',inp('tel','tel','(11) 90000-0000','autocomplete="tel"'),{msg:'Informe o número com DDD.'})+
+    fld('email','E-mail',inp('email','email','voce@email.com','autocomplete="email"'),{full:true,msg:'Confira o e-mail.'})+'</div>';
+  case 1: return '<h2>Sobre a compra</h2><p class="sub">A data e o canal da compra definem o caminho do seu atendimento.</p><div class="fields">'+
+    fld('canal','Onde você comprou?',opts('canal',CANAIS),{full:true,radio:true,msg:'Escolha onde comprou.'})+
+    fld('nf','Nota fiscal',inp('nf','text','Número da NF ou chave de 44 dígitos','inputmode="numeric"'),{full:true,hint:'(não é o CPF)',msg:'Informe o número da NF (até 9 dígitos) ou a chave de acesso (44 dígitos).'})+
+    fld('receb','Data em que recebeu a bomba',inp('receb','date','','max="'+iso(TODAY)+'"'),{msg:'Informe uma data até hoje.'})+
+    fld('usou','Já chegou a instalar ou usar?',opts('usou',[['sim','Sim'],['nao','Não, está na embalagem']]),{radio:true,msg:'Escolha uma opção.'})+'</div>'+
+    '<div class="note"><b>Onde acho a chave?</b> Na parte de cima da nota (DANFE), em "Chave de acesso". No sistema, a data de emissão e o canal são conferidos direto na nota.</div>';
+  case 2: return '<h2>Qual é a bomba</h2><p class="sub">O modelo define o prazo de garantia.</p><div class="fields">'+
+    fld('modelo','Modelo',sel('modelo',MODELOS,'Escolha o modelo'),{msg:'Escolha o modelo.'})+
+    fld('tensao','Tensão da bomba',opts('tensao',[['127','127V'],['220','220V']]),{radio:true,msg:'Escolha a tensão da bomba.'})+
+    fld('serie','Número de série',inp('serie','text','Na etiqueta da bomba'),{full:true,hint:'(opcional se não encontrar)'})+'</div>';
+  case 3: var nq=QS.filter(function(q){return answered(q[0]);}).length;
+    return '<div class="qhead"><div><h2>Como a bomba estava instalada</h2><p class="sub" style="margin:0">Responda como estava antes de parar. Se não souber, tudo bem: marque "Não sei".</p></div><span class="qcount'+(nq===QS.length?' all':'')+'" id="qcount">'+nq+' de '+QS.length+' respondidas</span></div>'+
+    '<div class="qs">'+QS.map(function(q){return question(q);}).join('')+'</div>';
+  case 4: return '<h2>O que aconteceu</h2><p class="sub">Conte do seu jeito: quando parou, o que fez, se desarmou o disjuntor, se fez barulho.</p><div class="fields">'+
+    fld('ocorrido','Descrição',' <textarea id="i-ocorrido" name="ocorrido" placeholder="Ex.: funcionou bem por duas semanas, um dia ligou e não puxou mais água...">'+esc(d.ocorrido)+'</textarea>',{full:true,msg:'Escreva pelo menos uma frase (20 caracteres).'})+'</div>';
+  case 5: return '<h2>Fotos</h2><p class="sub">Em local iluminado, com a peça inteira no quadro. São 6 fotos obrigatórias.</p>'+
+    '<div class="phgroup"><h3>Da bomba</h3><p>Tire a bomba do poço e fotografe em cima de uma superfície.</p><div class="slots">'+FOTOS.slice(0,4).map(slot).join('')+'</div></div>'+
+    '<div class="phgroup"><h3>Do local de instalação</h3><p>Ajudam a entender as condições de uso.</p><div class="slots">'+FOTOS.slice(4).map(slot).join('')+'</div></div>'+
+    '<p class="f" data-f="fotos" style="margin-top:12px"><span class="msg" id="fotomsg">Faltam fotos. Envie as 6 para continuar.</span></p>';
+  case 6: return '<h2>Revise e envie</h2><p class="sub">Confira antes de enviar. Depois do envio, o protocolo sai na hora.</p><div class="review">'+
+    rv('Seus dados',0,[['Nome',d.nome],['CPF/CNPJ',d.doc],['WhatsApp',d.tel],['E-mail',d.email]])+
+    rv('Compra',1,[['Onde comprou',lab(CANAIS,d.canal)],['Nota fiscal',nfLabel(d.nf)],['Recebeu em',d.receb?fmt(new Date(d.receb+'T00:00:00')):''],['Já usou',d.usou==='sim'?'Sim':'Não']])+
+    rv('Produto',2,[['Modelo',lab(MODELOS,d.modelo)],['Tensão',d.tensao+'V'],['Nº de série',d.serie||'não informado']])+
+    rv('Instalação',3,[['Tempo ligada',d.tempoF==='mais'?'cerca de '+d.tempo+' min por vez':lab(QS[0][4],d.tempoF)+' por vez'],['Submersa',{sim:'Sim, sempre',nao:'Às vezes fora',ns:'Não sei'}[d.submersa]],['Distância do fundo',{m40:'Mais de 40 cm','2040':'20 a 40 cm',m20:'Menos de 20 cm',ns:'Não sei'}[d.dist]],['Pendurada por',{corda:'Corda ou cabo de aço',cabo:'Fio elétrico',ns:'Não sei'}[d.sust]]])+
+    rv('Fotos',5,[['Enviadas',Object.keys(d.fotos).length+' de 6']])+'</div>'+
+    '<div class="f" data-f="lgpd"><label class="check"><input type="checkbox" id="i-lgpd" name="lgpd"'+(d.lgpd?' checked':'')+'><span>Autorizo a Vibra Vert a usar estes dados e fotos para analisar a garantia e me contatar sobre este chamado, conforme a Política de Privacidade.</span></label><span class="msg">Marque a autorização para enviar.</span></div>';
+  }
+}
+/* Etapa de instalação: perguntas em blocos com ícone e respostas em cartões */
+var IC={
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  plug:'<path d="M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5"/>',
+  water:'<path d="M2 12c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2M2 18c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2M12 2v6"/>',
+  ruler:'<path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/>',
+  rope:'<path d="M12 2v6M9 8h6l-1 3h-4zM10 11v11M14 11v11"/>',
+  tape:'<circle cx="10" cy="12" r="7"/><circle cx="10" cy="12" r="2.5"/><path d="M17 12h5"/>',
+  drop:'<path d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z"/>',
+  bolt:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'
+};
+function icon(k){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+IC[k]+'</svg>';}
+function well(gap){var top=70-gap-26;return '<svg class="pic" viewBox="0 0 120 76" aria-hidden="true"><rect x="34" y="12" width="52" height="58" fill="#cfe0f7"/><path d="M34 2v68h52V2" fill="none" stroke="#8a94a8" stroke-width="2.5"/><path d="M60 2v'+top+'" stroke="#545452" stroke-width="1.5"/><rect x="50" y="'+top+'" width="20" height="26" rx="8" fill="#13357F"/><path d="M96 '+(70-gap)+'v'+gap+'" stroke="#F5B921" stroke-width="3"/><path d="M92 70h8M92 '+(70-gap)+'h8" stroke="#F5B921" stroke-width="2"/></svg>';}
+function sub(level){return '<svg class="pic" viewBox="0 0 120 76" aria-hidden="true"><rect x="34" y="'+level+'" width="52" height="'+(70-level)+'" fill="#cfe0f7"/><path d="M34 '+level+'h52" stroke="#5b8bd1" stroke-width="2"/><path d="M34 2v68h52V2" fill="none" stroke="#8a94a8" stroke-width="2.5"/><path d="M60 2v22" stroke="#545452" stroke-width="1.5"/><rect x="50" y="24" width="20" height="26" rx="8" fill="#13357F"/></svg>';}
+var NS='<svg class="pic" viewBox="0 0 120 76" aria-hidden="true"><text x="60" y="50" text-anchor="middle" font-family="Red Hat Display, sans-serif" font-size="34" font-weight="800" fill="#b7c3dc">?</text></svg>';
+var QS=[
+  ['tempoF','Quanto tempo ela ficava ligada de cada vez?','Pense numa vez normal de uso, do ligar ao desligar.','clock',[['15','Até 15 min'],['30','15 a 30 min'],['45','30 a 45 min'],['60','45 min a 1 hora'],['mais','Mais de 1 hora']]],
+  ['rede','Qual a tensão da tomada?','É a da tomada onde a bomba era ligada.','plug',[['127','127V','também chamada de 110V'],['220','220V',''],['ns','Não sei','']]],
+  ['submersa','Ela ficava sempre debaixo d\'água?','Inclusive quando o nível do poço baixava.','water',[['sim','Sim, sempre','',sub(10)],['nao','Às vezes ficava fora','',sub(40)],['ns','Não sei','',NS]],{pics:true}],
+  ['dist','Qual a distância entre a bomba e o fundo?','Medida da parte de baixo da bomba até o fundo do poço.','ruler',[['m40','Mais de 40 cm','',well(26)],['2040','20 a 40 cm','',well(13)],['m20','Menos de 20 cm','',well(3)],['ns','Não sei','',NS]],{pics:true}],
+  ['sust','Ela ficava pendurada por quê?','O que segurava o peso da bomba dentro do poço.','rope',[['corda','Corda ou cabo de aço','preso na alça da bomba'],['cabo','Pelo próprio fio elétrico','sem corda de sustentação'],['ns','Não sei','']]],
+  ['emenda','Como foi feita a emenda do fio?','Se o fio da bomba foi emendado para chegar até a tomada.','tape',[['auto','Fita de autofusão + isolante','fita que se funde ao fio'],['comum','Só fita isolante','fita preta comum'],['sem','Não tem emenda','fio inteiro até a tomada']]],
+  ['agua','Como era a água do poço?','','drop',[['limpa','Limpa','sem areia nem barro'],['areia','Com areia ou barro','turva ou com sedimento'],['ns','Não sei','']]],
+  ['energia','A energia do local cai ou oscila?','Luz piscando, quedas frequentes ou disjuntor desarmando.','bolt',[['nao','Não',''],['sim','Sim',''],['ns','Não sei','']]]
+];
+function answered(k){var d=S.d;if(k==='tempoF')return !!d.tempoF&&(d.tempoF!=='mais'||+d.tempo>60);return !!d[k];}
+function question(q){
+  var k=q[0],v=S.d[k],pics=q[5]&&q[5].pics,id='q-'+k;
+  var tiles=q[4].map(function(o,i){
+    var cls='tile'+(o[0]==='ns'?' ns':''),chk=v===o[0]?' checked':'';
+    var txt='<span class="tx"><b>'+o[1]+'</b>'+(o[2]?'<small>'+o[2]+'</small>':'')+'</span>';
+    var body=pics?'<span class="tb">'+(o[3]||'')+'<span class="row"><span class="rd"></span>'+txt+'</span></span>':'<span class="tb"><span class="rd"></span>'+txt+'</span>';
+    return '<label class="'+cls+'"><input type="radio" name="'+k+'" value="'+o[0]+'"'+chk+(i===0?' id="i-'+k+'"':'')+'>'+body+'</label>';
+  }).join('');
+  var more=k==='tempoF'?'<div class="more" id="more-tempo"'+(v==='mais'?'':' hidden')+'><label for="i-tempo">Mais ou menos quantos minutos?</label><span class="stepper"><button type="button" data-step="-15" aria-label="Menos 15 minutos">−</button><input id="i-tempo" name="tempo" type="number" inputmode="numeric" min="61" max="1440" value="'+esc(v==='mais'?(S.d.tempo||90):90)+'"><button type="button" data-step="15" aria-label="Mais 15 minutos">+</button></span><span class="u">minutos</span></div>':'';
+  return '<div class="q f'+(answered(k)?' done':'')+'" data-f="'+k+'" role="radiogroup" aria-labelledby="'+id+'"><span class="qi">'+icon(q[3])+'</span><div><span class="qt" id="'+id+'">'+q[1]+'</span>'+(q[2]?'<p class="qh">'+q[2]+'</p>':'')+'<div class="tiles'+(pics?' pics':'')+(q[4].length===5?' five':'')+'">'+tiles+'</div>'+more+'<span class="msg">Escolha uma opção para continuar.</span></div></div>';
+}
+function refreshQs(){
+  collect();
+  var n=0;QS.forEach(function(q){var ok=answered(q[0]);if(ok)n++;var el=$('.q[data-f="'+q[0]+'"]');if(el){el.classList.toggle('done',ok);if(ok)el.classList.remove('err');}});
+  var c=$('#qcount');if(c){c.textContent=n+' de '+QS.length+' respondidas';c.classList.toggle('all',n===QS.length);}
+  var m=$('#more-tempo');if(m)m.hidden=S.d.tempoF!=='mais';
+}
+
+function slot(f){var u=S.d.fotos[f[0]];if(u)return '<label class="slot done"><img src="'+u+'" alt="Foto: '+f[1]+'"><span class="cap"><span>'+f[1]+'</span><span>trocar</span></span><input type="file" accept="image/*" data-foto="'+f[0]+'" aria-label="Trocar foto: '+f[1]+'"></label>';
+  return '<label class="slot" data-slot="'+f[0]+'"><span class="plus">+</span><b>'+f[1]+'</b><small>'+f[2]+'</small><input type="file" accept="image/*" data-foto="'+f[0]+'" aria-label="Enviar foto: '+f[1]+'"></label>';}
+function rv(t,step,rows){return '<div class="rv"><h4>'+t+'<button type="button" data-edit="'+step+'">Editar</button></h4><dl class="kv">'+rows.map(function(r){return '<dt>'+r[0]+'</dt><dd>'+esc(r[1])+'</dd>';}).join('')+'</dl></div>';}
+
+function vForm(){
+  var bars=STEPS.map(function(s,i){return '<i class="'+(i<S.step?'done':i===S.step?'now':'')+'"></i>';}).join('');
+  return '<div class="in"><div class="formwrap">'+
+    '<button class="back" data-go="home">← Voltar para Assistência técnica</button>'+
+    '<div class="progress" aria-hidden="true">'+bars+'</div>'+
+    '<p class="steplbl">Etapa '+(S.step+1)+' de '+STEPS.length+' · '+STEPS[S.step]+'</p>'+
+    '<form class="panel" id="frm" novalidate>'+stepBody()+
+    '<div class="navrow">'+(S.step>0?'<button type="button" class="btn line" id="prev">Voltar</button>':'<span></span>')+
+    '<button type="submit" class="btn '+(S.step===6?'sun':'navy')+'">'+(S.step===6?'Enviar chamado':'Continuar')+'</button></div></form>'+
+  '</div></div>';
+}
+
+function collect(){
+  var f=$('#frm');if(!f)return;
+  $$('input,select,textarea',f).forEach(function(el){
+    if(!el.name||el.type==='file')return;
+    if(el.type==='radio'){if(el.checked)S.d[el.name]=el.value;}
+    else if(el.type==='checkbox'){S.d[el.name]=el.checked;}
+    else S.d[el.name]=el.value.trim();
+  });
+  if(S.d.tempoF&&S.d.tempoF!=='mais')S.d.tempo=S.d.tempoF;
+}
+function validate(){
+  var d=S.d,bad=[];
+  function need(k,ok){if(!ok)bad.push(k);}
+  if(S.step===0){need('nome',d.nome.split(' ').filter(Boolean).length>=2);need('doc',cpfOk(d.doc));need('tel',onlyDigits(d.tel).length>=10);need('email',/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email));}
+  if(S.step===1){need('canal',!!d.canal);var n=onlyDigits(d.nf);need('nf',(n.length>=1&&n.length<=9&&n!==onlyDigits(d.doc))||n.length===44);need('receb',!!d.receb&&dias()>=0);need('usou',!!d.usou);}
+  if(S.step===2){need('modelo',!!d.modelo);need('tensao',!!d.tensao);}
+  if(S.step===3){QS.forEach(function(q){need(q[0],answered(q[0]));});}
+  if(S.step===4){need('ocorrido',d.ocorrido.length>=20);}
+  if(S.step===5){var miss=FOTOS.filter(function(f){return !d.fotos[f[0]];});if(miss.length){bad.push('fotos');}}
+  if(S.step===6){need('lgpd',d.lgpd);}
+  $$('.f').forEach(function(el){el.classList.toggle('err',bad.indexOf(el.getAttribute('data-f'))>-1);});
+  if(S.step===5){FOTOS.forEach(function(f){var s=$('[data-slot="'+f[0]+'"]');if(s)s.classList.toggle('missing',bad.length>0);});$('#fotomsg').style.display=bad.length?'block':'none';}
+  if(bad.length){var first=$('.f.err input,.f.err select,.f.err textarea');if(first&&first.focus)first.focus();}
+  return !bad.length;
+}
+
+/* ---------- Motor simulado ---------- */
+function rota(){
+  var c=$('#cen').value; if(c!=='auto')return c;
+  var n=dias(),d=S.d;
+  if(n<=7&&d.usou==='nao')return 'arrep';
+  if(n<=30&&MKT[d.canal])return 'mkt';
+  return null;
+}
+function sinais(){
+  var d=S.d,red=[],yel=[];
+  if(d.submersa==='nao')red.push('Relato de que a bomba às vezes ficava fora d\'água (funcionamento a seco)');
+  if(d.dist==='m20')red.push('Distância do fundo declarada abaixo de 20 cm (mínimo do manual: 40 cm)');
+  if(d.sust==='cabo')red.push('Bomba pendurada pelo fio elétrico (o manual exige corda ou cabo de sustentação)');
+  if(+d.tempo>90)red.push('Uso contínuo de '+d.tempo+' min por vez (limite do manual: 45 min)');
+  if(d.rede!=='ns'&&d.rede&&d.tensao&&d.rede!==d.tensao)red.push('Bomba de '+d.tensao+'V ligada em rede de '+d.rede+'V');
+  if(d.dist==='2040')yel.push('Distância do fundo entre 20 e 40 cm');
+  if(d.emenda==='comum')yel.push('Emenda feita só com fita isolante comum');
+  if(d.agua==='areia')yel.push('Água com areia ou barro');
+  if(+d.tempo>45&&+d.tempo<=90)yel.push('Uso de '+d.tempo+' min por vez, acima de 45 min');
+  ['submersa','dist','sust','rede','agua','energia'].forEach(function(k){if(d[k]==='ns')yel.push('Resposta "não sei" sobre '+{submersa:'submersão',dist:'distância do fundo',sust:'sustentação',rede:'tensão da tomada',agua:'tipo de água',energia:'energia'}[k]);});
+  if(d.energia==='sim')yel.push('Relato de queda ou oscilação de energia');
+  return {red:red,yel:yel};
+}
+function decidir(){
+  var c=$('#cen').value,n=dias(),d=S.d,sg=sinais();
+  var faixa=n<=30?(d.canal==='site'?'troca':'revisar'):(n<=90?'3190':'91');
+  var res;
+  if(c!=='auto'){
+    res={troca:'troca',a3190:'a3190',a91:'a91',analise:'analise',negado:'negado',pendente:'pendente'}[c];
+    if(res==='troca')faixa='troca'; if(res==='a3190')faixa='3190'; if(res==='a91')faixa='91';
+    if((res==='analise'||res==='negado')&&faixa==='troca')faixa='3190';
+  } else if(faixa==='troca') res='troca';
+  else if(faixa==='revisar') res='analise';
+  else res=sg.red.length?'analise':(faixa==='3190'?'a3190':'a91');
+  return {res:res,faixa:faixa,sg:sg};
+}
+function novoProtocolo(){return 'AT-2026-000'+String(Math.floor(130+Math.random()*800));}
+function criarChamado(tipo,extra){
+  var p=novoProtocolo();
+  var ch={p:p,tipo:tipo,d:JSON.parse(JSON.stringify(S.d)),quando:new Date(),dias:dias()};
+  for(var k in extra)ch[k]=extra[k];
+  S.chamados[p]=ch;S.atual=p;return ch;
+}
+
+function vProc(){
+  return '<div class="in"><div class="formwrap"><div class="panel proc" aria-live="polite"><div class="spin" aria-hidden="true"></div><h2>Analisando o seu chamado</h2><p class="sub" style="margin:0 auto">Isso leva alguns segundos.</p><ul id="plist">'+
+  ['Chamado recebido','Conferindo a nota fiscal','Verificando prazo de garantia','Conferindo as fotos','Gerando o laudo'].map(function(t,i){return '<li data-i="'+i+'">'+t+'</li>';}).join('')+'</ul></div></div></div>';
+}
+function runProc(){
+  var li=$$('#plist li'),i=0;
+  (function tick(){
+    if(i>0)li[i-1].className='ok';
+    if(i<li.length){li[i].className='run';i++;setTimeout(tick,520);}
+    else{var dc=decidir();criarChamado(dc.res,{faixa:dc.faixa,sg:dc.sg});setTimeout(function(){go('protocolo');},300);}
+  })();
+}
+
+/* ---------- Telas de resultado ---------- */
+function headProto(ch,stCls,stTxt){
+  var temLaudo=['troca','a3190','a91','negado'].indexOf(ch.tipo)>-1;
+  return '<div class="protohead"><div class="phrow"><div><div class="lbl">Seu protocolo</div><div class="num">'+ch.p+'</div></div>'+(temLaudo?'<button type="button" class="btn sun" data-pdf="1">'+DL_ICON+'Baixar laudo (PDF)</button>':'')+'</div>'+
+  '<p>'+esc(lab(MODELOS,ch.d.modelo)||'Bomba')+(ch.d.tensao?' · '+ch.d.tensao+'V':'')+' · NF '+esc(nfLabel(ch.d.nf))+' · aberto em '+fmt(ch.quando)+'</p>'+
+  '<div class="status '+stCls+'">'+stTxt+'</div>'+
+  '<div class="anote" role="note"><span class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span>'+
+  '<div class="at"><b>Anote o número do seu protocolo: '+ch.p+'</b><span>Você vai precisar dele para acompanhar o chamado e para escrever do lado de fora da caixa, se for enviar a bomba.</span></div>'+
+  '<button type="button" class="btn sun" data-copy="'+ch.p+'">Copiar protocolo</button></div>'+
+  '<div class="devnote"><b>Nota para desenvolvimento · não aparece para o cliente</b>Enviar o protocolo e o link de acompanhamento por e-mail ('+esc(ch.d.email||'e-mail do formulário')+') e por WhatsApp ('+esc(fmtTel(ch.d.tel)||'telefone do formulário')+'). Só exibir ao cliente a frase "Também enviamos o protocolo para..." depois que o envio for confirmado.</div></div>';
+}
+function tl(items){return '<ol class="tl">'+items.map(function(it){return '<li class="'+(it[2]||'')+'"><span class="d"></span><div><b>'+it[0]+'</b>'+(it[1]?'<small>'+it[1]+'</small>':'')+'</div></li>';}).join('')+'</ol>';}
+function hora(ch,m){return fmt(ch.quando)+' '+String(ch.quando.getHours()).padStart(2,'0')+':'+String(ch.quando.getMinutes()+m).padStart(2,'0');}
+
+var FAIXA_TXT={troca:'Troca Expressa (até 30 dias, compra no site)','3190':'Garantia: 31 a 90 dias da compra','91':'Garantia de fábrica: mais de 90 dias da compra'};
+
+function laudoData(ch,tipo){
+  var ok=tipo!=='negado';
+  var pontos=(ch.sg?ch.sg.red.concat(ch.sg.yel):[]);
+  var titulo={troca:'AUTORIZADO O ENVIO · TROCA EXPRESSA',a3190:'APROVADO PARA ANÁLISE FÍSICA',a91:'APROVADO PARA ANÁLISE FÍSICA',negado:'GARANTIA NÃO APROVADA NA ANÁLISE PRELIMINAR'}[tipo];
+  var fund={
+    troca:'As informações e as fotos enviadas foram conferidas e não apresentam impedimento para a Troca Expressa. O frete de ida é por conta da Vibra Vert, por logística reversa. A bomba será avaliada na bancada em até 48 horas da chegada.',
+    a3190:'As respostas do formulário estão de acordo com o manual de instalação e as fotos foram conferidas. A bomba está liberada para a análise física definitiva. O envio é por conta do proprietário. Confirmado defeito de fabricação, o reparo e a devolução são por conta da Vibra Vert.',
+    a91:'As respostas do formulário estão de acordo com o manual de instalação e as fotos foram conferidas. A bomba está liberada para a análise física definitiva. O frete de envio e de devolução é por conta do proprietário. Confirmado defeito de fabricação, o reparo é por conta da Vibra Vert.',
+    negado:(ch.sg&&ch.sg.red.length?ch.sg.red[0]:'Distância do fundo declarada abaixo de 20 cm (mínimo do manual: 40 cm)')+'. Nessa condição, a bomba aspira areia e sedimentos do fundo, o que desgasta as peças internas e sobrecarrega o motor. Por esse motivo, a garantia não foi aprovada nesta análise preliminar.'
+  }[tipo];
+  var anexos=tipo==='troca'?['Termo de Garantia']:['Página do frete','Termo de Garantia'];
+  return {ok:ok,pontos:pontos,titulo:titulo,fund:fund,anexos:anexos};
+}
+function laudo(ch,tipo){
+  var d=ch.d,L=laudoData(ch,tipo),ok=L.ok,pontos=L.pontos,titulo=L.titulo,fund=L.fund,anexos=L.anexos;
+  return '<div class="laudo" aria-label="Prévia do laudo">'+
+    '<div class="lhead"><span class="logo"><b>VIBRAVERT<sup>®</sup></b><i></i><i></i><span>Bombas Submersas Vibratórias</span></span><div class="t"><b>Laudo Técnico</b><span>Análise Preliminar</span></div></div>'+
+    '<div class="lgrid">'+
+      '<div><span>Protocolo</span><b>'+ch.p+'</b></div><div><span>Data</span><b>'+fmt(ch.quando)+'</b></div>'+
+      '<div><span>Proprietário</span><b>'+esc(d.nome)+'</b></div><div><span>CPF/CNPJ</span><b>'+esc(maskDoc(d.doc))+'</b></div>'+
+      '<div><span>Telefone</span><b>'+esc(d.tel)+'</b></div><div><span>NF</span><b>'+esc(nfLabel(d.nf))+'</b></div>'+
+      '<div><span>Produto</span><b>'+esc(lab(MODELOS,d.modelo))+' '+esc(d.tensao)+'V</b></div><div><span>Faixa</span><b>'+(FAIXA_TXT[ch.faixa]||'—')+'</b></div>'+
+    '</div>'+
+    '<div class="lbanner '+(ok?'ok':'bad')+'">'+titulo+'</div>'+
+    '<h5>Fundamentação técnica</h5><p>'+esc(fund)+'</p>'+
+    (ok&&pontos.length?'<h5>Pontos a verificar na bancada</h5><ul>'+pontos.slice(0,4).map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'')+
+    (!ok?'<h5>Cortesia</h5><p>Reposição de peças pelo custo, sem lucro: ventosa/pistão R$ 3,65 · canopla R$ 8,50 · válvula R$ 2,00 · motor/caneca R$ 55,00. Produto reparado com nova garantia de 3 meses.</p>':'')+
+    '<h5>Conclusão</h5><p>Caso o proprietário discorde, pode enviar a bomba para análise física definitiva.</p>'+
+    '<div class="lsig"><i></i>Responsável técnico · Assistência Técnica</div>'+
+    '<div class="lfoot">Rua Charles Darwin, 707 · Vila Santa Catarina · São Paulo/SP · WhatsApp 11 5033-2828 · sac@vibravert.com.br</div>'+
+  '</div><div class="lpages"><span>Pág. 1 · Laudo</span><span>Pág. 2 · Instruções de envio</span>'+anexos.map(function(a,i){return '<span>Pág. '+(i+3)+' · '+a+'</span>';}).join('')+'</div>'+
+  '<div class="dlrow"><button type="button" class="btn navy" data-pdf="1">'+DL_ICON+'Baixar laudo (PDF)</button></div>'+
+  '<div class="devnote" style="color:var(--muted);background:#f7f9fd"><b style="color:var(--sun-ink)">Nota para desenvolvimento</b>No protótipo o PDF é gerado no navegador com as páginas 1 e 2. No sistema real, o PDF oficial vem do servidor, com todas as páginas (laudo, instruções de envio e anexos), e fica disponível para baixar sempre que o cliente abrir o protocolo.</div>';
+}
+
+function rastreioBox(ch){
+  if(ch.rastreio)return '<div class="box"><h3>Código de rastreio</h3><p>Recebemos o código <b class="mono" style="font-family:var(--mono)">'+esc(ch.rastreio)+'</b>. Quando a bomba chegar, ela é reconhecida pelo rastreio, mesmo sem papel na caixa.</p><button type="button" class="btn line" data-rastreio-edit="1">Corrigir código</button></div>';
+  return '<div class="box"><h3>Já enviou a bomba?</h3><p>Informe o código de rastreio da postagem. Assim a fábrica reconhece a sua bomba na chegada, mesmo que a caixa chegue sem o laudo.</p><form id="rtf" novalidate><div class="f" data-f="rast" style="margin-bottom:10px"><label for="i-rast">Código de rastreio</label><input id="i-rast" type="text" placeholder="Ex.: QB123456789BR" autocomplete="off" style="text-transform:uppercase"><span class="msg">Confira o código: são 2 letras, 9 números e 2 letras.</span></div><button class="btn navy" type="submit">Salvar rastreio</button></form></div>';
+}
+var ENDERECO='<div class="addr"><b>Vibra Vert · A/C Assistência Técnica</b><br>Rua Charles Darwin, 707 · Vila Santa Catarina<br>São Paulo/SP · CEP 04379-074</div>';
+function checklist(ch){return '<ol class="steps-ol"><li>Escreva o protocolo <b>'+ch.p+'</b> do lado de fora da caixa, em local visível.</li><li>Se puder, imprima o laudo e coloque dentro da caixa. <b>Não tem impressora?</b> Escreva o protocolo num papel e coloque junto com a bomba.</li><li>Embale a bomba com proteção (plástico bolha ou papelão).</li><li>Depois de postar, informe o código de rastreio aqui embaixo.</li></ol>';}
+
+function vProtocolo(){
+  var ch=S.chamados[S.atual]; if(!ch)return vLookup();
+  var t=ch.tipo,L='',R='';
+  if(t==='troca'){
+    var ent=addDays(ch.quando,1);
+    L=headProto(ch,'st-ok','Troca Expressa autorizada');
+    R='<div class="cols"><div class="stack">'+
+      '<div class="box"><h3>Próximos passos</h3><p>Sua bomba foi aprovada para a Troca Expressa. <b>O frete de ida é por nossa conta.</b></p>'+
+      '<ol class="steps-ol"><li>Até <b>'+fmt(ent)+'</b> você recebe o código de postagem por WhatsApp e e-mail.</li><li>Leve a bomba embalada a uma agência com o código. Não paga nada.</li><li>Não precisa imprimir nada: a etiqueta de postagem já identifica o seu chamado. Se quiser, escreva <b>'+ch.p+'</b> na caixa.</li><li>Em até 48 horas da chegada, nosso técnico avalia na bancada e você acompanha por aqui.</li></ol></div>'+
+      '<div class="box"><h3>Andamento</h3>'+tl([['Chamado recebido',hora(ch,0),'done'],['Análise preliminar concluída','Envio autorizado','done'],['Código de postagem','Chega até '+fmt(ent),'now'],['Bomba a caminho',''],['Na bancada','Laudo em até 48 h da chegada'],['Concluído','']])+'</div>'+
+      '</div><div class="stack"><div class="box"><h3>Seu laudo</h3>'+laudo(ch,'troca')+'</div></div></div>';
+  }
+  else if(t==='a3190'||t==='a91'){
+    L=headProto(ch,'st-ok','Aprovado para análise física');
+    var frete=t==='a3190'?'O envio é por sua conta. Confirmado o defeito de fabricação, o reparo e a devolução são por nossa conta.':'O frete de envio e de devolução é por sua conta. Confirmado o defeito de fabricação, o reparo é por nossa conta.';
+    R='<div class="cols"><div class="stack">'+
+      '<div class="box"><h3>Envie a bomba para a fábrica</h3><p>'+frete+'</p>'+ENDERECO+'<p style="margin-top:14px"><b>Antes de despachar:</b></p>'+checklist(ch)+
+      '<p style="margin-top:12px" class="fine">Em até 48 horas da chegada, o técnico avalia na bancada e o resultado aparece aqui.</p></div>'+
+      rastreioBox(ch)+
+      '<div class="box"><h3>Andamento</h3>'+tl([['Chamado recebido',hora(ch,0),'done'],['Análise preliminar concluída','Aprovado para análise física','done'],ch.rastreio?['Bomba a caminho','Rastreio '+ch.rastreio,'now']:['Aguardando a bomba chegar','Envie com o protocolo escrito na caixa','now'],['Na bancada','Laudo em até 48 h da chegada'],['Concluído','']])+'</div>'+
+      '</div><div class="stack"><div class="box"><h3>Seu laudo</h3>'+laudo(ch,t)+'</div></div></div>';
+  }
+  else if(t==='analise'){
+    L=headProto(ch,'st-warn','Em análise pela equipe técnica');
+    R='<div class="cols"><div class="stack"><div class="box"><h3>Seu chamado está com um técnico</h3><p>Algumas informações precisam da avaliação de uma pessoa da nossa equipe. Você recebe o resultado aqui e por WhatsApp <b>em até 1 dia útil</b>.</p><p>Não é preciso enviar a bomba agora.</p></div>'+
+      '<div class="box"><h3>Andamento</h3>'+tl([['Chamado recebido',hora(ch,0),'done'],['Análise preliminar','Com a equipe técnica','now'],['Resultado','Em até 1 dia útil'],['Concluído','']])+'</div></div>'+
+      '<div class="stack"><div class="box"><h3>O que acontece agora</h3><p>O técnico confere as respostas e as fotos que você enviou. Se faltar algo, avisamos pelo WhatsApp.</p><p class="fine">Dúvidas sobre o chamado: WhatsApp 11 5033-2828 ou sac@vibravert.com.br, informando o protocolo.</p></div></div></div>';
+  }
+  else if(t==='negado'){
+    L=headProto(ch,'st-bad','Garantia não aprovada na análise preliminar');
+    R='<div class="cols"><div class="stack">'+
+      '<div class="box"><h3>Resultado da análise</h3><p>Pelas informações e fotos enviadas, a bomba foi instalada fora das condições do manual, e isso não é coberto pela garantia de fabricação. O motivo está no laudo.</p></div>'+
+      '<div class="box"><h3>Não concorda com o resultado?</h3><p>Você pode enviar a bomba para a <b>análise física definitiva</b>, em que o técnico abre e avalia o equipamento. O envio é por sua conta.</p>'+ENDERECO+'<div class="dlrow"><button class="btn line" data-toast="No site real, abre o pedido de análise física com as instruções de envio.">Quero a análise física</button></div></div>'+
+      '<div class="box"><h3>Conserto pelo custo</h3><p>Mesmo sem garantia, consertamos com peças pelo custo, sem lucro, e o produto reparado sai com <b>nova garantia de 3 meses</b>.</p><div class="prazos" style="margin-top:8px"><table><tbody><tr><td>Ventosa / pistão</td><td>R$ 3,65</td></tr><tr><td>Canopla</td><td>R$ 8,50</td></tr><tr><td>Válvula completa</td><td>R$ 2,00</td></tr><tr><td>Motor elétrico / caneca</td><td>R$ 55,00</td></tr></tbody></table></div><p class="fine">Frete de devolução cobrado à parte.</p><div class="dlrow"><button class="btn sun" data-toast="No site real, abre o orçamento do conserto.">Quero o conserto pelo custo</button></div></div>'+
+      '</div><div class="stack"><div class="box"><h3>Seu laudo</h3>'+laudo(ch,'negado')+'</div>'+
+      '<div class="box"><h3>Andamento</h3>'+tl([['Chamado recebido',hora(ch,0),'done'],['Análise preliminar','Revisada pela equipe técnica','done'],['Garantia não aprovada','Você pode pedir a análise física','stop']])+'</div></div></div>';
+  }
+  else if(t==='pendente'){
+    L=headProto(ch,'st-warn','Falta uma foto');
+    R='<div class="cols"><div class="stack"><div class="box"><h3>Precisamos de mais uma foto</h3><p>A foto <b>do local de perto</b> não mostra o ponto onde a bomba fica instalada. Sem ela, não conseguimos fazer a análise.</p>'+
+      '<div class="slots" style="max-width:220px"><label class="slot"><span class="plus">+</span><b>Local de perto</b><small>ponto onde a bomba fica</small><input type="file" accept="image/*" data-reenvio="1" aria-label="Enviar nova foto do local de perto"></label></div>'+
+      '<p class="fine" style="margin-top:12px">Assim que a foto chegar, a análise continua sozinha. O chamado fica aberto por 15 dias.</p></div></div>'+
+      '<div class="stack"><div class="box"><h3>Andamento</h3>'+tl([['Chamado recebido',hora(ch,0),'done'],['Aguardando foto','Envie pelo botão ao lado','now'],['Análise preliminar',''],['Resultado','']])+'</div></div></div>';
+  }
+  else if(t==='arrep'){
+    L=headProto(ch,'st-info','Devolução por arrependimento');
+    R='<div class="cols"><div class="stack"><div class="box"><h3>Você pode devolver sem custo</h3><p>Como a bomba chegou há até 7 dias e não foi usada, você pode desistir da compra. <b>Devolvemos o valor integral, inclusive o frete que você pagou.</b> Não precisa de fotos nem de justificativa.</p>'+
+      '<ol class="steps-ol"><li>Você recebe o código de postagem por WhatsApp e e-mail em até 1 dia útil.</li><li>Embale a bomba na caixa original, com todos os acessórios.</li><li>Poste com o código. O frete é por nossa conta.</li><li>O estorno é feito quando a bomba chegar à fábrica.</li></ol></div></div>'+
+      '<div class="stack"><div class="box"><h3>Andamento</h3>'+tl([['Pedido de devolução recebido',hora(ch,0),'done'],['Código de postagem','Em até 1 dia útil','now'],['Bomba a caminho',''],['Estorno','Na chegada à fábrica']])+'</div></div></div>';
+  }
+  return '<div class="in"><div style="max-width:1080px;margin:0 auto;padding-block:32px 64px"><button class="back" data-go="home">← Assistência técnica</button>'+L+R+'</div></div>';
+}
+
+function vMkt(){
+  var d=S.d,nome=MKT[d.canal]||'marketplace';
+  return '<div class="in"><div class="formwrap"><div class="panel">'+
+  '<span class="tag">Compra pelo '+esc(nome)+'</span><h2>Abra a devolução direto no '+esc(nome)+'</h2>'+
+  '<p class="sub">Nos primeiros 30 dias, compras feitas no '+esc(nome)+' são resolvidas pela devolução do próprio '+esc(nome)+'. É o caminho mais rápido para você.</p>'+
+  '<ol class="steps-ol"><li>Entre na sua conta do '+esc(nome)+' e abra <b>Minhas compras</b>.</li><li>Escolha a bomba e toque em <b>Devolver ou trocar</b> (ou "problema com o produto").</li><li>Siga as instruções de envio que o '+esc(nome)+' mostrar.</li></ol>'+
+  '<div class="note"><b>Passou dos 30 dias?</b> Aí o atendimento é com a gente: volte e informe a data de recebimento correta.</div>'+
+  '<div class="navrow"><button class="btn line" data-go="form">Voltar ao formulário</button><button class="btn navy" data-go="home">Entendi</button></div></div></div></div>';
+}
+
+function vLookup(){
+  var ex=Object.keys(S.chamados)[0];
+  return '<div class="in"><div class="lookup"><button class="back" data-go="home">← Assistência técnica</button><form class="panel" id="lk" novalidate><h2>Acompanhar protocolo</h2><p class="sub">Informe o protocolo e o CPF ou CNPJ usado no chamado.</p><div class="fields" style="grid-template-columns:minmax(0,1fr)">'+
+  '<div class="f" data-f="lp"><label for="i-lp">Protocolo</label><input id="i-lp" type="text" placeholder="AT-2026-000000" value="'+(ex||'AT-2026-000118')+'"><span class="msg">Não encontramos esse protocolo com esse CPF.</span></div>'+
+  '<div class="f"><label for="i-ld">CPF ou CNPJ</label><input id="i-ld" type="text" placeholder="000.000.000-00" value="'+(ex?esc(S.chamados[ex].d.doc):'529.982.247-25')+'"></div></div>'+
+  '<div class="navrow"><span></span><button class="btn navy" type="submit">Ver andamento</button></div>'+
+  '<p class="fine">'+(ex?'Preenchido com o chamado que você abriu nesta demonstração.':'Exemplo: AT-2026-000118, um chamado em análise pela equipe.')+'</p></form></div></div>';
+}
+
+/* ---------- Render e eventos ---------- */
+function render(){
+  if(S.view==='home')app.innerHTML=vHome();
+  else if(S.view==='form')app.innerHTML=vForm();
+  else if(S.view==='proc'){app.innerHTML=vProc();runProc();}
+  else if(S.view==='protocolo')app.innerHTML=vProtocolo();
+  else if(S.view==='mkt')app.innerHTML=vMkt();
+  else if(S.view==='lookup')app.innerHTML=vLookup();
+}
+
+document.addEventListener('click',function(e){
+  if(e.target.closest('[data-rastreio-edit]')){S.chamados[S.atual].rastreio='';render();return;}
+  var pd=e.target.closest('[data-pdf]');
+  if(pd){baixarPdf(pd);return;}
+  var cp=e.target.closest('[data-copy]');
+  if(cp){var val=cp.getAttribute('data-copy');var sel=function(){var n=$('.protohead .num');if(n){var r=document.createRange();r.selectNodeContents(n);var g=window.getSelection();g.removeAllRanges();g.addRange(r);}toast('Número selecionado. Copie ou anote: '+val);};
+    try{navigator.clipboard.writeText(val).then(function(){cp.textContent='Copiado ✓';toast('Protocolo '+val+' copiado.');},sel);}catch(err){sel();}return;}
+  var stp=e.target.closest('[data-step]');
+  if(stp){var ti=$('#i-tempo');ti.value=Math.max(61,Math.min(1440,(+ti.value||90)+(+stp.getAttribute('data-step'))));refreshQs();return;}
+  var t=e.target.closest('[data-go],[data-noop],[data-edit],[data-toast],#prev');
+  if(!t)return;
+  if(t.hasAttribute('data-noop')){e.preventDefault();toast('Fora do escopo do protótipo.');return;}
+  if(t.hasAttribute('data-toast')){toast(t.getAttribute('data-toast'));return;}
+  if(t.id==='prev'){collect();S.step--;render();window.scrollTo(0,0);return;}
+  if(t.hasAttribute('data-edit')){collect();S.step=+t.getAttribute('data-edit');go('form');return;}
+  e.preventDefault();var v=t.getAttribute('data-go');
+  if(v==='form'&&S.view==='mkt'){S.step=1;}
+  go(v);
+});
+
+document.addEventListener('submit',function(e){
+  e.preventDefault();
+  if(e.target.id==='rtf'){var v=$('#i-rast').value.replace(/\s/g,'').toUpperCase();if(!/^[A-Z]{2}\d{9}[A-Z]{2}$/.test(v)){$('.f[data-f="rast"]').classList.add('err');return;}S.chamados[S.atual].rastreio=v;toast('Rastreio salvo. Vamos acompanhar a entrega.');render();return;}
+  if(e.target.id==='lk'){
+    var p=$('#i-lp').value.trim().toUpperCase(),doc=onlyDigits($('#i-ld').value);
+    var ch=S.chamados[p];
+    if(!ch&&p==='AT-2026-000118'&&doc==='52998224725'){
+      ch={p:p,tipo:'analise',d:{nome:'Cliente de exemplo',doc:'529.982.247-25',tel:'(11) 90000-0000',email:'exemplo@email.com',modelo:'r2000',tensao:'220',nf:'124701'},quando:addDays(TODAY,-1),faixa:'3190'};
+      ch.quando.setHours(15,10);S.chamados[p]=ch;
+    }
+    if(ch&&onlyDigits(ch.d.doc)===doc){S.atual=p;go('protocolo');}
+    else $('.f[data-f="lp"]').classList.add('err');
+    return;
+  }
+  if(e.target.id!=='frm')return;
+  collect();
+  if(!validate())return;
+  if(S.step===1||S.step===6){var r=rota();
+    if(r==='mkt'){if(!MKT[S.d.canal])S.d.canal='ml';go('mkt');return;}
+    if(r==='arrep'){criarChamado('arrep',{faixa:'arrep'});go('protocolo');return;}
+  }
+  if(S.step<6){S.step++;render();window.scrollTo(0,0);return;}
+  go('proc');
+});
+
+document.addEventListener('change',function(e){
+  var t=e.target;
+  if(S.view==='form'&&S.step===3&&t.type==='radio')refreshQs();
+  if(t.id==='i-tempo')refreshQs();
+  if(t.matches('input[type=file][data-foto]')&&t.files&&t.files[0]){
+    var k=t.getAttribute('data-foto'),fr=new FileReader();
+    fr.onload=function(){collect();S.d.fotos[k]=fr.result;render();};fr.readAsDataURL(t.files[0]);
+  }
+  if(t.matches('input[data-reenvio]')&&t.files&&t.files[0]){
+    var ch=S.chamados[S.atual];toast('Foto recebida. A análise continua.');
+    setTimeout(function(){ch.tipo='a3190';ch.faixa='3190';ch.sg={red:[],yel:[]};render();},900);
+  }
+});
+
+function placeholder(label){
+  var c=document.createElement('canvas');c.width=400;c.height=300;var x=c.getContext('2d');
+  var g=x.createLinearGradient(0,0,400,300);g.addColorStop(0,'#dfe6f4');g.addColorStop(1,'#c3cfe6');x.fillStyle=g;x.fillRect(0,0,400,300);
+  x.fillStyle='#14307A';x.globalAlpha=.85;
+  if(/Local/.test(label)){x.fillRect(150,40,100,230);x.fillStyle='#0A1B4D';x.fillRect(165,55,70,200);x.fillStyle='#5b8bd1';x.fillRect(165,170,70,85);}
+  else{x.beginPath();x.ellipse(200,150,70,100,0,0,Math.PI*2);x.fill();x.fillStyle='#F5B921';x.fillRect(185,30,30,30);}
+  x.globalAlpha=1;x.fillStyle='#0A1B4D';x.font='bold 20px sans-serif';x.fillText('Exemplo',14,32);
+  return c.toDataURL('image/jpeg',.7);
+}
+$('#fill').addEventListener('click',function(){
+  var cen=$('#cen').value;
+  var rec=addDays(TODAY,cen==='a3190'?-60:cen==='a91'?-200:cen==='arrep'?-3:-12);
+  S.d={nome:'Cliente de Exemplo da Silva',doc:'529.982.247-25',tel:'(11) 98888-7777',email:'cliente.exemplo@email.com',
+    canal:cen==='mkt'?'ml':'site',nf:'124701',receb:iso(rec),usou:cen==='arrep'?'nao':'sim',modelo:'r2000',tensao:'220',serie:'RY20-2609-0412',
+    tempoF:'30',tempo:'30',submersa:'sim',dist:(cen==='analise'||cen==='negado')?'m20':'m40',rede:'220',energia:'nao',emenda:'comum',sust:'corda',agua:'limpa',
+    ocorrido:'Funcionou bem por duas semanas. Um dia liguei e ela vibrou, mas não subiu mais água para a caixa.',fotos:{},lgpd:true};
+  FOTOS.forEach(function(f){S.d.fotos[f[0]]=placeholder(f[1]);});
+  S.step=6;go('form');toast('Formulário preenchido com dados de exemplo. Revise e envie.');
+  $('#demo').open=false;
+});
+$('#reset').addEventListener('click',function(){S.d=fresh();S.step=0;S.chamados={};S.atual=null;go('home');$('#demo').open=false;});
+
+render();
+})();
+</script>
+</body>
+</html>
