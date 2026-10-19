@@ -58,7 +58,10 @@ const ns = <const T extends [string, ...string[]]>(v: T, m: string) => z.enum(v,
 export const etapaInstalacao = z
   .object({
     tempo: ns(["ate15", "15a30", "30a45", "45a60", "mais60", "ns"], "Escolha uma opção."),
-    tempoMinutos: z.coerce.number().int().min(61).max(1440).nullable().optional(),
+    // Campo vazio vira null, não 0: só "mais de 1 hora" exige os minutos.
+    tempoMinutos: z
+      .preprocess((v) => (v === "" || v === undefined || v === null ? null : v), z.coerce.number().int().min(61, "Mais de 60 minutos, já que foi mais de 1 hora.").max(1440).nullable())
+      .optional(),
     rede: ns(["127", "220", "254", "ns"], "Escolha uma opção."),
     submersa: ns(["sim", "nao", "ns"], "Escolha uma opção."),
     distancia: ns(["mais40", "20a40", "menos20", "ns"], "Escolha uma opção."),

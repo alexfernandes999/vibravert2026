@@ -63,11 +63,20 @@ export default function Assistencia() {
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
+              {/* O chamado de garantia é aberto aqui mesmo: protocolo na hora e,
+                  na maioria dos casos, o laudo em segundos. Antes o botão
+                  levava ao Fale Conosco e o caso seguia por WhatsApp e planilha. */}
               <Link
-                href="/fale-conosco"
+                href="/assistencia/garantia"
                 className="rounded-lg bg-ouro px-6 py-3.5 text-sm font-extrabold text-ouro-txt transition hover:brightness-110"
               >
-                Abrir chamado técnico
+                Abrir chamado de garantia
+              </Link>
+              <Link
+                href="/assistencia/protocolo"
+                className="rounded-lg border-[1.5px] border-white/30 px-6 py-3.5 text-sm font-extrabold text-white transition hover:border-white/60"
+              >
+                Acompanhar chamado
               </Link>
               <a
                 href={`tel:${FABRICA.telefoneLink}`}
