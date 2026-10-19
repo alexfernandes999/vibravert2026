@@ -10,6 +10,9 @@ import { proximoProtocolo } from "./protocolo";
 import { processarChamado } from "./analise";
 import { linkProtocolo } from "./acesso";
 import { novoRascunho, urlDeEnvio } from "./storage";
+import { protocoloAssistencia } from "@/lib/email";
+
+const SITE = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
 
 export type ResultadoAbertura =
   | { ok: true; protocolo: string; link: string }
@@ -109,6 +112,7 @@ export async function abrirChamado(entrada: unknown): Promise<ResultadoAbertura>
       },
       ano,
     );
+    after(() => protocoloAssistencia(c.email, c.nome, c.protocolo, `${SITE}${linkProtocolo(c.protocolo)}`).then(() => {}, () => {}));
     return { ok: true, protocolo: c.protocolo, link: linkProtocolo(c.protocolo) };
   }
 
@@ -163,6 +167,7 @@ export async function abrirChamado(entrada: unknown): Promise<ResultadoAbertura>
 
   // O cliente recebe o protocolo agora; a análise roda em seguida.
   after(async () => {
+    await protocoloAssistencia(c.email, c.nome, c.protocolo, `${SITE}${linkProtocolo(c.protocolo)}`).catch(() => null);
     try {
       await processarChamado(c.id);
     } catch (e) {

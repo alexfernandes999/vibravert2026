@@ -322,3 +322,26 @@ export function recuperacaoDeSenha(email: string, nome: string, link: string) {
     }),
   );
 }
+
+/**
+ * Protocolo da assistência, com o link de acompanhamento.
+ *
+ * O link já leva a chave assinada: o cliente volta ao chamado sem digitar CPF.
+ * A página só diz "também enviamos por e-mail" se este envio tiver dado certo.
+ */
+export function protocoloAssistencia(email: string, nome: string, protocolo: string, link: string) {
+  return enviar(
+    email,
+    `Chamado de garantia ${protocolo}`,
+    montar({
+      etiqueta: "Assistência técnica",
+      titulo: `${nome.split(" ")[0]}, recebemos o seu chamado`,
+      texto: [
+        `O seu protocolo é <strong>${protocolo}</strong>. Anote o número: é com ele que você acompanha o chamado e identifica a bomba se precisar enviá-la.`,
+        "O resultado da análise aparece na página do chamado. Quando houver laudo, ele fica disponível para baixar ali mesmo.",
+      ],
+      botao: { rotulo: "Acompanhar o chamado", href: link },
+      assinatura: true,
+    }),
+  );
+}
