@@ -2,6 +2,15 @@ import type { NextConfig } from "next";
 
 const config: NextConfig = {
   experimental: { optimizePackageImports: ["lucide-react"] },
+  // A assistência lê do disco o Guia (regras em cache na API da Claude) e o
+  // logo (PDF do laudo). Sem declarar, a função na Vercel sobe sem eles.
+  outputFileTracingIncludes: {
+    "/assistencia/**": ["./docs/assistencia/regras/**", "./public/logo-vibravert.png"],
+    "/admin/assistencia/**": ["./docs/assistencia/regras/**", "./public/logo-vibravert.png"],
+    "/api/mcp": ["./docs/assistencia/regras/**"],
+  },
+  // O react-pdf roda no servidor como pacote externo (ESM com subpaths).
+  serverExternalPackages: ["@react-pdf/renderer"],
   images: {
     formats: ["image/avif", "image/webp"],
     // As fotos vêm do Storage do Supabase. Sem liberar o host aqui, o

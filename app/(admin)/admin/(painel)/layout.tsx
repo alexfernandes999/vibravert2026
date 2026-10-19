@@ -18,6 +18,11 @@ const MENU: (Omit<ItemMenu, "badge"> & { papeis?: string[] })[] = [
   { href: "/admin/recuperar-vendas", r: "Recuperar vendas", grupo: "", icone: "recuperar" },
   { href: "/admin/conversas", r: "Conversas", grupo: "", icone: "conversas" },
   { href: "/admin/revenda", r: "Revenda", grupo: "", icone: "revenda" },
+  // Assistência técnica: o técnico vê só este grupo (e a própria conta).
+  { href: "/admin/assistencia", r: "Painel do dia", grupo: "Assistência", icone: "assistencia" },
+  { href: "/admin/assistencia/fila", r: "Fila de decisão", grupo: "Assistência", icone: "fila" },
+  { href: "/admin/assistencia/chamados", r: "Chamados", grupo: "Assistência", icone: "chamados" },
+  { href: "/admin/assistencia/bancada", r: "Bancada", grupo: "Assistência", icone: "bancada" },
   { href: "/admin/vitrine", r: "Vitrine da home", grupo: "Loja", icone: "vitrine" },
   { href: "/admin/banners", r: "Banners", grupo: "Loja", icone: "banners" },
   { href: "/admin/videos", r: "Vídeos", grupo: "Loja", icone: "videos" },
@@ -41,15 +46,25 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const eu = await usuarioAtual();
   if (!eu) redirect("/admin/entrar");
 
-  const [conta, aSeparar, estoqueBaixo] = await Promise.all([
+  const [conta, aSeparar, estoqueBaixo, naFila] = await Promise.all([
     // O tour aparece na primeira entrada de cada pessoa.
     prisma.usuario.findUnique({ where: { id: eu.id }, select: { viuTour: true } }),
     prisma.pedido.count({ where: { status: { in: ["PAGO", "SEPARANDO"] } } }),
     prisma.estoque.count({ where: { quantidade: { lte: 5 } } }),
+    prisma.chamado.count({ where: { status: "EM_ANALISE" } }),
   ]);
 
-  const contagem: Record<string, number> = { "/admin/pedidos": aSeparar, "/admin/estoque": estoqueBaixo };
-  const itens: ItemMenu[] = MENU.filter((m) => !m.papeis || m.papeis.includes(eu.papel)).map(
+  const contagem: Record<string, number> = {
+    "/admin/pedidos": aSeparar,
+    "/admin/estoque": estoqueBaixo,
+    "/admin/assistencia/fila": naFila,
+  };
+  // O técnico não opera a loja: vê a assistência, a segurança e o manual.
+  const doTecnico = (m: (typeof MENU)[number]) =>
+    m.grupo === "Assistência" || m.href === "/admin/seguranca" || m.href === "/admin/manual";
+  const itens: ItemMenu[] = MENU.filter(
+    (m) => (!m.papeis || m.papeis.includes(eu.papel)) && (eu.papel !== "TECNICO" || doTecnico(m)),
+  ).map(
     ({ papeis: _papeis, ...m }) => ({ ...m, badge: contagem[m.href] || undefined }),
   );
   const inicial = eu.nome.trim().charAt(0).toLocaleUpperCase("pt-BR");

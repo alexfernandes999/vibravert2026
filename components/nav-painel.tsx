@@ -4,6 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BookOpen,
+  ClipboardList,
+  Hammer,
+  ListChecks,
+  Wrench,
   Boxes,
   Handshake,
   Image as Imagem,
@@ -51,6 +55,10 @@ const ICONES: Record<string, LucideIcon> = {
   equipe: Users,
   integracoes: Plug,
   manual: BookOpen,
+  assistencia: Wrench,
+  fila: ListChecks,
+  chamados: ClipboardList,
+  bancada: Hammer,
 };
 
 export type ItemMenu = { href: string; r: string; grupo: string; icone: string; badge?: number };
