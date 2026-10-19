@@ -20,7 +20,7 @@ export type Resultado =
   | { ok: true; mensagem: string; senha?: string }
   | { ok: false; erro: string };
 
-const PAPEIS: PapelUsuario[] = ["OPERADOR", "MASTER", "DESENVOLVEDOR"];
+const PAPEIS: PapelUsuario[] = ["OPERADOR", "MASTER", "DESENVOLVEDOR", "TECNICO"];
 
 export async function criarUsuario(dados: FormData): Promise<Resultado> {
   if (!(await podeGerirEquipe())) return { ok: false, erro: "Você não tem permissão para isso." };

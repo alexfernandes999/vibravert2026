@@ -9,6 +9,7 @@ const PAPEL: Record<string, string> = {
   OPERADOR: "operador",
   MASTER: "dono",
   DESENVOLVEDOR: "desenvolvedor",
+  TECNICO: "técnico",
 };
 
 export default async function Seguranca({

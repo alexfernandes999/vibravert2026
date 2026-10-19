@@ -35,7 +35,7 @@ const MENU: (Omit<ItemMenu, "badge"> & { papeis?: string[] })[] = [
   { href: "/admin/manual", r: "Manual de uso", grupo: "Conta", icone: "manual" },
 ];
 
-const PAPEL = { OPERADOR: "Operador", MASTER: "Dono", DESENVOLVEDOR: "Desenvolvedor" } as const;
+const PAPEL = { OPERADOR: "Operador", MASTER: "Dono", DESENVOLVEDOR: "Desenvolvedor", TECNICO: "Técnico" } as const;
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const eu = await usuarioAtual();

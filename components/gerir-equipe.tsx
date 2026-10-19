@@ -11,7 +11,7 @@ type Pessoa = {
   login: string;
   nome: string;
   email: string;
-  papel: "OPERADOR" | "MASTER" | "DESENVOLVEDOR";
+  papel: "OPERADOR" | "MASTER" | "DESENVOLVEDOR" | "TECNICO";
   ativo: boolean;
   temDoisFatores: boolean;
   ultimoAcesso: string | null;
@@ -21,6 +21,7 @@ const ROTULO: Record<Pessoa["papel"], { r: string; d: string }> = {
   OPERADOR: { r: "Operador", d: "pedidos, estoque, produtos e vitrine" },
   MASTER: { r: "Dono", d: "tudo do operador, mais dar e tirar acesso" },
   DESENVOLVEDOR: { r: "Desenvolvedor", d: "tudo, mais integrações e diagnóstico" },
+  TECNICO: { r: "Técnico", d: "assistência técnica e bancada · único que assina laudo de bancada" },
 };
 
 /**
