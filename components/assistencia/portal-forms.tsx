@@ -29,11 +29,11 @@ function Retorno({ estado }: { estado: { ok: boolean; erro?: string; mensagem?: 
 export function FormDecisao({ protocolo, sugestao, troca }: { protocolo: string; sugestao: string | null; troca: boolean }) {
   const [estado, acao, pendente] = useActionState(decidirChamado, null);
   const opcoes = troca
-    ? [["autorizacao", "Autorizar Troca Expressa"], ["recusa", "Recusar"], ["pedido_informacao", "Pedir informação"]]
-    : [["aprovacao", "Aprovar envio"], ["negativa", "Negar"], ["pedido_informacao", "Pedir informação"]];
+    ? [["autorizacao", "Autorizar Troca Expressa"], ["recusa", "Recusar"], ["pedido_informacao", "Pedir informação"], ["resolvido_fora", "Já resolvido por fora"]]
+    : [["aprovacao", "Aprovar envio"], ["negativa", "Negar"], ["pedido_informacao", "Pedir informação"], ["resolvido_fora", "Já resolvido por fora"]];
   const inicial = opcoes.find(([v]) => v === sugestao)?.[0] ?? "";
   const [escolha, setEscolha] = useState(inicial);
-  const diferente = sugestao && sugestao !== "revisar" && escolha && escolha !== sugestao;
+  const diferente = sugestao && sugestao !== "revisar" && escolha && escolha !== sugestao && escolha !== "resolvido_fora";
   const desfavoravel = escolha === "negativa" || escolha === "recusa";
 
   return (
@@ -57,7 +57,11 @@ export function FormDecisao({ protocolo, sugestao, troca }: { protocolo: string;
         </label>
       )}
       <label className="block text-[12.5px] font-bold">
-        {escolha === "pedido_informacao" ? "O que falta (vai para o cliente)" : "Fundamento para o laudo (opcional · reescreve o rascunho)"}
+        {escolha === "pedido_informacao"
+          ? "O que falta (vai para o cliente)"
+          : escolha === "resolvido_fora"
+            ? "O que foi feito (fica no histórico · encerra o chamado)"
+            : "Fundamento para o laudo (opcional · reescreve o rascunho)"}
         <textarea name="nota" rows={2} className={`${input} mt-1`} />
       </label>
       <label className={`flex items-center gap-2 text-[13px] font-bold ${desfavoravel ? "text-critico" : ""}`}>

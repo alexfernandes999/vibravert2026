@@ -22,6 +22,7 @@ export const ROTULO_SUGESTAO: Record<string, string> = {
   recusa: "Recusa",
   revisar: "Revisar",
   pedido_informacao: "Pedir informação",
+  resolvido_fora: "Resolvido por fora",
   arrependimento: "Arrependimento",
   orientacao_marketplace: "Marketplace",
 };

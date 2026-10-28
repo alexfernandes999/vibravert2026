@@ -150,13 +150,15 @@ async function despacharComEtiqueta(id: string) {
 async function marcarEnviado(id: string, form: FormData) {
   "use server";
   const rastreio = String(form.get("rastreio") ?? "").trim() || null;
+  // Entregue em mãos ou já recebido: o cliente não precisa do e-mail de envio.
+  const entregue = form.get("para") === "ENTREGUE";
   const p = await prisma.pedido.update({
     where: { id },
-    data: { status: "ENVIADO", ...(rastreio ? { rastreio } : {}) },
+    data: { status: entregue ? "ENTREGUE" : "ENVIADO", ...(rastreio ? { rastreio } : {}) },
     include: { itens: true, endereco: true, cliente: true },
   });
-  await pedidoEnviado(p);
-  await registrarAcao("marcou enviado sem etiqueta automática", `#${p.numero}`, rastreio ?? undefined);
+  if (!entregue) await pedidoEnviado(p);
+  await registrarAcao(entregue ? "marcou entregue (resolvido por fora)" : "marcou enviado sem etiqueta automática", `#${p.numero}`, rastreio ?? undefined);
   revalidatePath("/admin/pedidos");
 }
 
@@ -334,21 +336,25 @@ export default async function Pedidos({
                   </form>
                 )}
 
-                {p.status === "SEPARANDO" && !p.etiquetaId && (
-                  <details className="mt-2 text-[12.5px]">
-                    <summary className="cursor-pointer font-bold text-mudo">Já despachei por fora</summary>
-                    <form action={marcarEnviado.bind(null, p.id)} className="mt-2 flex flex-wrap items-center gap-2">
-                      <input
-                        name="rastreio"
-                        placeholder="Código de rastreio (opcional)"
-                        aria-label="Código de rastreio"
-                        className="num rounded-lg border border-linha bg-superficie px-3 py-1.5 text-[12.5px]"
-                      />
-                      <button className="rounded-lg border-[1.5px] border-marca px-3 py-1.5 font-bold text-marca">
-                        Marcar enviado
-                      </button>
-                    </form>
-                  </details>
+                {/* Despacho feito fora do painel (balcão, transportadora, etiqueta
+                    comprada no site da SuperFrete): sem isto o pedido fica
+                    contando no aviso do menu para sempre. */}
+                {(p.status === "PAGO" || p.status === "SEPARANDO") && !p.etiquetaId && (
+                  <form action={marcarEnviado.bind(null, p.id)} className="mt-2 flex flex-wrap items-center gap-2 text-[12.5px]">
+                    <span className="font-bold text-mudo">Resolvido por fora?</span>
+                    <input
+                      name="rastreio"
+                      placeholder="Rastreio (opcional)"
+                      aria-label="Código de rastreio"
+                      className="num rounded-lg border border-linha bg-superficie px-3 py-1.5 text-[12.5px]"
+                    />
+                    <button name="para" value="ENVIADO" className="rounded-lg border-[1.5px] border-marca px-3 py-1.5 font-bold text-marca">
+                      Já despachei
+                    </button>
+                    <button name="para" value="ENTREGUE" className="rounded-lg border-[1.5px] border-linha-2 px-3 py-1.5 font-bold text-tinta-2">
+                      Já foi entregue
+                    </button>
+                  </form>
                 )}
               </li>
             );

@@ -27,7 +27,12 @@ async function pessoa() {
 
 type Resultado = { ok: true; mensagem?: string } | { ok: false; erro: string };
 
-const DECISOES = ["aprovacao", "autorizacao", "negativa", "recusa", "pedido_informacao"] as const;
+/**
+ * `resolvido_fora`: o caso já foi atendido por outro caminho (WhatsApp, troca no
+ * balcão, desistência). Encerra sem laudo e sem a Claude · a nota diz o que foi
+ * feito. Não é negativa: o status final é ENCERRADO.
+ */
+const DECISOES = ["aprovacao", "autorizacao", "negativa", "recusa", "pedido_informacao", "resolvido_fora"] as const;
 type DecisaoHumana = (typeof DECISOES)[number];
 
 const iso = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
@@ -86,20 +91,22 @@ export async function decidirChamado(_: unknown, dados: FormData): Promise<Resul
   if (decisao === "recusa" && c.faixa !== "troca_expressa") return { ok: false, erro: "Recusa é da Troca Expressa. Fora dela, é negativa." };
   if (decisao === "autorizacao" && c.faixa !== "troca_expressa") return { ok: false, erro: "Autorização é da Troca Expressa. Fora dela, é aprovação." };
   if (decisao === "pedido_informacao" && !nota) return { ok: false, erro: "Diga ao cliente o que falta." };
+  if (decisao === "resolvido_fora" && !nota) return { ok: false, erro: "Escreva o que foi feito com o cliente." };
+  const semLaudo = decisao === "pedido_informacao" || decisao === "resolvido_fora";
 
   const ultima = c.decisoes[0];
   const sugestao = ultima?.sugestao ?? null;
-  if (sugestao && sugestao !== decisao && sugestao !== "revisar" && !motivo)
+  if (sugestao && sugestao !== decisao && sugestao !== "revisar" && decisao !== "resolvido_fora" && !motivo)
     return { ok: false, erro: "Você decidiu diferente da sugestão: escreva o motivo. É ele que melhora as regras." };
 
-  if (decisao !== "pedido_informacao" && c.faixa === "indefinida")
+  if (!semLaudo && c.faixa === "indefinida")
     return { ok: false, erro: "A faixa ainda não está confirmada. Informe a data de emissão e o canal antes de decidir." };
 
   const detalhes = (ultima?.detalhes ?? {}) as { pontosAVerificar?: { codigo: string; nivel: "vermelho" | "amarelo"; texto: string }[] };
   const pontos = detalhes.pontosAVerificar ?? [];
 
   let laudo: { conteudo: ConteudoLaudo; versao: number; tipo: Documento["tipo"] } | null = null;
-  if (decisao !== "pedido_informacao") {
+  if (!semLaudo) {
     const doc = documentoPara(c.faixa as Faixa, desfavoravel ? "desfavoravel" : "favoravel");
     if (!doc) return { ok: false, erro: "Não há documento para esta faixa. Confirme a faixa do chamado." };
     try {
@@ -111,7 +118,8 @@ export async function decidirChamado(_: unknown, dados: FormData): Promise<Resul
   }
 
   const status: StatusChamado =
-    decisao === "negativa" ? "NEGADO" : decisao === "recusa" ? "RECUSADO" : decisao === "pedido_informacao" ? "PENDENTE_INFORMACAO" : "AGUARDANDO_ENVIO";
+    decisao === "negativa" ? "NEGADO" : decisao === "recusa" ? "RECUSADO" : decisao === "pedido_informacao" ? "PENDENTE_INFORMACAO"
+    : decisao === "resolvido_fora" ? "ENCERRADO" : "AGUARDANDO_ENVIO";
 
   // Ordem importa: a decisão humana entra antes do status e do laudo, que os
   // triggers só aceitam com ela registrada.
