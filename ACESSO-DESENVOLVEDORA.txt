@@ -21,7 +21,7 @@ PRIMEIRO ACESSO (uma vez só)
   2. Entre em https://www.vibravert.com.br/admin com o login e a senha acima.
   3. O painel abre direto em Segurança, com um QR na tela.
   4. Leia o QR no aplicativo e digite o código de 6 dígitos. Pronto.
-  Depois disso, todo login pede login + senha + código do momento.
+ ok  Depois disso, todo login pede login + senha + código do momento.
 
   Troque a senha em Segurança depois de entrar: esta passou por mensagem.
 

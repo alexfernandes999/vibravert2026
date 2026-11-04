@@ -288,7 +288,7 @@ export default async function Pedidos({
                 {/* O ERP é onde a nota nasce. Um pedido pago que não subiu é
                     um pedido sem nota esperando alguém reparar · fica dito na
                     própria linha, com o conserto ao lado. */}
-                {p.status !== "AGUARDANDO_PAGAMENTO" && (
+                {p.status !== "AGUARDANDO_PAGAMENTO" && p.status !== "CANCELADO" && (
                   <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px]">
                     {p.blingPedidoId ? (
                       <span className="font-bold text-bom">
