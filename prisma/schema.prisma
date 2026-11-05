@@ -11,7 +11,7 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")      // pooler (6543) — usado pela aplicação
   directUrl = env("DIRECT_URL")        // conexão direta (5432) — usada nas migrações
-  schemas   = ["vibravert", "assistencia"]
+  schemas   = ["vibravert", "assistencia", "erp"]
 }
 
 // ─────────────────────────── catálogo ───────────────────────────
@@ -683,6 +683,11 @@ model Integracao {
   refreshAte   DateTime?
   escopos      String?
 
+  /// Último erro ao renovar o token. Preenchido = conexão caída: o painel avisa
+  /// em vez de descobrir quando um pedido não sobe.
+  falha        String?
+  falhaEm      DateTime?
+
   renovadoEm   DateTime @default(now())
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -1111,4 +1116,55 @@ model EmailAssistencia {
 
   @@map("emails")
   @@schema("assistencia")
+}
+
+// ─────────────────────────── ERP · fase 1: espelho do Bling ───────────────────────────
+// O ERP só lê. Guarda o que o Bling devolve como veio (JSON), sem interpretar:
+// interpretar é a fase 2. Assim, se o Bling muda um campo, o espelho não quebra.
+
+/// Um registro do Bling: produto, depósito, saldo, pedido de venda ou de compra,
+/// ordem de produção, conta a pagar ou a receber.
+model EspelhoBling {
+  id        String   @id @default(cuid())
+  entidade  String
+  blingId   String
+  /// SKU, número do pedido ou documento · para achar sem abrir o JSON.
+  codigo    String?
+  /// O que veio na listagem.
+  resumo    Json
+  /// O que veio no detalhe (itens, estrutura). Nulo enquanto não foi buscado.
+  dados     Json?
+  /// Mudou na listagem e o detalhe ainda não foi relido.
+  pendente  Boolean  @default(false)
+  hash      String
+  lidoEm    DateTime @default(now())
+  /// Última vez que o conteúdo mudou de fato.
+  mudouEm   DateTime @default(now())
+
+  @@unique([entidade, blingId])
+  @@index([entidade, codigo])
+  @@index([entidade, pendente])
+  @@map("espelho_bling")
+  @@schema("erp")
+}
+
+/// Onde cada leitura parou. A varredura anda em tandas curtas e continua de
+/// onde parou: nenhuma chamada precisa caber inteira no limite da Vercel.
+model FonteBling {
+  entidade       String    @id
+  /// Próxima página da varredura em curso.
+  pagina         Int       @default(1)
+  /// Quando a varredura em curso começou · vira o "desde" da próxima.
+  varreduraDe    DateTime?
+  /// Fim da última varredura completa.
+  completaEm     DateTime?
+  /// Leitura incremental: só o que mudou a partir daqui.
+  desde          DateTime?
+  registros      Int       @default(0)
+  erro           String?
+  erroEm         DateTime?
+  atualizadoEm   DateTime  @updatedAt
+
+  @@map("fontes_bling")
+  @@schema("erp")
 }

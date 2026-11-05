@@ -19,7 +19,8 @@
     "db:reiniciar": "tsx --env-file=.env.local prisma/reiniciar.ts --aplicar",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:assistencia": "prisma db execute --file prisma/sql/assistencia.sql --schema prisma/schema.prisma"
+    "db:assistencia": "prisma db execute --file prisma/sql/assistencia.sql --schema prisma/schema.prisma",
+    "db:erp": "prisma db execute --file prisma/sql/erp.sql --schema prisma/schema.prisma"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

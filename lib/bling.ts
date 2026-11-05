@@ -76,6 +76,8 @@ async function guardar(d: Resposta) {
     refreshAte: new Date(agora + 30 * 24 * 60 * 60 * 1000),
     escopos: d.scope ?? null,
     renovadoEm: new Date(agora),
+    falha: null,
+    falhaEm: null,
   };
 
   await prisma.integracao.upsert({
@@ -103,23 +105,43 @@ export async function token(): Promise<string> {
 
   if (c.expiraEm.getTime() - FOLGA > Date.now()) return c.accessToken;
 
-  const d = await pedirToken({ grant_type: "refresh_token", refresh_token: c.refreshToken });
+  let d: Resposta;
+  try {
+    d = await pedirToken({ grant_type: "refresh_token", refresh_token: c.refreshToken });
+  } catch (e) {
+    // Refresh recusado é conexão caída até alguém reautorizar. Fica gravado para
+    // o painel inteiro avisar · em 04/11 caiu às 17h e ninguém soube.
+    const falha = e instanceof Error ? e.message.slice(0, 500) : "falha ao renovar";
+    await prisma.integracao
+      .update({ where: { nome: NOME }, data: { falha, falhaEm: c.falhaEm ?? new Date() } })
+      .catch(() => {});
+    throw e;
+  }
   await guardar(d);
   return d.access_token;
 }
 
 /** Uma chamada autenticada na API. */
 export async function chamar<T = unknown>(caminho: string, init: RequestInit = {}): Promise<T> {
-  const r = await fetch(`${API}${caminho}`, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${await token()}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...init.headers,
-    },
-    cache: "no-store",
-  });
+  const ir = async () =>
+    fetch(`${API}${caminho}`, {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${await token()}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...init.headers,
+      },
+      cache: "no-store",
+    });
+
+  // O Bling aceita 3 requisições por segundo. Passou, responde 429: espera e
+  // tenta de novo, duas vezes, em vez de perder a leitura inteira.
+  let r = await ir();
+  for (let i = 1; r.status === 429 && i <= 2; i++) {
+    await new Promise((s) => setTimeout(s, 1200 * i));
+    r = await ir();
+  }
 
   const texto = await r.text();
   if (!r.ok) throw new Error(`Bling ${caminho} respondeu ${r.status}: ${texto.slice(0, 500)}`);
@@ -137,6 +159,8 @@ export async function conexao() {
     renovadoEm: c.renovadoEm,
     expiraEm: c.expiraEm,
     refreshAte: c.refreshAte,
+    falha: c.falha,
+    falhaEm: c.falhaEm,
     // Trinta dias sem ninguém emitir nada e a conexão cai sozinha. Avisar antes
     // é a diferença entre reautorizar com calma e descobrir com o cliente
     // esperando a nota.

@@ -23,6 +23,8 @@ const MENU: (Omit<ItemMenu, "badge"> & { papeis?: string[] })[] = [
   { href: "/admin/assistencia/fila", r: "Fila de decisão", grupo: "Assistência", icone: "fila" },
   { href: "/admin/assistencia/chamados", r: "Chamados", grupo: "Assistência", icone: "chamados" },
   { href: "/admin/assistencia/bancada", r: "Bancada", grupo: "Assistência", icone: "bancada" },
+  // ERP · fase 1: o espelho do Bling. Só lê; quem acompanha é quem responde pela conta.
+  { href: "/admin/erp", r: "Espelho do Bling", grupo: "ERP", icone: "espelho", papeis: ["MASTER", "DESENVOLVEDOR"] },
   { href: "/admin/vitrine", r: "Vitrine da home", grupo: "Loja", icone: "vitrine" },
   { href: "/admin/banners", r: "Banners", grupo: "Loja", icone: "banners" },
   { href: "/admin/videos", r: "Vídeos", grupo: "Loja", icone: "videos" },
@@ -46,12 +48,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const eu = await usuarioAtual();
   if (!eu) redirect("/admin/entrar");
 
-  const [conta, aSeparar, estoqueBaixo, naFila] = await Promise.all([
+  const [conta, aSeparar, estoqueBaixo, naFila, bling] = await Promise.all([
     // O tour aparece na primeira entrada de cada pessoa.
     prisma.usuario.findUnique({ where: { id: eu.id }, select: { viuTour: true } }),
     prisma.pedido.count({ where: { status: { in: ["PAGO", "SEPARANDO"] } } }),
     prisma.estoque.count({ where: { quantidade: { lte: 5 } } }),
     prisma.chamado.count({ where: { status: "EM_ANALISE" } }),
+    prisma.integracao.findUnique({ where: { nome: "bling" }, select: { falhaEm: true } }),
   ]);
 
   const contagem: Record<string, number> = {
@@ -112,7 +115,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </aside>
 
-      <main className="min-w-0">{children}</main>
+      <main className="min-w-0">
+        {/* Bling caído é pedido sem nota: avisa em toda tela, para todo mundo. */}
+        {bling?.falhaEm && eu.papel !== "TECNICO" && (
+          <div role="alert" className="border-b border-critico/30 bg-critico/[0.07] px-6 py-2.5 text-[13px] text-tinta">
+            <b className="text-critico">Bling desconectado desde {bling.falhaEm.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}.</b>{" "}
+            Pedidos novos não sobem para o Bling até reautorizar.{" "}
+            {(eu.papel === "MASTER" || eu.papel === "DESENVOLVEDOR") && (
+              <Link href="/admin/integracoes" className="font-bold text-marca underline">Reautorizar agora</Link>
+            )}
+          </div>
+        )}
+        {children}
+      </main>
 
       {!conta?.viuTour && <TourPainel />}
     </div>
