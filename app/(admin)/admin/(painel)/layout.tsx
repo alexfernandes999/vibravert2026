@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic";
 const MENU: (Omit<ItemMenu, "badge"> & { papeis?: string[] })[] = [
   { href: "/admin", r: "Visão geral", grupo: "", icone: "painel" },
   { href: "/admin/pedidos", r: "Pedidos", grupo: "", icone: "pedidos" },
+  { href: "/admin/clientes", r: "Clientes", grupo: "", icone: "clientes" },
   { href: "/admin/produtos", r: "Produtos", grupo: "", icone: "produtos" },
   { href: "/admin/estoque", r: "Estoque", grupo: "", icone: "estoque" },
   { href: "/admin/recuperar-vendas", r: "Recuperar vendas", grupo: "", icone: "recuperar" },

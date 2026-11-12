@@ -16,6 +16,7 @@ import {
   Mail,
   Megaphone,
   MessagesSquare,
+  Contact,
   Package,
   Plug,
   DatabaseZap,
@@ -41,6 +42,7 @@ import {
 const ICONES: Record<string, LucideIcon> = {
   painel: LayoutDashboard,
   pedidos: ShoppingBag,
+  clientes: Contact,
   produtos: Package,
   estoque: Boxes,
   recuperar: RefreshCcw,
