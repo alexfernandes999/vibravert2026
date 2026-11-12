@@ -18,10 +18,13 @@ const MENU: (Omit<ItemMenu, "badge"> & { papeis?: string[] })[] = [
   // Vendas: tudo o que tem cliente do outro lado.
   { href: "/admin/vendas", r: "Painel de vendas", grupo: "Vendas", icone: "vendas", papeis: ["MASTER", "DESENVOLVEDOR", "OPERADOR"] },
   { href: "/admin/pedidos", r: "Pedidos", grupo: "Vendas", icone: "pedidos" },
-  // Clientes e conversas num lugar só: compras, chamados, chat do site (Vibrinha) e WhatsApp.
-  { href: "/admin/clientes", r: "Clientes e conversas", grupo: "Vendas", icone: "clientes" },
+  // Só quem comprou. Quem conversou (chat do site, formulário, WhatsApp) fica em Atendimento.
+  { href: "/admin/clientes", r: "Clientes", grupo: "Vendas", icone: "clientes" },
   { href: "/admin/recuperar-vendas", r: "Recuperar vendas", grupo: "Vendas", icone: "recuperar" },
   { href: "/admin/revenda", r: "Cadastros de revenda", grupo: "Vendas", icone: "revenda" },
+
+  // Atendimento: a caixa de entrada de quem falou com a Vibra Vert, separada por canal e assunto.
+  { href: "/admin/atendimento", r: "Caixa de entrada", grupo: "Atendimento", icone: "conversas" },
 
   { href: "/admin/produtos", r: "Produtos", grupo: "Produtos", icone: "produtos" },
   { href: "/admin/estoque", r: "Estoque", grupo: "Produtos", icone: "estoque" },

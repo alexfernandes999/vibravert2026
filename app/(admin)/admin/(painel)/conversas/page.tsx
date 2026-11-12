@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** O chat do site agora fica em Clientes e conversas, junto com o resto do contato. */
+/** O chat do site agora fica em Atendimento, junto com o formulário e o WhatsApp. */
 export default function Conversas() {
-  redirect(`/admin/clientes?origem=${encodeURIComponent("Chat do site")}`);
+  redirect(`/admin/atendimento?canal=${encodeURIComponent("Chat do site")}`);
 }

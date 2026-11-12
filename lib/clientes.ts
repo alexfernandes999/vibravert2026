@@ -25,10 +25,10 @@ export function telefoneE164(t: string | null | undefined): string | null {
 export type Identidade = { d?: string; e?: string; t?: string; v?: string };
 
 /**
- * Por onde a pessoa chegou: os canais de contato (chat do site, formulário da
- * assistência) e os canais de compra (site e cada marketplace do Bling).
+ * Onde a pessoa comprou: o site e cada marketplace do Bling. Os canais de
+ * contato (chat do site, formulário, WhatsApp) ficam em Atendimento.
  */
-export const ORIGENS = ["Chat do site", "Assistência", "Site", "Mercado Livre", "Shopee", "Magalu", "Amazon", "Loja física"] as const;
+export const ORIGENS = ["Site", "Mercado Livre", "Shopee", "Magalu", "Amazon", "Loja física"] as const;
 export type Origem = (typeof ORIGENS)[number];
 
 /** O assunto do contato: venda ou SAC (defeito, garantia, reclamação). */
@@ -59,7 +59,7 @@ const RE_SAC = /parou|queim|garantia|defeit|não liga|nao liga|assist[eê]ncia|t
 export const assuntoVibrinha = (texto: string): Assunto => (RE_SAC.test(texto) ? "SAC" : "Vendas");
 
 /** Etiquetas calculadas na hora, para filtrar a lista. */
-export const ETIQUETAS = ["Chamado aberto", "Recompra", "Empresa (CNPJ)", "Comprou em 30 dias"] as const;
+export const ETIQUETAS = ["Recompra", "Empresa (CNPJ)", "Comprou em 30 dias"] as const;
 export type Etiqueta = (typeof ETIQUETAS)[number];
 
 const TIPO_CANAL: Record<string, Origem> = {
@@ -70,7 +70,6 @@ const TIPO_CANAL: Record<string, Origem> = {
   LojaFisica: "Loja física",
 };
 
-const CHAMADO_FECHADO = ["CONCLUIDO", "ENCERRADO", "NEGADO", "RECUSADO", "ORIENTADO_MARKETPLACE"];
 
 export type Cartao = {
   nome: string;
@@ -140,71 +139,45 @@ async function contatosBling(q: string | null, lojas: string[] | null, limite: n
      LIMIT ${limite}`;
 }
 
-export type FiltroClientes = { q?: string | null; origem?: string | null; etiqueta?: string | null; assunto?: string | null };
+export type FiltroClientes = { q?: string | null; origem?: string | null; etiqueta?: string | null };
 
 /** Lista: busca por nome, CPF/CNPJ, e-mail ou telefone, com filtro de origem e etiqueta. */
 export async function buscarClientes(f: FiltroClientes = {}): Promise<Cartao[]> {
   const termo = f.q?.trim() || null;
   const origem = (ORIGENS as readonly string[]).includes(f.origem ?? "") ? (f.origem as Origem) : null;
   const etiqueta = (ETIQUETAS as readonly string[]).includes(f.etiqueta ?? "") ? (f.etiqueta as Etiqueta) : null;
-  const assunto = (ASSUNTOS as readonly string[]).includes(f.assunto ?? "") ? (f.assunto as Assunto) : null;
   const digitos = termo ? so(termo) : "";
   const tel = digitos.length >= 8 ? digitos.slice(-8) : null;
   const canais = await canaisBling();
 
+  // Só quem comprou (site e canais do Bling). Quem só conversou fica em Atendimento.
   const querSite = !origem || origem === "Site";
-  // Etiquetas são de compra e chamado; conversa do chat não tem nenhuma delas.
-  const querChat = (!origem || origem === "Chat do site") && !etiqueta;
-  const querChamado = !origem || origem === "Assistência";
-  const lojasDaOrigem = origem ? [...canais].filter(([, c]) => c.origem === origem).map(([id]) => id) : null;
+  const lojasDaOrigem = origem && origem !== "Site" ? [...canais].filter(([, c]) => c.origem === origem).map(([id]) => id) : null;
   const querBling = !origem || (lojasDaOrigem?.length ?? 0) > 0;
   const limite = etiqueta ? 150 : 60;
 
-  const [site, chamados, bling, chats] = await Promise.all([
+  const [site, bling] = await Promise.all([
     querSite
       ? prisma.cliente.findMany({
-          where: termo
-            ? {
-                OR: [
-                  { nome: { contains: termo, mode: "insensitive" } },
-                  { email: { contains: termo, mode: "insensitive" } },
-                  ...(digitos.length >= 5 ? [{ cpfCnpj: { contains: digitos } }] : []),
-                  ...(tel ? [{ telefone: { contains: tel.slice(-4) } }] : []),
-                ],
-              }
-            : undefined,
+          where: {
+            pedidos: { some: {} },
+            ...(termo
+              ? {
+                  OR: [
+                    { nome: { contains: termo, mode: "insensitive" } },
+                    { email: { contains: termo, mode: "insensitive" } },
+                    ...(digitos.length >= 5 ? [{ cpfCnpj: { contains: digitos } }] : []),
+                    ...(tel ? [{ telefone: { contains: tel.slice(-4) } }] : []),
+                  ],
+                }
+              : {}),
+          },
           orderBy: { criadoEm: "desc" },
           take: limite,
           select: { nome: true, email: true, cpfCnpj: true, telefone: true, criadoEm: true, _count: { select: { pedidos: true } } },
         })
       : [],
-    querChamado || etiqueta === "Chamado aberto"
-      ? prisma.chamado.findMany({
-          where: termo
-            ? {
-                OR: [
-                  { nome: { contains: termo, mode: "insensitive" } },
-                  { email: { contains: termo, mode: "insensitive" } },
-                  ...(digitos.length >= 5 ? [{ documento: { startsWith: digitos } }] : []),
-                  ...(tel ? [{ telefone: { endsWith: tel } }] : []),
-                ],
-              }
-            : undefined,
-          orderBy: { criadoEm: "desc" },
-          take: limite,
-          select: { nome: true, email: true, documento: true, telefone: true, criadoEm: true, status: true },
-        })
-      : [],
-    querBling && etiqueta !== "Chamado aberto" && assunto !== "SAC" ? contatosBling(termo, lojasDaOrigem, limite, etiqueta) : [],
-    querChat
-      ? prisma.conversa.findMany({
-          where: termo
-            ? { OR: [{ nome: { contains: termo, mode: "insensitive" } }, { dialogo: { contains: termo, mode: "insensitive" } }] }
-            : { dialogo: { not: "" } },
-          orderBy: { criadoEm: "desc" },
-          take: limite,
-        })
-      : [],
+    querBling ? contatosBling(termo, lojasDaOrigem, limite, etiqueta) : [],
   ]);
 
   // Junta as fontes na mesma pessoa: documento, depois e-mail, depois telefone.
@@ -223,7 +196,7 @@ export async function buscarClientes(f: FiltroClientes = {}): Promise<Cartao[]> 
     if (!p) {
       pessoas.push({
         documento: doc, email: x.email ?? null, telefone: x.telefone ?? null,
-        pedidosSite: 0, pedidosBling: 0, chamados: 0, chamadoAberto: false, origens: [], assuntos: [], etiquetas: [],
+        pedidosSite: 0, pedidosBling: 0, chamados: 0, chamadoAberto: false, origens: [], assuntos: ["Vendas"], etiquetas: [],
         ...x, nome: x.nome,
       });
       return;
@@ -233,58 +206,32 @@ export async function buscarClientes(f: FiltroClientes = {}): Promise<Cartao[]> 
     p.telefone ??= x.telefone ?? null;
     p.pedidosSite += x.pedidosSite ?? 0;
     p.pedidosBling += x.pedidosBling ?? 0;
-    p.chamados += x.chamados ?? 0;
-    p.chamadoAberto ||= Boolean(x.chamadoAberto);
     p.origens = [...new Set([...p.origens, ...(x.origens ?? [])])];
-    p.assuntos = [...new Set([...p.assuntos, ...(x.assuntos ?? [])])];
     if (x.ultimo > p.ultimo) p.ultimo = x.ultimo;
   };
 
   for (const c of site)
-    juntar({ nome: c.nome, email: c.email, documento: c.cpfCnpj, telefone: c.telefone, pedidosSite: c._count.pedidos, origens: ["Site"], assuntos: ["Vendas"], ultimo: c.criadoEm });
-  for (const c of chamados)
-    juntar({
-      nome: c.nome, email: c.email, documento: c.documento, telefone: c.telefone, chamados: 1,
-      chamadoAberto: !CHAMADO_FECHADO.includes(c.status), origens: ["Assistência"], assuntos: ["SAC"], ultimo: c.criadoEm,
-    });
+    juntar({ nome: c.nome, email: c.email, documento: c.cpfCnpj, telefone: c.telefone, pedidosSite: c._count.pedidos, origens: ["Site"], ultimo: c.criadoEm });
   for (const b of bling)
     juntar({
       nome: (b.nome ?? "Sem nome").replace(/\s*\([^)]*\)\s*$/, ""), // "Nome (apelido do ML)" → "Nome"
       documento: b.documento || null,
       pedidosBling: Number(b.pedidos),
       origens: [...new Set((b.lojas ?? []).map((l) => canais.get(l)?.origem).filter(Boolean))] as Origem[],
-      assuntos: ["Vendas"],
       ultimo: /^\d{4}-\d{2}-\d{2}$/.test(b.ultimo ?? "") ? new Date(`${b.ultimo}T12:00:00Z`) : new Date(0),
     });
-
-  for (const c of chats) {
-    const v = lerVibrinha(c.dialogo);
-    const temContato = Boolean(v.email || v.telefone);
-    const x = {
-      nome: v.nome ?? c.nome ?? "Visitante do site",
-      email: v.email,
-      telefone: v.telefone,
-      origens: ["Chat do site"] as Origem[],
-      assuntos: [assuntoVibrinha(`${c.apurado ?? ""} ${c.dialogo}`)],
-      ultimo: c.criadoEm,
-    };
-    // Sem contato deixado, cada conversa é uma pessoa à parte (não dá para ligar a ninguém).
-    if (temContato) juntar(x);
-    else pessoas.push({ documento: null, pedidosSite: 0, pedidosBling: 0, chamados: 0, chamadoAberto: false, etiquetas: [], conversaId: c.id, ...x });
-  }
 
   const mes = Date.now() - 30 * 86_400_000;
   for (const p of pessoas) {
     p.etiquetas = [
-      ...(p.chamadoAberto ? (["Chamado aberto"] as const) : []),
       ...(p.pedidosSite + p.pedidosBling >= 2 ? (["Recompra"] as const) : []),
       ...(so(p.documento).length === 14 ? (["Empresa (CNPJ)"] as const) : []),
-      ...(p.pedidosSite + p.pedidosBling > 0 && p.ultimo.getTime() >= mes ? (["Comprou em 30 dias"] as const) : []),
+      ...(p.ultimo.getTime() >= mes ? (["Comprou em 30 dias"] as const) : []),
     ];
   }
 
   return pessoas
-    .filter((p) => (!origem || p.origens.includes(origem)) && (!etiqueta || p.etiquetas.includes(etiqueta)) && (!assunto || p.assuntos.includes(assunto)))
+    .filter((p) => (!origem || p.origens.includes(origem)) && (!etiqueta || p.etiquetas.includes(etiqueta)))
     .sort((a, b) => b.ultimo.getTime() - a.ultimo.getTime())
     .slice(0, 80);
 }
