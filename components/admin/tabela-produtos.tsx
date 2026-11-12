@@ -16,7 +16,9 @@ export type LinhaProduto = {
   ativo: boolean;
   imagem: string | null;
   detalhe: string;
-  versao: string;
+  /** BOMBA, BOIA, KIT, BOIA_KIT (versões da bomba), PECA, KIT_AVULSO ou ACESSORIO. */
+  tipo: string;
+  voltagem: string | null;
   principal: boolean;
   /** Saldo no Bling por depósito; nulo quando o código não está no espelho. */
   darwin: number | null;
@@ -26,7 +28,17 @@ export type LinhaProduto = {
   lider: number | null;
 };
 
-type Coluna = "nome" | "sku" | "marca" | "preco" | "darwin" | "mlFull";
+const TIPOS: [string, string][] = [
+  ["BOMBA", "Bomba"],
+  ["BOIA", "Bomba + boia"],
+  ["KIT", "Bomba + kit"],
+  ["BOIA_KIT", "Bomba + boia + kit"],
+  ["PECA", "Peças"],
+  ["KIT_AVULSO", "Kit avulso"],
+  ["ACESSORIO", "Acessório"],
+];
+
+type Coluna = "nome" | "sku" | "marca" | "voltagem" | "preco" | "darwin" | "mlFull";
 
 export function TabelaProdutos({
   linhas,
@@ -48,10 +60,13 @@ export function TabelaProdutos({
   const [categoria, setCategoria] = useState("");
   const [marca, setMarca] = useState("");
   const [situacao, setSituacao] = useState<"" | "ativo" | "inativo">("");
+  const [tipo, setTipo] = useState("");
+  const [voltagem, setVoltagem] = useState("");
   const [ordem, setOrdem] = useState<{ c: Coluna; asc: boolean }>({ c: "marca", asc: true });
 
   const categorias = useMemo(() => [...new Set(linhas.flatMap((l) => l.categorias))].sort(), [linhas]);
   const marcas = useMemo(() => [...new Set(linhas.map((l) => l.marca))].sort(), [linhas]);
+  const voltagens = useMemo(() => [...new Set(linhas.map((l) => l.voltagem).filter((v): v is string => Boolean(v)))].sort(), [linhas]);
 
   const visiveis = useMemo(() => {
     const sem = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
@@ -63,6 +78,8 @@ export function TabelaProdutos({
         (!c || l.sku.toLowerCase().includes(c)) &&
         (!categoria || l.categorias.includes(categoria)) &&
         (!marca || l.marca === marca) &&
+        (!tipo || l.tipo === tipo) &&
+        (!voltagem || (voltagem === "-" ? !l.voltagem : l.voltagem === voltagem)) &&
         (!situacao || (situacao === "ativo") === l.ativo),
     );
     const v = (l: LinhaProduto) => l[ordem.c];
@@ -74,7 +91,7 @@ export function TabelaProdutos({
       const r = typeof x === "number" ? x - (y as number) : String(x).localeCompare(String(y), "pt-BR");
       return ordem.asc ? r : -r;
     });
-  }, [linhas, nome, codigo, categoria, marca, situacao, ordem]);
+  }, [linhas, nome, codigo, categoria, marca, tipo, voltagem, situacao, ordem]);
 
   const campo = "rounded-lg border border-linha bg-superficie px-2.5 py-1.5 text-[12.5px]";
   const Cab = ({ c, r, direita }: { c: Coluna; r: string; direita?: boolean }) => (
@@ -104,6 +121,15 @@ export function TabelaProdutos({
           <option value="">Todas as marcas</option>
           {marcas.map((m) => <option key={m}>{m}</option>)}
         </select>
+        <select value={tipo} onChange={(e) => setTipo(e.target.value)} aria-label="Tipo" className={campo}>
+          <option value="">Todos os tipos</option>
+          {TIPOS.map(([v, r]) => <option key={v} value={v}>{r}</option>)}
+        </select>
+        <select value={voltagem} onChange={(e) => setVoltagem(e.target.value)} aria-label="Voltagem" className={campo}>
+          <option value="">Todas as voltagens</option>
+          {voltagens.map((v) => <option key={v}>{v}</option>)}
+          <option value="-">Sem voltagem</option>
+        </select>
         <select value={situacao} onChange={(e) => setSituacao(e.target.value as typeof situacao)} aria-label="Situação" className={campo}>
           <option value="">Ativos e inativos</option>
           <option value="ativo">Só ativos</option>
@@ -120,6 +146,7 @@ export function TabelaProdutos({
               <Cab c="nome" r="Produto" />
               <Cab c="sku" r="Código" />
               <Cab c="marca" r="Marca" />
+              <Cab c="voltagem" r="Voltagem" />
               <Cab c="preco" r="Preço a prazo" direita />
               <th className="px-2 py-2.5 text-right font-bold">PIX</th>
               <Cab c="darwin" r="Darwin" direita />
@@ -147,6 +174,7 @@ export function TabelaProdutos({
                 </td>
                 <td className="num px-2 py-2 text-mudo">{p.sku}</td>
                 <td className="px-2 py-2 text-mudo">{p.marca}</td>
+                <td className="num px-2 py-2 text-mudo">{p.voltagem ?? "—"}</td>
                 <Preco id={p.id} inicial={p.preco} />
                 <Saldo n={p.darwin} />
                 <Saldo n={p.mlFull} />
