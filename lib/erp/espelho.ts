@@ -13,7 +13,7 @@ import { chamar } from "@/lib/bling";
  * Cada fonte é varrida em páginas. A varredura guarda onde parou e continua na
  * chamada seguinte, então cabe no limite de tempo da Vercel e sobrevive a uma
  * queda no meio. A primeira carga (o ano inteiro) roda do computador, pelo
- * script `prisma/espelho.ts`, que não tem limite de tempo.
+ * script `prisma/espelho.mts`, que não tem limite de tempo.
  */
 
 type Item = Record<string, unknown> & { id?: number | string };
@@ -146,42 +146,49 @@ export const SALDO = { entidade: "saldo", rotulo: "Saldos por depósito", lote: 
 
 const hash = (x: unknown) => createHash("sha1").update(JSON.stringify(x)).digest("hex");
 
-/** Grava uma página da listagem. Devolve quantos mudaram de fato. */
+/**
+ * Grava uma página da listagem numa operação só (uma ida ao banco por página,
+ * não uma por registro). Devolve quantos mudaram de fato.
+ */
 async function gravar(f: Fonte, itens: Item[]) {
-  const ids = itens.map((x) => String(x.id));
-  const existentes = await prisma.espelhoBling.findMany({
-    where: { entidade: f.entidade, blingId: { in: ids } },
-    select: { blingId: true, hash: true },
-  });
-  const antes = new Map(existentes.map((e) => [e.blingId, e.hash]));
-  const agora = new Date();
-  let mudaram = 0;
-
-  await prisma.$transaction(
-    itens.map((x) => {
-      const blingId = String(x.id);
-      const h = hash(x);
-      const mudou = antes.get(blingId) !== h;
-      if (mudou) mudaram++;
-      const pendente = mudou && Boolean(f.detalhe && f.precisaDetalhe?.(x));
-      const resumo = x as Prisma.InputJsonValue;
-      return prisma.espelhoBling.upsert({
-        where: { entidade_blingId: { entidade: f.entidade, blingId } },
-        create: { entidade: f.entidade, blingId, codigo: f.codigo?.(x) ?? null, resumo, hash: h, pendente },
-        update: mudou
-          ? { codigo: f.codigo?.(x) ?? null, resumo, hash: h, lidoEm: agora, mudouEm: agora, ...(pendente ? { pendente } : {}) }
-          : { lidoEm: agora },
-      });
-    }),
-  );
-  return mudaram;
+  const linhas = itens.map((x) => ({
+    blingId: String(x.id),
+    codigo: f.codigo?.(x) ?? null,
+    resumo: x,
+    hash: hash(x),
+    pendente: Boolean(f.detalhe && f.precisaDetalhe?.(x)),
+  }));
+  const r = await prisma.$queryRaw<{ mudaram: bigint }[]>`
+    WITH v AS (
+      SELECT * FROM jsonb_to_recordset(${JSON.stringify(linhas)}::jsonb)
+        AS x("blingId" text, codigo text, resumo jsonb, hash text, pendente boolean)
+    ), gravado AS (
+      INSERT INTO "erp"."espelho_bling" ("id", "entidade", "blingId", "codigo", "resumo", "hash", "pendente", "lidoEm", "mudouEm")
+      SELECT gen_random_uuid()::text, ${f.entidade}, "blingId", codigo, resumo, hash, pendente, now(), now() FROM v
+      ON CONFLICT ("entidade", "blingId") DO UPDATE SET
+        "codigo"   = CASE WHEN "espelho_bling"."hash" <> EXCLUDED."hash" THEN EXCLUDED."codigo" ELSE "espelho_bling"."codigo" END,
+        "resumo"   = CASE WHEN "espelho_bling"."hash" <> EXCLUDED."hash" THEN EXCLUDED."resumo" ELSE "espelho_bling"."resumo" END,
+        "pendente" = "espelho_bling"."pendente" OR ("espelho_bling"."hash" <> EXCLUDED."hash" AND EXCLUDED."pendente"),
+        "mudouEm"  = CASE WHEN "espelho_bling"."hash" <> EXCLUDED."hash" THEN now() ELSE "espelho_bling"."mudouEm" END,
+        "hash"     = EXCLUDED."hash",
+        "lidoEm"   = now()
+      RETURNING (xmax = 0) AS novo, "mudouEm" = now() AS mudou
+    )
+    SELECT count(*) FILTER (WHERE novo OR mudou) AS mudaram FROM gravado`;
+  return Number(r[0]?.mudaram ?? 0);
 }
 
 type Relatorio = { entidade: string; paginas: number; mudaram: number; detalhes: number; completa: boolean; erro?: string };
 
-/** Uma tanda de leitura de uma fonte, até o prazo. */
-async function lerFonte(f: Fonte, prazo: number): Promise<Relatorio> {
+/**
+ * Uma tanda de leitura de uma fonte, até o prazo. Em duas etapas: primeiro a
+ * listagem de todas as fontes, depois os detalhes · senão o atraso de detalhe
+ * de uma fonte (40 mil pedidos na primeira carga) come a rodada inteira e as
+ * fontes seguintes nunca chegam a ser lidas.
+ */
+async function lerFonte(f: Fonte, prazo: number, etapa: "lista" | "detalhe"): Promise<Relatorio> {
   const r: Relatorio = { entidade: f.entidade, paginas: 0, mudaram: 0, detalhes: 0, completa: false };
+  if (etapa === "detalhe" && !f.detalhe) return r;
   let estado = await prisma.fonteBling.upsert({
     where: { entidade: f.entidade },
     create: { entidade: f.entidade },
@@ -193,7 +200,7 @@ async function lerFonte(f: Fonte, prazo: number): Promise<Relatorio> {
     !estado.completaEm || Date.now() - estado.completaEm.getTime() >= f.intervaloMin * 60_000;
 
   try {
-    if (emCurso || vencida) {
+    if (etapa === "lista" && (emCurso || vencida)) {
       if (!emCurso) {
         estado = await prisma.fonteBling.update({
           where: { entidade: f.entidade },
@@ -235,7 +242,7 @@ async function lerFonte(f: Fonte, prazo: number): Promise<Relatorio> {
     }
 
     // Detalhes: o mais recente primeiro · é o que o painel do dia precisa.
-    if (f.detalhe) {
+    if (etapa === "detalhe" && f.detalhe) {
       while (Date.now() < prazo) {
         const fila = await prisma.espelhoBling.findMany({
           where: { entidade: f.entidade, pendente: true },
@@ -352,13 +359,28 @@ export async function sincronizar({ orcamentoMs = 45_000, entidades }: { orcamen
   if (!(await travar())) return { ok: false as const, motivo: "outra leitura em andamento" };
   const relatorio: Relatorio[] = [];
   try {
-    for (const f of FONTES) {
+    const fontes = FONTES.filter((f) => !entidades || entidades.includes(f.entidade));
+    // Listagens: rápidas e o que mantém o espelho em dia.
+    for (const f of fontes) {
       if (Date.now() >= prazo) break;
-      if (entidades && !entidades.includes(f.entidade)) continue;
-      relatorio.push(await lerFonte(f, prazo));
+      relatorio.push(await lerFonte(f, prazo, "lista"));
       if (f.entidade === "produto" && (!entidades || entidades.includes(SALDO.entidade))) {
         relatorio.push(await lerSaldos(prazo));
       }
+    }
+    // Detalhes: o tempo que sobrou, dividido entre as fontes com detalhe, para
+    // nenhuma ficar parada atrás de outra.
+    const comDetalhe = fontes.filter((f) => f.detalhe);
+    for (const [i, f] of comDetalhe.entries()) {
+      const resta = prazo - Date.now();
+      if (resta <= 0) break;
+      const parte = Date.now() + resta / (comDetalhe.length - i);
+      const d = await lerFonte(f, parte, "detalhe");
+      const r = relatorio.find((x) => x.entidade === f.entidade);
+      if (r) {
+        r.detalhes += d.detalhes;
+        r.erro ??= d.erro;
+      } else relatorio.push(d);
     }
   } finally {
     await soltar();
