@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { registrarAcao } from "@/lib/admin-auth";
-import { brl } from "@/lib/formato";
+import { DESCONTO_PIX } from "@/lib/formato";
+import { TabelaProdutos, type LinhaProduto } from "@/components/admin/tabela-produtos";
 import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
@@ -43,6 +43,36 @@ async function alternarDestaque(id: string, destaque: boolean) {
   revalidatePath("/", "layout");
 }
 
+/** Depósitos do Bling que a lista mostra (ids fixos da conta da Vibra Vert). */
+const DEPOSITO = { darwin: "853471300", mlFull: "5230762183" };
+
+/**
+ * Saldo por depósito vindo do espelho do Bling, pelo código do produto.
+ * O Bling tem vários cadastros com o mesmo código (anúncios antigos excluídos);
+ * vale o ativo, que é o que o estoque de verdade usa.
+ */
+async function saldosDoBling(skus: string[]) {
+  const [produtos, saldos] = await Promise.all([
+    prisma.espelhoBling.findMany({ where: { entidade: "produto", codigo: { in: skus } }, select: { blingId: true, codigo: true, resumo: true } }),
+    prisma.espelhoBling.findMany({ where: { entidade: "saldo", codigo: { in: skus } }, select: { blingId: true, resumo: true, lidoEm: true } }),
+  ]);
+  const ativo = new Map<string, string>();
+  for (const p of produtos) {
+    if ((p.resumo as { situacao?: string }).situacao === "A" && p.codigo) ativo.set(p.codigo, p.blingId);
+  }
+  const porId = new Map(saldos.map((s) => [s.blingId, s]));
+  const mapa = new Map<string, { darwin: number; mlFull: number }>();
+  for (const [codigo, blingId] of ativo) {
+    const s = porId.get(blingId);
+    if (!s) continue;
+    const dep = (s.resumo as { depositos?: { id: number; saldoFisico: number }[] }).depositos ?? [];
+    const de = (id: string) => dep.find((d) => String(d.id) === id)?.saldoFisico ?? 0;
+    mapa.set(codigo, { darwin: de(DEPOSITO.darwin), mlFull: de(DEPOSITO.mlFull) });
+  }
+  const lido = saldos.reduce<Date | null>((m, s) => (!m || s.lidoEm > m ? s.lidoEm : m), null);
+  return { mapa, lido };
+}
+
 export default async function Produtos() {
   const produtos = await prisma.produto.findMany({
     orderBy: [{ marca: "asc" }, { preco: "asc" }],
@@ -51,6 +81,7 @@ export default async function Produtos() {
       voltagem: true, pocoPolegadas: true, versao: true, principalDaFamilia: true,
       _count: { select: { imagens: true, especificacoes: true } },
       imagens: { where: { principal: true }, select: { url: true }, take: 1 },
+      categorias: { select: { categoria: { select: { nome: true } } } },
       tipo: true, vazaoMaxima: true,
     },
   });
@@ -82,6 +113,27 @@ export default async function Produtos() {
       .sort((a, b) => Number(b.preco) - Number(a.preco)),
   );
 
+  const { mapa: saldo, lido } = await saldosDoBling(produtos.map((p) => p.sku));
+
+  const linhas: LinhaProduto[] = produtos.map((p) => ({
+    id: p.id,
+    nome: p.nome,
+    sku: p.sku,
+    marca: p.marca,
+    categorias: p.categorias.map((c) => c.categoria.nome),
+    preco: Number(p.preco),
+    ativo: p.ativo,
+    imagem: p.imagens[0]?.url ?? null,
+    detalhe: [p.voltagem, p.pocoPolegadas && `poço ${p.pocoPolegadas}"`, p.versao.replace("_", " + "), `${p._count.especificacoes} specs`].filter(Boolean).join(" · "),
+    versao: p.versao,
+    principal: p.principalDaFamilia,
+    darwin: saldo.get(p.sku)?.darwin ?? null,
+    mlFull: saldo.get(p.sku)?.mlFull ?? null,
+    // marcado mas fora da regra da prateleira (inativo, outro tipo) aparece como posição alta
+    vitrine: p.naVitrine ? (vitrine.get(p.id) ?? 99) : null,
+    lider: p.destaque ? (lider.get(p.id) ?? 99) : null,
+  }));
+
   return (
     <div className="p-6">
       <div className="flex flex-wrap items-center gap-3">
@@ -94,133 +146,19 @@ export default async function Produtos() {
         </Link>
       </div>
       <p className="mt-0.5 text-[13px] text-mudo">
-        {produtos.filter((p) => p.ativo).length} ativos de {produtos.length} · o número diz em que
-        posição o produto aparece na loja. A prateleira de bombas mostra {LIMITE_LIDER} e a de peças
-        mostra {LIMITE_VITRINE} · quem passar disso fica marcado, mas não aparece
+        {produtos.filter((p) => p.ativo).length} ativos de {produtos.length}. O preço a prazo se edita na própria
+        linha e o PIX ({Math.round(DESCONTO_PIX * 100)}% off) acompanha. Estoque Darwin e ML Full vem do Bling
+        {lido ? `, lido em ${lido.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}` : ""}.
       </p>
 
-      <div className="mt-5 overflow-x-auto rounded-caixa border border-linha bg-superficie">
-        <table className="w-full text-[12.5px]">
-          <thead>
-            <tr className="border-b border-linha text-left text-[10px] uppercase tracking-[0.12em] text-mudo">
-              <th className="px-4 py-2.5 font-bold" colSpan={2}>Produto</th>
-              <th className="px-2 py-2.5 font-bold">SKU</th>
-              <th className="px-2 py-2.5 font-bold">Versão</th>
-              <th className="px-2 py-2.5 text-right font-bold">Preço</th>
-              <th className="px-2 py-2.5 text-center font-bold" title="Aparece na prateleira da home">Vitrine</th>
-              <th className="px-2 py-2.5 text-center font-bold" title="Selo de líder em vendas no cartão">Líder</th>
-              <th className="px-4 py-2.5 font-bold">Situação</th>
-            </tr>
-          </thead>
-          <tbody>
-            {produtos.map((p) => (
-              <tr key={p.id} className="border-b border-linha last:border-0">
-                <td className="w-14 py-1.5 pl-4">
-                  {p.imagens[0] && (
-                    <Link href={`/admin/produtos/${p.id}`}>
-                    <Image
-                      src={p.imagens[0].url}
-                      alt=""
-                      width={44}
-                      height={44}
-                      className="h-11 w-11 rounded-lg border border-linha object-cover transition hover:border-marca"
-                    />
-                    </Link>
-                  )}
-                </td>
-                <td className="py-2 pl-2">
-                  {p.principalDaFamilia && <span className="mr-1 text-ouro-escuro">★</span>}
-                  <Link href={`/admin/produtos/${p.id}`} className="font-semibold hover:text-marca hover:underline">
-                    {p.nome}
-                  </Link>
-                  <span className="num block text-[10.5px] text-mudo">
-                    {p.voltagem} {p.pocoPolegadas && `· poço ${p.pocoPolegadas}"`} · {p._count.especificacoes} specs
-                  </span>
-                </td>
-                <td className="num px-2 py-2 text-mudo">{p.sku}</td>
-                <td className="px-2 py-2 text-mudo">{p.versao.replace("_", " + ")}</td>
-                <td className="num px-2 py-2 text-right font-bold">{brl(Number(p.preco))}</td>
-                <td className="px-2 py-2 text-center">
-                  <form action={alternarVitrine.bind(null, p.id, !p.naVitrine)}>
-                    <Posicao
-                      n={vitrine.get(p.id)}
-                      limite={LIMITE_VITRINE}
-                      cor="marca"
-                      titulo={p.naVitrine ? "Tirar da prateleira da home" : "Mostrar na prateleira da home"}
-                    />
-                  </form>
-                </td>
-                <td className="px-2 py-2 text-center">
-                  <form action={alternarDestaque.bind(null, p.id, !p.destaque)}>
-                    <Posicao
-                      n={lider.get(p.id)}
-                      limite={LIMITE_LIDER}
-                      cor="ouro"
-                      titulo={p.destaque ? "Tirar o selo de líder em vendas" : "Marcar como líder em vendas"}
-                    />
-                  </form>
-                </td>
-                <td className="px-4 py-2">
-                  <form action={alternarAtivo.bind(null, p.id, !p.ativo)}>
-                    <button
-                      className={`rounded px-2 py-0.5 text-[10px] font-extrabold tracking-wide ${
-                        p.ativo ? "bg-bom-suave text-bom" : "bg-critico/10 text-critico"
-                      }`}
-                    >
-                      {p.ativo ? "ATIVO" : "INATIVO"}
-                    </button>
-                  </form>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <TabelaProdutos
+        linhas={linhas}
+        limiteLider={LIMITE_LIDER}
+        limiteVitrine={LIMITE_VITRINE}
+        alternarAtivo={alternarAtivo}
+        alternarVitrine={alternarVitrine}
+        alternarDestaque={alternarDestaque}
+      />
     </div>
-  );
-}
-
-/**
- * O botão que liga e desliga, mostrando a posição na loja.
- *
- * Marcado e dentro do limite: número em cor cheia · é o que se vê no site.
- * Marcado e fora do limite: número riscado, porque a prateleira acabou.
- * Não marcado: traço, que convida a clicar sem parecer erro.
- */
-function Posicao({
-  n,
-  limite,
-  cor,
-  titulo,
-}: {
-  n?: number;
-  limite: number;
-  cor: "ouro" | "marca";
-  titulo: string;
-}) {
-  const dentro = n !== undefined && n <= limite;
-  const fora = n !== undefined && n > limite;
-
-  return (
-    <button
-      title={
-        fora
-          ? `Marcado, mas a prateleira mostra só ${limite} · este é o ${n}º`
-          : dentro
-            ? `Aparece na posição ${n} da prateleira`
-            : titulo
-      }
-      className={`num grid h-6 w-6 place-items-center rounded-md text-[11.5px] font-extrabold transition ${
-        dentro
-          ? cor === "ouro"
-            ? "bg-ouro text-ouro-txt"
-            : "bg-marca text-white"
-          : fora
-            ? "border border-dashed border-linha-2 text-mudo line-through"
-            : "text-linha-2 hover:bg-superficie-2 hover:text-tinta-2"
-      }`}
-    >
-      {n ?? "–"}
-    </button>
   );
 }
