@@ -6,13 +6,7 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-// Sem link de convite cadastrado, monta a URL de autorização com o client_id do
-// servidor: o botão existe sempre, e reconectar não depende de achar o link no Bling.
-const CONVITE =
-  process.env.BLING_LINK_CONVITE ||
-  (process.env.BLING_CLIENT_ID
-    ? `https://www.bling.com.br/Api/v3/oauth/authorize?response_type=code&client_id=${encodeURIComponent(process.env.BLING_CLIENT_ID)}&state=vibravert`
-    : "");
+const CONVITE = process.env.BLING_LINK_CONVITE || "";
 
 /**
  * Autorização manual, para quando o link de convite não volta para cá.
@@ -180,7 +174,7 @@ export default async function Integracoes() {
               rel="noopener"
               className="mt-3 inline-block rounded-lg bg-marca px-4 py-2.5 text-[14px] font-bold text-white"
             >
-              Conectar ao Bling
+              Abrir o link de convite
             </a>
           )}
 
