@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buscarClientes, linkFicha } from "@/lib/clientes";
+import { buscarClientes, linkFicha, telefoneE164 } from "@/lib/clientes";
 import { mascararDocumento } from "@/lib/assistencia/laudo";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +12,10 @@ export const metadata = { title: "Clientes" };
 export default async function Clientes({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q = "" } = await searchParams;
   const pessoas = await buscarClientes(q || null);
+  // Telefone que não é de comprador nem de chamado (ex.: só conversou no WhatsApp):
+  // a ficha abre do mesmo jeito, pelo número.
+  const fone = /[a-z@]/i.test(q) ? null : telefoneE164(q);
+  const semFicha = fone && !pessoas.some((p) => telefoneE164(p.telefone) === fone);
 
   return (
     <div className="p-6">
@@ -37,6 +41,14 @@ export default async function Clientes({ searchParams }: { searchParams: Promise
       <p className="mt-3 text-[12.5px] text-mudo">{q ? `${pessoas.length} encontrados` : "Os mais recentes"}</p>
 
       <ul className="mt-2 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {semFicha && (
+          <li>
+            <Link href={`/admin/clientes/ficha?t=${fone}`} className="block h-full rounded-caixa border border-dashed border-marca bg-marca-suave p-4">
+              <p className="text-[15px] font-extrabold text-marca">Ver o WhatsApp de +{fone}</p>
+              <p className="mt-0.5 text-[12.5px] text-tinta-2">Não comprou no site nem abriu chamado com este número. A ficha mostra a conversa no Conversas.</p>
+            </Link>
+          </li>
+        )}
         {pessoas.map((p, i) => (
           <li key={`${p.documento ?? p.email ?? p.telefone ?? p.nome}-${i}`}>
             <Link
@@ -58,7 +70,7 @@ export default async function Clientes({ searchParams }: { searchParams: Promise
             </Link>
           </li>
         ))}
-        {pessoas.length === 0 && <li className="text-[13px] text-mudo">Ninguém encontrado.</li>}
+        {pessoas.length === 0 && !semFicha && <li className="text-[13px] text-mudo">Ninguém encontrado.</li>}
       </ul>
     </div>
   );
