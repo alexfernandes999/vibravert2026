@@ -8,7 +8,8 @@ import { FRETE_GRATIS_EM_BOMBAS, PRAZO_DESPACHO_CURTO } from "@/lib/loja";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ROTEIRO, INICIO, type Opcao } from "@/lib/roteiro-vibrinha";
+import { ROTEIRO, INICIO, opcoesDoInicio, type Opcao } from "@/lib/roteiro-vibrinha";
+import { usePathname } from "next/navigation";
 
 /**
  * Vibrinha, a atendente da loja.
@@ -97,6 +98,7 @@ export function Vibrinha() {
   const [rascunho, setRascunho] = useState("");
   const [msgs, setMsgs] = useState<Msg[]>([{ de: "ela", texto: OI }]);
   const [digitando, setDigitando] = useState(false);
+  const caminho = usePathname();
   const [opcoes, setOpcoes] = useState<Opcao[]>([]);
   const [encaminhar, setEncaminhar] = useState(false);
   // O que já foi apurado vai junto para o WhatsApp: o vendedor não recomeça
@@ -406,7 +408,7 @@ export function Vibrinha() {
         },
         ...ROTEIRO[INICIO].fala.map((texto) => ({ de: "ela" as const, texto })),
       ]);
-      setOpcoes(ROTEIRO[INICIO].opcoes ?? []);
+      setOpcoes(opcoesDoInicio(caminho));
     }, 700);
   }
 

@@ -35,12 +35,28 @@ export type No = {
 
 export const INICIO = "menu";
 
+/** Saída para o canal de SAC: o formulário da assistência, com protocolo e resposta em 24 h. */
+const ACAO_CHAMADO = { rotulo: "Abrir chamado de garantia", href: "/assistencia/garantia" };
+const CHAMADO = "Se preferir, já abra o chamado pelo formulário: você recebe o protocolo na hora e a resposta em até 24 horas.";
+
+/**
+ * Opções do começo da conversa. Nas páginas da assistência, quem abre o chat
+ * quase sempre está com problema: o chamado vem primeiro.
+ */
+export function opcoesDoInicio(caminho: string | null): Opcao[] {
+  const base = ROTEIRO[INICIO].opcoes ?? [];
+  if (!caminho?.startsWith("/assistencia")) return base;
+  const chamado = base.find((o) => o.proximo === "assistencia");
+  return chamado ? [chamado, ...base.filter((o) => o !== chamado)] : base;
+}
+
 export const ROTEIRO: Record<string, No> = {
   menu: {
     fala: ["Me conta o que você precisa:"],
     opcoes: [
       { rotulo: "Escolher a bomba certa", proximo: "escolher" },
       { rotulo: "Minha bomba parou", proximo: "parou_tempo" },
+      { rotulo: "Abrir chamado na assistência", proximo: "assistencia" },
       { rotulo: "Garantia", proximo: "garantia_onde" },
       { rotulo: "Frete e prazo", proximo: "frete" },
       { rotulo: "Formas de pagamento", proximo: "pagamento" },
@@ -131,7 +147,9 @@ export const ROTEIRO: Record<string, No> = {
       "Liga e vibra, mas não sobe: na nossa bancada isso costuma ser diafragma gasto ou entrada entupida.",
       "Duas conferidas rápidas antes de qualquer coisa: veja se o nível do poço não baixou abaixo da bomba, e se a mangueira não está dobrada ou furada. Acontece mais do que parece.",
       "Se não for isso, é caso para o técnico ver. Não arrisque abrir sem saber o que procurar.",
+      CHAMADO,
     ],
+    acao: ACAO_CHAMADO,
     encaminha: true,
   },
   sintoma_barulho: {
@@ -139,7 +157,9 @@ export const ROTEIRO: Record<string, No> = {
       "Barulho sem bombear normalmente é peça interna gasta. O motor costuma estar bom.",
       "Uma pergunta importante: ela chegou a trabalhar sem água em algum momento? Rodar seca é o que mais mata bomba vibratória, e é justamente o que a boia de nível evita.",
       "De qualquer forma, esse caso o técnico precisa ouvir. Ele identifica pelo som na maioria das vezes.",
+      CHAMADO,
     ],
+    acao: ACAO_CHAMADO,
     encaminha: true,
   },
   sintoma_nao_liga: {
@@ -147,8 +167,23 @@ export const ROTEIRO: Record<string, No> = {
       "Se não liga, comece pela parte elétrica, que é onde está a causa em boa parte dos casos.",
       "Confira a tensão da tomada, se o disjuntor não desarmou, e principalmente a bitola do cabo: cabo fino demais para a distância derruba a tensão e a bomba não parte.",
       "Se a parte elétrica estiver certa e ela continuar sem responder, aí é bancada.",
+      CHAMADO,
     ],
+    acao: ACAO_CHAMADO,
     encaminha: true,
+  },
+
+  // ── assistência: o canal de SAC é o formulário (protocolo, fotos, resposta em 24 h) ──
+  assistencia: {
+    fala: [
+      "A assistência técnica é nossa, na própria fábrica em São Paulo.",
+      "Pelo formulário você abre o chamado em poucos minutos: seus dados, a nota fiscal e as fotos da bomba e do local. Você recebe o protocolo na hora e a resposta em até 24 horas, por e-mail.",
+    ],
+    acao: ACAO_CHAMADO,
+    opcoes: [
+      { rotulo: "Antes, quero entender o defeito", proximo: "parou_tempo" },
+      { rotulo: "Voltar ao início", proximo: "menu" },
+    ],
   },
 
   // ── garantia ─────────────────────────────────────────────────
@@ -165,17 +200,18 @@ export const ROTEIRO: Record<string, No> = {
       "As borrachas · canopla, ventosa, amortecedor e válvula · são peças de desgaste e têm 90 dias de garantia em todos os modelos.",
       "Para acionar, guarde a nota fiscal e o certificado que vem dentro da caixa: são eles que valem.",
       "O que não entra é mau uso, principalmente rodar sem água.",
-      "Se quiser, consulte o seu pedido pelo número e pelo e-mail da compra.",
+      "Se a bomba deu problema, o caminho é o chamado: você preenche o formulário com a nota e as fotos, e a resposta sai em até 24 horas.",
     ],
-    acao: { rotulo: "Consultar meu pedido", href: "/pedidos" },
+    acao: ACAO_CHAMADO,
     opcoes: [{ rotulo: "Voltar ao início", proximo: "menu" }],
   },
   garantia_fora: {
     fala: [
       "A garantia de fábrica vale de qualquer forma, desde que dentro do prazo e com a nota fiscal em mãos.",
-      "Como a compra não passou por aqui, eu não consigo ver o pedido. O caminho é falar com a assistência, que é nossa e fica na própria fábrica.",
+      "Como a compra não passou por aqui, eu não consigo ver o pedido. O caminho é a assistência, que é nossa e fica na própria fábrica.",
+      CHAMADO,
     ],
-    acao: { rotulo: "Ver a assistência técnica", href: "/assistencia" },
+    acao: ACAO_CHAMADO,
     encaminha: true,
   },
 
