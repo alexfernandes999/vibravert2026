@@ -22,11 +22,41 @@ export function telefoneE164(t: string | null | undefined): string | null {
   return d.length >= 12 ? d : null;
 }
 
-export type Identidade = { d?: string; e?: string; t?: string };
+export type Identidade = { d?: string; e?: string; t?: string; v?: string };
 
-/** De onde a pessoa chegou: o canal do pedido, o site ou a assistência. */
-export const ORIGENS = ["Mercado Livre", "Shopee", "Magalu", "Amazon", "Loja física", "Site", "Assistência"] as const;
+/**
+ * Por onde a pessoa chegou: os canais de contato (chat do site, formulário da
+ * assistência) e os canais de compra (site e cada marketplace do Bling).
+ */
+export const ORIGENS = ["Chat do site", "Assistência", "Site", "Mercado Livre", "Shopee", "Magalu", "Amazon", "Loja física"] as const;
 export type Origem = (typeof ORIGENS)[number];
+
+/** O assunto do contato: venda ou SAC (defeito, garantia, reclamação). */
+export const ASSUNTOS = ["Vendas", "SAC"] as const;
+export type Assunto = (typeof ASSUNTOS)[number];
+
+/** Conversa da Vibrinha · o diálogo é gravado em texto: "Vibrinha: …" e "— …" (cliente). */
+export function lerVibrinha(dialogo: string) {
+  const mensagens: { de: "vibrinha" | "cliente"; texto: string }[] = [];
+  const campos: Record<string, string> = {};
+  for (const linha of dialogo.split("\n")) {
+    const l = linha.trim();
+    if (!l) continue;
+    if (l.startsWith("Vibrinha:")) mensagens.push({ de: "vibrinha", texto: l.slice(9).trim() });
+    else if (l.startsWith("—")) mensagens.push({ de: "cliente", texto: l.slice(1).trim() });
+    else {
+      const m = l.match(/^([A-Za-zÀ-ú ()]{2,30}):\s*(.+)$/);
+      if (m) campos[m[1]!.trim().toLowerCase()] = m[2]!.trim();
+      else if (mensagens.length) mensagens[mensagens.length - 1]!.texto += `\n${l}`;
+    }
+  }
+  const email = campos["e-mail"]?.toLowerCase().match(/[^\s@]+@[^\s@]+\.[^\s@]+/)?.[0] ?? null;
+  const telefone = telefoneE164(campos["whatsapp"] ?? campos["telefone"]);
+  return { mensagens, campos, email, telefone, nome: campos["nome"] ?? null };
+}
+
+const RE_SAC = /parou|queim|garantia|defeit|não liga|nao liga|assist[eê]ncia|troca|devolu|reclama|perdeu (a )?for[cç]a|vazando|esquent/i;
+export const assuntoVibrinha = (texto: string): Assunto => (RE_SAC.test(texto) ? "SAC" : "Vendas");
 
 /** Etiquetas calculadas na hora, para filtrar a lista. */
 export const ETIQUETAS = ["Chamado aberto", "Recompra", "Empresa (CNPJ)", "Comprou em 30 dias"] as const;
@@ -52,13 +82,17 @@ export type Cartao = {
   chamados: number;
   chamadoAberto: boolean;
   origens: Origem[];
+  assuntos: Assunto[];
   etiquetas: Etiqueta[];
+  /** Conversa da Vibrinha sem contato deixado: a ficha abre por ela (?v=). */
+  conversaId?: string;
   ultimo: Date;
 };
 
 /** Parâmetros da pessoa selecionada (d = documento, e = e-mail, t = telefone). */
-export const paramsPessoa = (c: { documento?: string | null; email?: string | null; telefone?: string | null }) => {
+export const paramsPessoa = (c: { documento?: string | null; email?: string | null; telefone?: string | null; conversaId?: string }) => {
   const p = new URLSearchParams();
+  if (!c.documento && !c.email && !c.telefone && c.conversaId) p.set("v", c.conversaId);
   if (c.documento) p.set("d", so(c.documento));
   if (c.email) p.set("e", c.email.toLowerCase());
   if (c.telefone) p.set("t", telefoneE164(c.telefone) ?? so(c.telefone));
@@ -106,24 +140,27 @@ async function contatosBling(q: string | null, lojas: string[] | null, limite: n
      LIMIT ${limite}`;
 }
 
-export type FiltroClientes = { q?: string | null; origem?: string | null; etiqueta?: string | null };
+export type FiltroClientes = { q?: string | null; origem?: string | null; etiqueta?: string | null; assunto?: string | null };
 
 /** Lista: busca por nome, CPF/CNPJ, e-mail ou telefone, com filtro de origem e etiqueta. */
 export async function buscarClientes(f: FiltroClientes = {}): Promise<Cartao[]> {
   const termo = f.q?.trim() || null;
   const origem = (ORIGENS as readonly string[]).includes(f.origem ?? "") ? (f.origem as Origem) : null;
   const etiqueta = (ETIQUETAS as readonly string[]).includes(f.etiqueta ?? "") ? (f.etiqueta as Etiqueta) : null;
+  const assunto = (ASSUNTOS as readonly string[]).includes(f.assunto ?? "") ? (f.assunto as Assunto) : null;
   const digitos = termo ? so(termo) : "";
   const tel = digitos.length >= 8 ? digitos.slice(-8) : null;
   const canais = await canaisBling();
 
   const querSite = !origem || origem === "Site";
+  // Etiquetas são de compra e chamado; conversa do chat não tem nenhuma delas.
+  const querChat = (!origem || origem === "Chat do site") && !etiqueta;
   const querChamado = !origem || origem === "Assistência";
   const lojasDaOrigem = origem ? [...canais].filter(([, c]) => c.origem === origem).map(([id]) => id) : null;
   const querBling = !origem || (lojasDaOrigem?.length ?? 0) > 0;
   const limite = etiqueta ? 150 : 60;
 
-  const [site, chamados, bling] = await Promise.all([
+  const [site, chamados, bling, chats] = await Promise.all([
     querSite
       ? prisma.cliente.findMany({
           where: termo
@@ -158,7 +195,16 @@ export async function buscarClientes(f: FiltroClientes = {}): Promise<Cartao[]> 
           select: { nome: true, email: true, documento: true, telefone: true, criadoEm: true, status: true },
         })
       : [],
-    querBling && etiqueta !== "Chamado aberto" ? contatosBling(termo, lojasDaOrigem, limite, etiqueta) : [],
+    querBling && etiqueta !== "Chamado aberto" && assunto !== "SAC" ? contatosBling(termo, lojasDaOrigem, limite, etiqueta) : [],
+    querChat
+      ? prisma.conversa.findMany({
+          where: termo
+            ? { OR: [{ nome: { contains: termo, mode: "insensitive" } }, { dialogo: { contains: termo, mode: "insensitive" } }] }
+            : { dialogo: { not: "" } },
+          orderBy: { criadoEm: "desc" },
+          take: limite,
+        })
+      : [],
   ]);
 
   // Junta as fontes na mesma pessoa: documento, depois e-mail, depois telefone.
@@ -177,7 +223,7 @@ export async function buscarClientes(f: FiltroClientes = {}): Promise<Cartao[]> 
     if (!p) {
       pessoas.push({
         documento: doc, email: x.email ?? null, telefone: x.telefone ?? null,
-        pedidosSite: 0, pedidosBling: 0, chamados: 0, chamadoAberto: false, origens: [], etiquetas: [],
+        pedidosSite: 0, pedidosBling: 0, chamados: 0, chamadoAberto: false, origens: [], assuntos: [], etiquetas: [],
         ...x, nome: x.nome,
       });
       return;
@@ -190,15 +236,16 @@ export async function buscarClientes(f: FiltroClientes = {}): Promise<Cartao[]> 
     p.chamados += x.chamados ?? 0;
     p.chamadoAberto ||= Boolean(x.chamadoAberto);
     p.origens = [...new Set([...p.origens, ...(x.origens ?? [])])];
+    p.assuntos = [...new Set([...p.assuntos, ...(x.assuntos ?? [])])];
     if (x.ultimo > p.ultimo) p.ultimo = x.ultimo;
   };
 
   for (const c of site)
-    juntar({ nome: c.nome, email: c.email, documento: c.cpfCnpj, telefone: c.telefone, pedidosSite: c._count.pedidos, origens: ["Site"], ultimo: c.criadoEm });
+    juntar({ nome: c.nome, email: c.email, documento: c.cpfCnpj, telefone: c.telefone, pedidosSite: c._count.pedidos, origens: ["Site"], assuntos: ["Vendas"], ultimo: c.criadoEm });
   for (const c of chamados)
     juntar({
       nome: c.nome, email: c.email, documento: c.documento, telefone: c.telefone, chamados: 1,
-      chamadoAberto: !CHAMADO_FECHADO.includes(c.status), origens: ["Assistência"], ultimo: c.criadoEm,
+      chamadoAberto: !CHAMADO_FECHADO.includes(c.status), origens: ["Assistência"], assuntos: ["SAC"], ultimo: c.criadoEm,
     });
   for (const b of bling)
     juntar({
@@ -206,8 +253,25 @@ export async function buscarClientes(f: FiltroClientes = {}): Promise<Cartao[]> 
       documento: b.documento || null,
       pedidosBling: Number(b.pedidos),
       origens: [...new Set((b.lojas ?? []).map((l) => canais.get(l)?.origem).filter(Boolean))] as Origem[],
+      assuntos: ["Vendas"],
       ultimo: /^\d{4}-\d{2}-\d{2}$/.test(b.ultimo ?? "") ? new Date(`${b.ultimo}T12:00:00Z`) : new Date(0),
     });
+
+  for (const c of chats) {
+    const v = lerVibrinha(c.dialogo);
+    const temContato = Boolean(v.email || v.telefone);
+    const x = {
+      nome: v.nome ?? c.nome ?? "Visitante do site",
+      email: v.email,
+      telefone: v.telefone,
+      origens: ["Chat do site"] as Origem[],
+      assuntos: [assuntoVibrinha(`${c.apurado ?? ""} ${c.dialogo}`)],
+      ultimo: c.criadoEm,
+    };
+    // Sem contato deixado, cada conversa é uma pessoa à parte (não dá para ligar a ninguém).
+    if (temContato) juntar(x);
+    else pessoas.push({ documento: null, pedidosSite: 0, pedidosBling: 0, chamados: 0, chamadoAberto: false, etiquetas: [], conversaId: c.id, ...x });
+  }
 
   const mes = Date.now() - 30 * 86_400_000;
   for (const p of pessoas) {
@@ -220,7 +284,7 @@ export async function buscarClientes(f: FiltroClientes = {}): Promise<Cartao[]> 
   }
 
   return pessoas
-    .filter((p) => (!origem || p.origens.includes(origem)) && (!etiqueta || p.etiquetas.includes(etiqueta)))
+    .filter((p) => (!origem || p.origens.includes(origem)) && (!etiqueta || p.etiquetas.includes(etiqueta)) && (!assunto || p.assuntos.includes(assunto)))
     .sort((a, b) => b.ultimo.getTime() - a.ultimo.getTime())
     .slice(0, 80);
 }
@@ -323,10 +387,35 @@ export async function fichaCliente(id: Identidade) {
   );
   const documento = doc ?? (so(doSite.find((c) => c.cpfCnpj)?.cpfCnpj) || null) ?? chamados.find((c) => c.documento)?.documento ?? null;
 
+  // Chat do site (Vibrinha): a conversa aberta pela lista (?v=) e as que deixaram o mesmo e-mail ou WhatsApp.
+  const candidatos = await prisma.conversa.findMany({
+    where: {
+      OR: [
+        ...(id.v ? [{ id: id.v }] : []),
+        ...(email || fone ? [{ dialogo: { contains: "WhatsApp:" } }, { dialogo: { contains: "E-mail:" } }] : []),
+      ],
+    },
+    orderBy: { criadoEm: "desc" },
+    take: 300,
+  });
+  const vibrinha = candidatos
+    .map((c) => ({ c, v: lerVibrinha(c.dialogo) }))
+    .filter(({ c, v }) => c.id === id.v || (email && v.email === email) || (fone && v.telefone === fone))
+    .map(({ c, v }) => ({
+      id: c.id,
+      criadoEm: c.criadoEm,
+      origem: c.origem,
+      nome: v.nome ?? c.nome,
+      email: v.email,
+      telefone: v.telefone,
+      assunto: assuntoVibrinha(`${c.apurado ?? ""} ${c.dialogo}`),
+      mensagens: v.mensagens,
+    }));
+
   const telefones = [
-    ...new Set([fone, ...doSite.map((c) => telefoneE164(c.telefone)), ...chamados.map((c) => telefoneE164(c.telefone))].filter(Boolean)),
+    ...new Set([fone, ...doSite.map((c) => telefoneE164(c.telefone)), ...chamados.map((c) => telefoneE164(c.telefone)), ...vibrinha.map((c) => c.telefone)].filter(Boolean)),
   ] as string[];
-  const emails = [...new Set([email, ...doSite.map((c) => c.email.toLowerCase()), ...chamados.map((c) => c.email)].filter(Boolean))] as string[];
+  const emails = [...new Set([email, ...doSite.map((c) => c.email.toLowerCase()), ...chamados.map((c) => c.email), ...vibrinha.map((c) => c.email)].filter(Boolean))] as string[];
 
   const [bling, canais, wa] = await Promise.all([
     documento
@@ -373,9 +462,17 @@ export async function fichaCliente(id: Identidade) {
   ].sort((a, b) => b.data.getTime() - a.data.getTime());
 
   const nomeBling = (bling[0]?.resumo as { contato?: { nome?: string } } | undefined)?.contato?.nome?.replace(/\s*\([^)]*\)\s*$/, "");
-  const nome = doSite[0]?.nome ?? chamados[0]?.nome ?? nomeBling ?? wa.contatos[0]?.nome ?? wa.contatos[0]?.nome_whatsapp ?? "Cliente";
+  const nome =
+    doSite[0]?.nome ?? chamados[0]?.nome ?? nomeBling ?? wa.contatos[0]?.nome ?? wa.contatos[0]?.nome_whatsapp ?? vibrinha[0]?.nome ?? "Visitante do site";
+  const assuntos = [
+    ...new Set([
+      ...(chamados.length ? (["SAC"] as const) : []),
+      ...vibrinha.map((v) => v.assunto),
+      ...(pedidos.length ? (["Vendas"] as const) : []),
+    ]),
+  ];
 
-  return { nome, documento, emails, telefones, pedidos, chamados, whatsapp: wa };
+  return { nome, documento, emails, telefones, pedidos, chamados, whatsapp: wa, vibrinha, assuntos };
 }
 
 /** Pode mandar WhatsApp agora? A regra da Meta, em uma frase, por número. */

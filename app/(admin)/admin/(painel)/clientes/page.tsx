@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, MessageCircle, Search, ShoppingBag, Wrench, X } from "lucide-react";
 import {
+  ASSUNTOS,
   buscarClientes,
   ETIQUETAS,
   fichaCliente,
@@ -27,7 +28,7 @@ export const metadata = { title: "Clientes" };
  *   q = busca · origem · tag = etiqueta · d/e/t = pessoa aberta.
  */
 
-type Params = { q?: string; origem?: string; tag?: string; d?: string; e?: string; t?: string };
+type Params = { q?: string; origem?: string; assunto?: string; tag?: string; d?: string; e?: string; t?: string; v?: string };
 
 const STATUS_SITE: Record<string, string> = {
   AGUARDANDO_PAGAMENTO: "Aguardando pagamento",
@@ -40,6 +41,7 @@ const STATUS_SITE: Record<string, string> = {
 };
 
 const COR_ORIGEM: Record<string, string> = {
+  "Chat do site": "bg-marca-suave text-marca",
   "Mercado Livre": "bg-[#fff3c4] text-[#7a5b00]",
   Shopee: "bg-[#ffe1d6] text-[#a6380f]",
   Magalu: "bg-[#dbeafe] text-[#1e4fa8]",
@@ -72,6 +74,14 @@ function Avatar({ nome, grande }: { nome: string; grande?: boolean }) {
   );
 }
 
+function PillAssunto({ a }: { a: string }) {
+  return (
+    <span className={`rounded px-1.5 py-px text-[10.5px] font-extrabold uppercase tracking-wide ${a === "SAC" ? "bg-critico/10 text-critico" : "bg-bom-suave text-bom"}`}>
+      {a}
+    </span>
+  );
+}
+
 function PillOrigem({ o }: { o: string }) {
   return <span className={`rounded px-1.5 py-px text-[10.5px] font-bold ${COR_ORIGEM[o] ?? "bg-superficie-2 text-tinta-2"}`}>{o}</span>;
 }
@@ -79,36 +89,39 @@ function PillOrigem({ o }: { o: string }) {
 export default async function Clientes({ searchParams }: { searchParams: Promise<Params> }) {
   const sp = await searchParams;
   const q = sp.q?.trim() ?? "";
-  const pessoas = await buscarClientes({ q, origem: sp.origem, etiqueta: sp.tag });
-  const aberto = Boolean(sp.d || sp.e || sp.t);
-  const ficha = aberto ? await fichaCliente({ d: sp.d, e: sp.e, t: sp.t }) : null;
+  const pessoas = await buscarClientes({ q, origem: sp.origem, etiqueta: sp.tag, assunto: sp.assunto });
+  const aberto = Boolean(sp.d || sp.e || sp.t || sp.v);
+  const ficha = aberto ? await fichaCliente({ d: sp.d, e: sp.e, t: sp.t, v: sp.v }) : null;
 
   // Links que mudam um filtro e mantêm o resto.
   const url = (mudar: Partial<Params>) => {
     const p = new URLSearchParams();
     const v = { ...sp, ...mudar };
-    for (const k of ["q", "origem", "tag", "d", "e", "t"] as const) if (v[k]) p.set(k, v[k]!);
+    for (const k of ["q", "origem", "assunto", "tag", "d", "e", "t", "v"] as const) if (v[k]) p.set(k, v[k]!);
     return `/admin/clientes${p.size ? `?${p}` : ""}`;
   };
   const abrir = (c: Cartao) => {
     const p = paramsPessoa(c);
-    return url({ d: p.get("d") ?? "", e: p.get("e") ?? "", t: p.get("t") ?? "" });
+    return url({ d: p.get("d") ?? "", e: p.get("e") ?? "", t: p.get("t") ?? "", v: p.get("v") ?? "" });
   };
-  const fechar = url({ d: "", e: "", t: "" });
+  const fechar = url({ d: "", e: "", t: "", v: "" });
 
   // Telefone que só existe no WhatsApp (não comprou nem abriu chamado).
   const fone = /[a-z@]/i.test(q) ? null : telefoneE164(q);
   const soWhats = fone && !pessoas.some((p) => telefoneE164(p.telefone) === fone);
   const selecionado = (c: Cartao) =>
     aberto &&
-    ((sp.d && c.documento === sp.d) || (sp.e && c.email?.toLowerCase() === sp.e) || (sp.t && telefoneE164(c.telefone) === sp.t));
+    ((sp.v && c.conversaId === sp.v) ||
+      (sp.d && c.documento === sp.d) ||
+      (sp.e && c.email?.toLowerCase() === sp.e) ||
+      (sp.t && telefoneE164(c.telefone) === sp.t));
 
   return (
     <div className="flex h-[100dvh] min-h-0 bg-fundo">
       {/* ── lista ─────────────────────────────────────────────────── */}
       <aside className={`${aberto ? "hidden md:flex" : "flex"} w-full shrink-0 flex-col border-r border-linha bg-superficie md:w-[340px]`}>
         <div className="border-b border-linha px-4 pb-3 pt-4">
-          <h1 className="text-[17px] font-extrabold tracking-tight">Clientes</h1>
+          <h1 className="text-[17px] font-extrabold tracking-tight">Clientes e conversas</h1>
           <form className="mt-2.5">
             {sp.origem && <input type="hidden" name="origem" value={sp.origem} />}
             {sp.tag && <input type="hidden" name="tag" value={sp.tag} />}
@@ -122,7 +135,18 @@ export default async function Clientes({ searchParams }: { searchParams: Promise
               )}
             </label>
           </form>
-          <p className="mb-1 mt-3 text-[10.5px] font-bold uppercase tracking-wider text-tenue">Origem</p>
+          <p className="mb-1 mt-3 text-[10.5px] font-bold uppercase tracking-wider text-tenue">Assunto</p>
+          <div className="flex flex-wrap gap-1">
+            {ASSUNTOS.map((a) => {
+              const on = sp.assunto === a;
+              return (
+                <Link key={a} href={url({ assunto: on ? "" : a })} className={`rounded-full border px-2 py-0.5 text-[11.5px] font-semibold ${on ? "border-marca bg-marca text-white" : "border-linha-2 text-tinta-2 hover:border-marca"}`}>
+                  {a === "SAC" ? "SAC (defeito, garantia, reclamação)" : "Vendas"}
+                </Link>
+              );
+            })}
+          </div>
+          <p className="mb-1 mt-2.5 text-[10.5px] font-bold uppercase tracking-wider text-tenue">Canal</p>
           <div className="flex flex-wrap gap-1">
             {ORIGENS.map((o) => {
               const on = sp.origem === o;
@@ -175,7 +199,8 @@ export default async function Clientes({ searchParams }: { searchParams: Promise
                       <span className="num ml-auto shrink-0 text-[11px] text-mudo">{quando(c.ultimo)}</span>
                     </span>
                     <span className="mt-0.5 flex items-center gap-1 overflow-hidden">
-                      {c.origens.slice(0, 3).map((o) => <PillOrigem key={o} o={o} />)}
+                      {c.assuntos.map((a) => <PillAssunto key={a} a={a} />)}
+                      {c.origens.slice(0, 2).map((o) => <PillOrigem key={o} o={o} />)}
                       <span className="ml-auto shrink-0 text-[11px] text-mudo">
                         {[pedidos && `${pedidos} ped.`, c.chamados && `${c.chamados} cham.`].filter(Boolean).join(" · ")}
                       </span>
@@ -198,9 +223,13 @@ export default async function Clientes({ searchParams }: { searchParams: Promise
               <Link href={fechar} className="md:hidden" aria-label="Voltar para a lista"><ArrowLeft className="h-5 w-5" /></Link>
               <Avatar nome={ficha.nome} grande />
               <div className="min-w-0">
-                <p className="truncate text-[15px] font-extrabold">{ficha.nome}</p>
+                <p className="flex items-center gap-1.5 truncate text-[15px] font-extrabold">
+                  {ficha.nome}
+                  {ficha.assuntos.map((a) => <PillAssunto key={a} a={a} />)}
+                </p>
                 <p className="num truncate text-[12px] text-mudo">
-                  {[...ficha.telefones.map((t) => `+${t}`), ...ficha.emails].join(" · ") || "Sem telefone nem e-mail"}
+                  {[...ficha.telefones.map((t) => `+${t}`), ...ficha.emails].join(" · ") ||
+                    (ficha.vibrinha.length ? "Não deixou contato no chat do site" : "Sem telefone nem e-mail")}
                 </p>
               </div>
               <div className="ml-auto flex shrink-0 gap-2">
@@ -251,6 +280,7 @@ function StatusEnvio({ wa }: { wa: WhatsappFicha }) {
 
 type Evento =
   | { tipo: "msg"; quando: Date; m: WhatsappFicha["mensagens"][number] }
+  | { tipo: "vibrinha"; quando: Date; v: Ficha["vibrinha"][number] }
   | { tipo: "pedido"; quando: Date; p: PedidoFicha }
   | { tipo: "chamado"; quando: Date; c: Ficha["chamados"][number] };
 
@@ -260,6 +290,7 @@ function Linha({ ficha }: { ficha: Ficha }) {
     ...ficha.whatsapp.mensagens.map((m) => ({ tipo: "msg" as const, quando: new Date(m.ordem_ts), m })),
     ...ficha.pedidos.map((p) => ({ tipo: "pedido" as const, quando: p.data, p })),
     ...ficha.chamados.map((c) => ({ tipo: "chamado" as const, quando: c.criadoEm, c })),
+    ...ficha.vibrinha.map((v) => ({ tipo: "vibrinha" as const, quando: v.criadoEm, v })),
   ].sort((a, b) => a.quando.getTime() - b.quando.getTime());
 
   const blocos: React.ReactNode[] = [];
@@ -297,6 +328,28 @@ function Linha({ ficha }: { ficha: Ficha }) {
           </li>,
         );
       }
+    } else if (ev.tipo === "vibrinha") {
+      const v = ev.v;
+      const hora = ev.quando.toLocaleTimeString("pt-BR", { ...fuso, hour: "2-digit", minute: "2-digit" });
+      blocos.push(
+        <li key={`vh${i}`} className="mx-auto my-1 flex w-full max-w-[460px] items-center gap-2 rounded-lg border border-marca/30 bg-marca-suave px-3 py-1.5 text-[12px]">
+          <MessageCircle aria-hidden className="h-3.5 w-3.5 text-marca" />
+          <span className="font-bold text-marca">Chat do site · Vibrinha</span>
+          <PillAssunto a={v.assunto} />
+          <span className="ml-auto text-mudo">{v.origem ? `saiu pelo ${v.origem} · ` : ""}{hora}</span>
+        </li>,
+      );
+      v.mensagens.forEach((m, k) => {
+        const nosso = m.de === "vibrinha";
+        blocos.push(
+          <li key={`v${i}-${k}`} className={`flex ${nosso ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[75%] rounded-xl px-3 py-1.5 text-[13px] shadow-sm ${nosso ? "rounded-tr-sm bg-marca-suave" : "rounded-tl-sm bg-superficie"}`}>
+              <p className="whitespace-pre-wrap break-words">{m.texto}</p>
+              {nosso && <p className="mt-0.5 text-right text-[10.5px] text-mudo">Vibrinha · chat do site</p>}
+            </div>
+          </li>,
+        );
+      });
     } else if (ev.tipo === "pedido") {
       const p = ev.p;
       blocos.push(

@@ -18,11 +18,10 @@ const MENU: (Omit<ItemMenu, "badge"> & { papeis?: string[] })[] = [
   // Vendas: tudo o que tem cliente do outro lado.
   { href: "/admin/vendas", r: "Painel de vendas", grupo: "Vendas", icone: "vendas", papeis: ["MASTER", "DESENVOLVEDOR", "OPERADOR"] },
   { href: "/admin/pedidos", r: "Pedidos", grupo: "Vendas", icone: "pedidos" },
-  { href: "/admin/clientes", r: "Clientes", grupo: "Vendas", icone: "clientes" },
+  // Clientes e conversas num lugar só: compras, chamados, chat do site (Vibrinha) e WhatsApp.
+  { href: "/admin/clientes", r: "Clientes e conversas", grupo: "Vendas", icone: "clientes" },
   { href: "/admin/recuperar-vendas", r: "Recuperar vendas", grupo: "Vendas", icone: "recuperar" },
   { href: "/admin/revenda", r: "Cadastros de revenda", grupo: "Vendas", icone: "revenda" },
-  // O registro do chat do site (Vibrinha). Não é o WhatsApp: esse fica no Conversas.
-  { href: "/admin/conversas", r: "Chat do site (Vibrinha)", grupo: "Vendas", icone: "conversas" },
 
   { href: "/admin/produtos", r: "Produtos", grupo: "Produtos", icone: "produtos" },
   { href: "/admin/estoque", r: "Estoque", grupo: "Produtos", icone: "estoque" },
