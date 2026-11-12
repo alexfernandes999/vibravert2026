@@ -16,12 +16,18 @@ import { hojeSP } from "./compra";
 import { linkProtocolo } from "./acesso";
 import { CANAIS } from "./esquemas";
 import { respostaAssistencia, type RespostaAssistencia } from "@/lib/email";
+import { avisoWhatsapp } from "./whatsapp";
 
 const SITE = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
 
-/** Avisa o cliente por e-mail que a resposta foi liberada. Falha não desfaz a decisão. */
-function avisarCliente(c: { email: string; nome: string; protocolo: string }, r: RespostaAssistencia) {
+/**
+ * Avisa o cliente (e-mail e, se ele aceitou, WhatsApp) que a resposta foi
+ * liberada. `chave` identifica a liberação: retry não repete o WhatsApp.
+ * Falha não desfaz a decisão.
+ */
+function avisarCliente(c: { id: string; email: string; nome: string; protocolo: string }, r: RespostaAssistencia, chave: string) {
   after(() => respostaAssistencia(c.email, c.nome, c.protocolo, `${SITE}${linkProtocolo(c.protocolo)}`, r).then(() => {}, () => {}));
+  after(() => avisoWhatsapp(c.id, "resposta", chave));
 }
 
 /**
@@ -141,9 +147,10 @@ export async function decidirChamado(_: unknown, dados: FormData): Promise<Resul
 
   // Ordem importa: a decisão humana entra antes do status e do laudo, que os
   // triggers só aceitam com ela registrada.
-  await prisma.$transaction(async (tx) => {
-    await tx.decisao.create({
+  const registrada = await prisma.$transaction(async (tx) => {
+    const d = await tx.decisao.create({
       data: { chamadoId: c.id, autor: "pessoa", usuarioId: eu.id, sugestao, decisaoFinal: decisao, motivoAlteracao: motivo, conferiuFotos, nota },
+      select: { id: true },
     });
     if (laudo) {
       await tx.laudo.create({
@@ -160,14 +167,16 @@ export async function decidirChamado(_: unknown, dados: FormData): Promise<Resul
       });
     }
     await tx.chamado.update({ where: { id: c.id }, data: { status } });
+    return d;
   });
+  const chave = `resposta:${registrada.id}`;
   await registrarAcao(`assistência: ${decisao}`, protocolo, motivo ?? undefined);
   // A resposta só chega ao cliente agora, depois da pessoa. Resolvido por fora
   // já foi tratado com ele por outro caminho: não manda nada.
-  if (decisao === "pedido_informacao") avisarCliente(c, { tipo: decisao, nota });
+  if (decisao === "pedido_informacao") avisarCliente(c, { tipo: decisao, nota }, chave);
   else if (decisao === "orientacao_marketplace")
-    avisarCliente(c, { tipo: decisao, marketplace: CANAIS.find(([v]) => v === c.canal)?.[1] ?? "marketplace" });
-  else if (decisao !== "resolvido_fora") avisarCliente(c, { tipo: decisao });
+    avisarCliente(c, { tipo: decisao, marketplace: CANAIS.find(([v]) => v === c.canal)?.[1] ?? "marketplace" }, chave);
+  else if (decisao !== "resolvido_fora") avisarCliente(c, { tipo: decisao }, chave);
   revalidatePath("/admin/assistencia", "layout");
   return { ok: true, mensagem: decisao === "resolvido_fora" ? "Decisão registrada." : "Decisão registrada. O cliente recebe a resposta por e-mail." };
 }
@@ -319,7 +328,7 @@ export async function assinarBancada(_: unknown, dados: FormData): Promise<Resul
     await tx.chamado.update({ where: { id: c.id }, data: { status: "CONCLUIDO" } });
   });
   await registrarAcao("assistência: assinou laudo de bancada", protocolo, b.conclusaoFinal);
-  avisarCliente(c, { tipo: "bancada" });
+  avisarCliente(c, { tipo: "bancada" }, "bancada");
   revalidatePath("/admin/assistencia", "layout");
   return { ok: true, mensagem: "Laudo assinado e liberado ao cliente." };
 }

@@ -47,6 +47,7 @@ type Valores = {
   instalacao: Record<string, string>;
   ocorrido: string;
   lgpd: boolean;
+  avisoWhatsapp: boolean;
 };
 
 const ETAPAS = ["Seus dados", "Compra", "Produto", "Instalação", "O que aconteceu", "Fotos", "Revisão"];
@@ -75,7 +76,7 @@ const input =
 export function FormularioGarantia() {
   const router = useRouter();
   const form = useForm<Valores>({
-    defaultValues: { instalacao: {}, lgpd: false, serie: "", usou: "", canal: "", tensao: "", modelo: "" },
+    defaultValues: { instalacao: {}, lgpd: false, avisoWhatsapp: false, serie: "", usou: "", canal: "", tensao: "", modelo: "" },
   });
   const [etapa, setEtapa] = useState(0);
   const [fluxo, setFluxo] = useState<Fluxo>("garantia");
@@ -175,7 +176,7 @@ export function FormularioGarantia() {
     }
     setEnviando(true);
     setErroGeral(null);
-    const base = { nome: v.nome, documento: v.documento, telefone: v.telefone, email: v.email, canal: v.canal, nf: v.nf, recebimento: v.recebimento, usou: v.usou, lgpd: true };
+    const base = { nome: v.nome, documento: v.documento, telefone: v.telefone, email: v.email, canal: v.canal, nf: v.nf, recebimento: v.recebimento, usou: v.usou, lgpd: true, avisoWhatsapp: Boolean(v.avisoWhatsapp) };
     const dados =
       fluxo === "arrependimento"
         ? { ...base, tipo: "arrependimento" }
@@ -550,6 +551,16 @@ function Revisao({ form, fluxo, fotos }: { form: F; fluxo: Fluxo; fotos: number 
         <p id="lgpd-erro" role="alert" className="mt-1.5 text-[12.5px] font-semibold text-critico">
           {erro}
         </p>
+      )}
+      {/* Só aparece com os avisos ligados na Vercel (templates aprovados na Meta). */}
+      {process.env.NEXT_PUBLIC_AVISO_WHATSAPP === "1" && (
+      <label className="mt-3 flex items-start gap-2.5 text-[13.5px]">
+        <input type="checkbox" {...form.register("avisoWhatsapp")} className="mt-0.5 h-4 w-4 accent-marca" />
+        <span>
+          Quero receber os avisos do chamado pelo WhatsApp{v.telefone ? ` (${v.telefone})` : ""}. Opcional: os avisos
+          também vão por e-mail.
+        </span>
+      </label>
       )}
     </>
   );

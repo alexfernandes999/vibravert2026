@@ -12,6 +12,7 @@ import { linkProtocolo } from "./acesso";
 import { novoRascunho, urlDeEnvio } from "./storage";
 import { avisarNovoNaFila } from "./alertas";
 import { protocoloAssistencia } from "@/lib/email";
+import { avisoWhatsapp, CONSENTIMENTO_WHATSAPP } from "./whatsapp";
 
 const SITE = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
 
@@ -32,6 +33,9 @@ const ROTULOS: Record<string, Record<string, string>> = {
   agua: { limpa: "Limpa", areia: "Com areia ou barro", ns: "Não sei" },
   energia: { nao: "Não", sim: "Sim", ns: "Não sei" },
 };
+
+/** O consentimento fica registrado com o texto exato que o cliente marcou. */
+const consentimento = (ordem: number) => ({ pergunta: CONSENTIMENTO_WHATSAPP.pergunta, valor: "sim", texto: CONSENTIMENTO_WHATSAPP.texto, ordem });
 
 function erros(e: { issues: { path: (string | number)[]; message: string }[] }) {
   const r: Record<string, string> = {};
@@ -97,6 +101,7 @@ export async function abrirChamado(entrada: unknown): Promise<ResultadoAbertura>
         pendenciaRegra: faixa.pendencia ?? null,
         ...camposComuns(d, compra, hoje),
         ocorrido: "Pedido de arrependimento (sem uso).",
+        ...(d.avisoWhatsapp ? { respostas: { create: [consentimento(0)] } } : {}),
         decisoes: {
           create: {
             autor: "codigo",
@@ -115,6 +120,7 @@ export async function abrirChamado(entrada: unknown): Promise<ResultadoAbertura>
       ano,
     );
     after(() => protocoloAssistencia(c.email, c.nome, c.protocolo, `${SITE}${linkProtocolo(c.protocolo)}`).then(() => {}, () => {}));
+    after(() => avisoWhatsapp(c.id, "recebido", "recebido"));
     if (!automatico) after(() => avisarNovoNaFila(c.id));
     return { ok: true, protocolo: c.protocolo, link: linkProtocolo(c.protocolo) };
   }
@@ -144,6 +150,7 @@ export async function abrirChamado(entrada: unknown): Promise<ResultadoAbertura>
   });
   if (respostas.tempoMinutos !== null)
     linhas.push({ pergunta: "tempoMinutos", valor: String(respostas.tempoMinutos), texto: `cerca de ${respostas.tempoMinutos} min`, ordem: 99 });
+  if (d.avisoWhatsapp) linhas.push(consentimento(100));
 
   const sinais = triagem(respostas);
   const fotos = Object.entries(d.fotos) as [EspacoFoto, string][];
@@ -171,6 +178,7 @@ export async function abrirChamado(entrada: unknown): Promise<ResultadoAbertura>
   // O cliente recebe o protocolo agora; a análise roda em seguida.
   after(async () => {
     await protocoloAssistencia(c.email, c.nome, c.protocolo, `${SITE}${linkProtocolo(c.protocolo)}`).catch(() => null);
+    await avisoWhatsapp(c.id, "recebido", "recebido");
     try {
       await processarChamado(c.id);
     } catch (e) {

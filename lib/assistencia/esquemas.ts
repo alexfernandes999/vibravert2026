@@ -86,6 +86,8 @@ export const etapaFotos = z.object({
 
 export const etapaRevisao = z.object({
   lgpd: z.literal(true, { errorMap: () => msg("Marque a autorização para enviar.") }),
+  /** Consentimento para os avisos do chamado por WhatsApp (a Meta exige). Opcional. */
+  avisoWhatsapp: z.boolean().optional().default(false),
 });
 
 /** Chamado completo de garantia. */
