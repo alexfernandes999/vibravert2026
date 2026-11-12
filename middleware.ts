@@ -66,6 +66,16 @@ export function middleware(req: NextRequest) {
    * aparecem em cada deploy e ninguém lembra de bloquear.
    */
   if (host && !host.endsWith("vibravert.com.br") && !host.startsWith("localhost")) {
+    // Endereço fixo da Vercel em produção (vibravert2026.vercel.app…): manda
+    // para o domínio, para existir um endereço só. Pré-visualização continua
+    // abrindo, que é para isso que ela existe.
+    if (process.env.VERCEL_ENV === "production") {
+      const url = req.nextUrl.clone();
+      url.protocol = "https";
+      url.host = "www.vibravert.com.br";
+      url.port = "";
+      return NextResponse.redirect(url, 308);
+    }
     const r = NextResponse.next();
     r.headers.set("X-Robots-Tag", "noindex, nofollow");
     return r;
