@@ -16,6 +16,7 @@ import {
   Mail,
   Megaphone,
   MessagesSquare,
+  ChartColumn,
   Contact,
   Package,
   Plug,
@@ -41,6 +42,7 @@ import {
  */
 const ICONES: Record<string, LucideIcon> = {
   painel: LayoutDashboard,
+  vendas: ChartColumn,
   pedidos: ShoppingBag,
   clientes: Contact,
   produtos: Package,

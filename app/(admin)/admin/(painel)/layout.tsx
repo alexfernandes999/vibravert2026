@@ -16,6 +16,7 @@ const MENU: (Omit<ItemMenu, "badge"> & { papeis?: string[] })[] = [
   { href: "/admin", r: "Visão geral", grupo: "", icone: "painel" },
 
   // Vendas: tudo o que tem cliente do outro lado.
+  { href: "/admin/vendas", r: "Painel de vendas", grupo: "Vendas", icone: "vendas", papeis: ["MASTER", "DESENVOLVEDOR", "OPERADOR"] },
   { href: "/admin/pedidos", r: "Pedidos", grupo: "Vendas", icone: "pedidos" },
   { href: "/admin/clientes", r: "Clientes", grupo: "Vendas", icone: "clientes" },
   { href: "/admin/recuperar-vendas", r: "Recuperar vendas", grupo: "Vendas", icone: "recuperar" },

@@ -2,6 +2,6 @@
   "regions": ["gru1"],
   "crons": [
     { "path": "/api/lembretes", "schedule": "0 13 * * *" },
-    { "path": "/api/erp/sincronizar", "schedule": "0 9 * * *" }
+    { "path": "/api/erp/sincronizar", "schedule": "*/15 * * * *" }
   ]
 }
