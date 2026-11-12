@@ -65,7 +65,7 @@ async function pedirToken(corpo: Record<string, string>): Promise<Resposta> {
   return d;
 }
 
-async function guardar(d: Resposta) {
+async function guardar(d: Resposta, db: Pick<typeof prisma, "integracao"> = prisma) {
   const agora = Date.now();
   const dados = {
     accessToken: d.access_token,
@@ -80,7 +80,7 @@ async function guardar(d: Resposta) {
     falhaEm: null,
   };
 
-  await prisma.integracao.upsert({
+  await db.integracao.upsert({
     where: { nome: NOME },
     create: { nome: NOME, ...dados },
     update: dados,
@@ -105,20 +105,42 @@ export async function token(): Promise<string> {
 
   if (c.expiraEm.getTime() - FOLGA > Date.now()) return c.accessToken;
 
-  let d: Resposta;
+  // Uma renovação por vez, para o sistema inteiro. Pedido pago chega com vários
+  // avisos do Mercado Pago no mesmo segundo; dois renovando juntos usam o mesmo
+  // refresh_token, o Bling lê isso como roubo e invalida a autorização inteira ·
+  // foi o que derrubou a conexão em 04/11 (pedido #36) e 12/11 (pedido #39).
+  // Quem chega depois espera a trava e já encontra o token novo. Dentro da
+  // transação só se usa `tx`: com uma conexão só no pool, qualquer outra
+  // consulta aqui dentro esperaria a própria transação terminar.
+  let recusado: Error | null = null;
   try {
-    d = await pedirToken({ grant_type: "refresh_token", refresh_token: c.refreshToken });
+    return await prisma.$transaction(
+      async (tx) => {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(7300542)`;
+        const atual = await tx.integracao.findUnique({ where: { nome: NOME } });
+        if (!atual) throw new Error("Bling ainda não foi autorizado.");
+        if (atual.expiraEm.getTime() - FOLGA > Date.now()) return atual.accessToken;
+        try {
+          const d = await pedirToken({ grant_type: "refresh_token", refresh_token: atual.refreshToken });
+          await guardar(d, tx);
+          return d.access_token;
+        } catch (e) {
+          recusado = e instanceof Error ? e : new Error("falha ao renovar");
+          throw e;
+        }
+      },
+      { timeout: 30_000, maxWait: 30_000 },
+    );
   } catch (e) {
-    // Refresh recusado é conexão caída até alguém reautorizar. Fica gravado para
-    // o painel inteiro avisar · em 04/11 caiu às 17h e ninguém soube.
-    const falha = e instanceof Error ? e.message.slice(0, 500) : "falha ao renovar";
-    await prisma.integracao
-      .update({ where: { nome: NOME }, data: { falha, falhaEm: c.falhaEm ?? new Date() } })
-      .catch(() => {});
+    // Refresh recusado é conexão caída até alguém reautorizar. Fica gravado (fora
+    // da transação, que já desfez) para o painel inteiro avisar.
+    if (recusado) {
+      await prisma.integracao
+        .update({ where: { nome: NOME }, data: { falha: (recusado as Error).message.slice(0, 500), falhaEm: c.falhaEm ?? new Date() } })
+        .catch(() => {});
+    }
     throw e;
   }
-  await guardar(d);
-  return d.access_token;
 }
 
 /** Uma chamada autenticada na API. */
