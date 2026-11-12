@@ -7,7 +7,8 @@ import { assuntoVibrinha, fichaCliente, lerVibrinha, paramsPessoa, telefoneE164,
  *
  *   Chat do site   · conversa com a Vibrinha
  *   Formulário     · chamado aberto na assistência técnica (fotos, protocolo)
- *   WhatsApp       · conversa no Conversas que nasceu do site (avisos da assistência)
+ *   WhatsApp       · conversa no Conversas que nasceu do site: avisos da assistência
+ *                    e quem saiu da Vibrinha para o WhatsApp (11 5033-2829, número da Meta)
  *
  * Assunto: Vendas ou SAC. O chamado é sempre SAC; a Vibrinha é classificada
  * pelo que a pessoa escreveu; o WhatsApp, pelo que o originou.
@@ -35,6 +36,8 @@ type ConversaWhats = {
   telefone: string;
   nome: string | null;
   origem: string | null;
+  /** Mensagem pronta que a pessoa mandou ao sair da Vibrinha (quando veio por ela). */
+  vibrinha?: string | null;
   numero: string;
   estado: string;
   quando: string;
@@ -142,12 +145,12 @@ export async function listarAtendimento(f: FiltroAtendimento = {}) {
     itens.push({
       chave: `w:${w.id}`,
       canal: "WhatsApp",
-      // Hoje o que nasce do site no WhatsApp são os avisos da assistência.
-      assunto: w.origem?.startsWith("site:assistencia") ? "SAC" : "Vendas",
+      // Aviso da assistência é SAC; quem veio da Vibrinha, pelo que conversou com ela.
+      assunto: w.origem?.startsWith("site:assistencia") ? "SAC" : w.vibrinha ? assuntoVibrinha(w.vibrinha) : "Vendas",
       nome: w.nome ?? `+${w.telefone}`,
       previa: w.ultima ? `${w.ultima.direcao === "entrada" ? "" : "Nós: "}${w.ultima.texto}` : "Sem mensagens",
       quando: new Date(w.quando),
-      status: w.numero,
+      status: w.origem === "vibrinha" ? `veio da Vibrinha · ${w.numero}` : w.numero,
       aguardando: w.aguardando,
       telefone: w.telefone,
       email: null,
