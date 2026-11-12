@@ -29,6 +29,8 @@ CREATE TABLE IF NOT EXISTS "erp"."fontes_bling" (
     "atualizadoEm" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "fontes_bling_pkey" PRIMARY KEY ("entidade")
 );
+ALTER TABLE "erp"."fontes_bling" ADD COLUMN IF NOT EXISTS "janela" INTEGER NOT NULL DEFAULT 0;
+
 CREATE INDEX IF NOT EXISTS "espelho_bling_entidade_codigo_idx" ON "erp"."espelho_bling"("entidade", "codigo");
 CREATE INDEX IF NOT EXISTS "espelho_bling_entidade_pendente_idx" ON "erp"."espelho_bling"("entidade", "pendente");
 CREATE UNIQUE INDEX IF NOT EXISTS "espelho_bling_entidade_blingId_key" ON "erp"."espelho_bling"("entidade", "blingId");

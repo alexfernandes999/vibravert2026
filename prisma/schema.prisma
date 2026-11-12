@@ -1154,6 +1154,8 @@ model FonteBling {
   entidade       String    @id
   /// Próxima página da varredura em curso.
   pagina         Int       @default(1)
+  /// Período (mês) da varredura em curso, para as fontes lidas mês a mês.
+  janela         Int       @default(0)
   /// Quando a varredura em curso começou · vira o "desde" da próxima.
   varreduraDe    DateTime?
   /// Fim da última varredura completa.

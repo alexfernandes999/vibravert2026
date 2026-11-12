@@ -18,11 +18,23 @@ import { chamar } from "@/lib/bling";
 
 type Item = Record<string, unknown> & { id?: number | string };
 
+type Janela = [string, string];
+
 type Fonte = {
   entidade: string;
   rotulo: string;
-  /** Caminho da listagem. `desde` vem preenchido nas leituras incrementais. */
-  lista: (pagina: number, desde: Date | null) => string;
+  /**
+   * Caminho da listagem. `desde` vem preenchido nas leituras incrementais;
+   * `janela` (início e fim, AAAA-MM-DD) na varredura completa por períodos.
+   */
+  lista: (pagina: number, desde: Date | null, janela: Janela | null) => string;
+  /**
+   * Períodos da varredura completa. O Bling só filtra data com início E fim,
+   * e um período muito longo é recusado: lê-se mês a mês.
+   */
+  janelas?: () => Janela[];
+  /** Aceita filtro por data de alteração: depois da 1ª carga, lê só o que mudou. */
+  incremental?: boolean;
   codigo?: (x: Item) => string | null;
   /** Caminho do detalhe, para quem precisa (itens do pedido, estrutura). */
   detalhe?: (id: string) => string;
@@ -38,6 +50,21 @@ const dia = (d: Date) => d.toISOString().slice(0, 10);
 const INICIO_HISTORICO = "2026-01-01";
 
 const pag = (pagina: number) => `pagina=${pagina}&limite=${LIMITE}`;
+/** Data e hora no formato dos filtros de alteração do Bling. */
+const momento = (d: Date) => encodeURIComponent(d.toISOString().slice(0, 19).replace("T", " "));
+
+/** Meses de `de` (AAAA-MM) até `mesesAFrente` depois do atual. */
+function meses(de: string, mesesAFrente = 0): Janela[] {
+  const r: Janela[] = [];
+  const [a, m] = de.split("-").map(Number);
+  const fim = new Date();
+  fim.setUTCMonth(fim.getUTCMonth() + mesesAFrente);
+  for (let d = new Date(Date.UTC(a!, m! - 1, 1)); d <= fim; d.setUTCMonth(d.getUTCMonth() + 1)) {
+    const ultimo = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0));
+    r.push([dia(d), dia(ultimo)]);
+  }
+  return r;
+}
 const str = (v: unknown) => (v === null || v === undefined || v === "" ? null : String(v));
 
 export const FONTES: Fonte[] = [
@@ -60,8 +87,8 @@ export const FONTES: Fonte[] = [
     rotulo: "Produtos e estruturas",
     // criterio=5: todos, inclusive inativos · o histórico de venda cita produto
     // que hoje está desligado.
-    lista: (p, desde) =>
-      `/produtos?${pag(p)}&criterio=5${desde ? `&dataAlteracaoInicial=${dia(desde)}` : ""}`,
+    // O filtro de alteração de produto não filtra de verdade (testado em 12/11): relê tudo, são poucas páginas.
+    lista: (p) => `/produtos?${pag(p)}&criterio=5`,
     codigo: (x) => str(x.codigo),
     detalhe: (id) => `/produtos/${id}`,
     // Estrutura (bomba → caneca → componentes, kit e combo) só vem no detalhe.
@@ -71,10 +98,13 @@ export const FONTES: Fonte[] = [
   {
     entidade: "pedido_venda",
     rotulo: "Pedidos de venda",
-    lista: (p, desde) =>
+    // Primeira carga mês a mês; depois, só o que mudou (alteração com início e fim).
+    lista: (p, desde, j) =>
       desde
-        ? `/pedidos/vendas?${pag(p)}&dataAlteracaoInicial=${dia(desde)}`
-        : `/pedidos/vendas?${pag(p)}&dataInicial=${INICIO_HISTORICO}`,
+        ? `/pedidos/vendas?${pag(p)}&dataAlteracaoInicial=${momento(desde)}&dataAlteracaoFinal=${momento(new Date())}`
+        : `/pedidos/vendas?${pag(p)}&dataInicial=${j![0]}&dataFinal=${j![1]}`,
+    janelas: () => meses(INICIO_HISTORICO.slice(0, 7)),
+    incremental: true,
     codigo: (x) => str(x.numero),
     detalhe: (id) => `/pedidos/vendas/${id}`,
     precisaDetalhe: () => true,
@@ -101,17 +131,14 @@ export const FONTES: Fonte[] = [
   {
     entidade: "conta_pagar",
     rotulo: "Contas a pagar",
-    lista: (p) => `/contas/pagar?${pag(p)}`,
+    // Por mês de vencimento: do começo do ano até seis meses à frente.
+    lista: (p, _d, j) => `/contas/pagar?${pag(p)}&tipoFiltroData=V&dataInicial=${j![0]}&dataFinal=${j![1]}`,
+    janelas: () => meses(INICIO_HISTORICO.slice(0, 7), 6),
     codigo: (x) => str(x.numeroDocumento ?? x.id),
     intervaloMin: 6 * 60,
   },
-  {
-    entidade: "conta_receber",
-    rotulo: "Contas a receber",
-    lista: (p) => `/contas/receber?${pag(p)}`,
-    codigo: (x) => str(x.numeroDocumento ?? x.id),
-    intervaloMin: 6 * 60,
-  },
+  // Contas a receber ficam para a fase 3 (conciliação): são mais de 60 mil
+  // títulos em aberto no Bling, a maioria repasse de marketplace nunca baixado.
 ];
 
 /** Saldo não tem listagem: sai dos produtos, em lotes, pela API de estoques. */
@@ -170,23 +197,32 @@ async function lerFonte(f: Fonte, prazo: number): Promise<Relatorio> {
       if (!emCurso) {
         estado = await prisma.fonteBling.update({
           where: { entidade: f.entidade },
-          data: { varreduraDe: new Date(), pagina: 1 },
+          data: { varreduraDe: new Date(), pagina: 1, janela: 0 },
         });
       }
-      // Um dia de folga no incremental: o filtro do Bling é por data, não por hora.
-      const desde = estado.desde ? new Date(estado.desde.getTime() - 24 * 3600_000) : null;
+      // Um dia de folga no incremental. Fonte sem filtro de alteração relê tudo.
+      const desde = f.incremental && estado.desde ? new Date(estado.desde.getTime() - 24 * 3600_000) : null;
+      const janelas = desde ? null : f.janelas?.() ?? null;
 
       while (Date.now() < prazo) {
-        const d = await chamar<{ data?: Item[] }>(f.lista(estado.pagina, desde));
+        const janela = janelas ? janelas[Math.min(estado.janela, janelas.length - 1)]! : null;
+        const d = await chamar<{ data?: Item[] }>(f.lista(estado.pagina, desde, janela));
         const itens = (d.data ?? []).filter((x) => x.id !== undefined);
         r.paginas++;
         r.mudaram += itens.length ? await gravar(f, itens) : 0;
 
+        if (itens.length < LIMITE && janelas && estado.janela < janelas.length - 1) {
+          estado = await prisma.fonteBling.update({
+            where: { entidade: f.entidade },
+            data: { janela: estado.janela + 1, pagina: 1 },
+          });
+          continue;
+        }
         if (itens.length < LIMITE) {
           const total = await prisma.espelhoBling.count({ where: { entidade: f.entidade } });
           await prisma.fonteBling.update({
             where: { entidade: f.entidade },
-            data: { completaEm: new Date(), desde: estado.varreduraDe, varreduraDe: null, pagina: 1, registros: total, erro: null },
+            data: { completaEm: new Date(), desde: estado.varreduraDe, varreduraDe: null, pagina: 1, janela: 0, registros: total, erro: null },
           });
           r.completa = true;
           break;
