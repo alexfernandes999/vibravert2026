@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { resumoDaFila } from "./alertas";
 
 /**
  * Rotina diária da assistência (roda no agendamento da Vercel).
@@ -18,5 +19,7 @@ export async function rotinaAssistencia() {
       prisma.chamado.update({ where: { id: c.id }, data: { status: "ENCERRADO" } }),
     ]);
   }
-  return { encerrados: vencidos.length };
+  // Resumo da fila de decisão: chega todo dia enquanto houver chamado esperando.
+  const fila = await resumoDaFila().catch((e) => ({ erro: String(e) }));
+  return { encerrados: vencidos.length, fila };
 }

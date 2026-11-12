@@ -345,3 +345,39 @@ export function protocoloAssistencia(email: string, nome: string, protocolo: str
     }),
   );
 }
+
+const escapar = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+
+/**
+ * Aviso interno da fila de decisão da assistência: um chamado entrou (`novo`)
+ * ou o resumo do dia com tudo o que ainda espera uma pessoa decidir.
+ */
+export function alertaFilaAssistencia(
+  para: string,
+  tipo: "novo" | "resumo",
+  chamados: { protocolo: string; nome: string; modelo: string | null; horas: number }[],
+) {
+  const vencidos = chamados.filter((c) => c.horas > 24).length;
+  const assunto =
+    tipo === "novo"
+      ? `Novo chamado de garantia para decidir: ${chamados[0]!.protocolo}`
+      : `Fila de decisão: ${chamados.length} chamado${chamados.length > 1 ? "s" : ""} esperando${vencidos ? ` · ${vencidos} vencido${vencidos > 1 ? "s" : ""}` : ""}`;
+  return enviar(
+    para,
+    assunto,
+    montar({
+      etiqueta: "Assistência técnica · aviso interno",
+      titulo: tipo === "novo" ? "Chegou um chamado para decidir" : "Chamados esperando decisão",
+      texto: [
+        tipo === "novo"
+          ? "O sistema não decide sozinho: aprovar, negar, pedir informação ou marcar que já foi resolvido por fora é com uma pessoa. O prazo é de 24 horas úteis."
+          : "Estes chamados estão na Fila de decisão do painel. Cliente esperando sem resposta é reclamação no Reclame Aqui; se já foi atendido pelo WhatsApp, use “Já resolvido por fora”.",
+      ],
+      resumo: chamados.map((c) => ({
+        rotulo: `${c.protocolo} · ${escapar(c.nome.split(" ")[0] ?? c.nome)}${c.modelo ? ` · ${escapar(c.modelo)}` : ""}`,
+        valor: c.horas > 24 ? `vencido · ${Math.floor(c.horas / 24)} dia${c.horas >= 48 ? "s" : ""}` : `há ${c.horas} h`,
+      })),
+      botao: { rotulo: "Abrir a fila de decisão", href: `${base()}/admin/assistencia/fila` },
+    }),
+  );
+}

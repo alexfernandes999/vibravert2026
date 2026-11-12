@@ -10,6 +10,7 @@ import { proximoProtocolo } from "./protocolo";
 import { processarChamado } from "./analise";
 import { linkProtocolo } from "./acesso";
 import { novoRascunho, urlDeEnvio } from "./storage";
+import { avisarNovoNaFila } from "./alertas";
 import { protocoloAssistencia } from "@/lib/email";
 
 const SITE = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
@@ -113,6 +114,7 @@ export async function abrirChamado(entrada: unknown): Promise<ResultadoAbertura>
       ano,
     );
     after(() => protocoloAssistencia(c.email, c.nome, c.protocolo, `${SITE}${linkProtocolo(c.protocolo)}`).then(() => {}, () => {}));
+    if (!automatico) after(() => avisarNovoNaFila(c.id));
     return { ok: true, protocolo: c.protocolo, link: linkProtocolo(c.protocolo) };
   }
 
@@ -178,6 +180,7 @@ export async function abrirChamado(entrada: unknown): Promise<ResultadoAbertura>
         }),
         prisma.chamado.update({ where: { id: c.id }, data: { status: "EM_ANALISE" } }),
       ]);
+      await avisarNovoNaFila(c.id);
     }
   });
 

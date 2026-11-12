@@ -9,6 +9,7 @@ import { chaveValida, linkProtocolo } from "./acesso";
 import { ESPACOS_FOTO, type EspacoFoto } from "./esquemas";
 import { RE_PROTOCOLO } from "./protocolo";
 import { processarChamado } from "./analise";
+import { avisarNovoNaFila } from "./alertas";
 
 const so = (s: string) => s.replace(/\D/g, "");
 
@@ -54,6 +55,7 @@ export async function reenviarFotos(protocolo: string, chave: string, fotos: Par
       await processarChamado(c.id);
     } catch {
       await prisma.chamado.update({ where: { id: c.id }, data: { status: "EM_ANALISE" } });
+      await avisarNovoNaFila(c.id);
     }
   });
   return { ok: true };

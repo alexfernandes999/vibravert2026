@@ -22,6 +22,7 @@ import { arquivarFoto, baixar } from "./storage";
 import { FalhaIA, identificarListaFechada, redigir, type Uso } from "./claude";
 import { montarLaudo } from "./laudo";
 import { hojeSP } from "./compra";
+import { avisarNovoNaFila } from "./alertas";
 
 /**
  * Pipeline de um chamado de garantia, depois que o protocolo já saiu.
@@ -261,4 +262,5 @@ export async function processarChamado(chamadoId: string) {
     }
     await tx.chamado.update({ where: { id: c.id }, data: { status, faixa: faixa.faixa, pendenciaRegra: faixa.pendencia ?? null } });
   });
+  if (status === "EM_ANALISE") await avisarNovoNaFila(c.id);
 }
