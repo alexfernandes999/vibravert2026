@@ -33,7 +33,7 @@ export default async function Espelho() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8">
-      <h1 className="text-[26px] font-extrabold tracking-tight">Espelho do Bling</h1>
+      <h1 className="text-[26px] font-extrabold tracking-tight">Dados do Bling (ERP)</h1>
       <p className="mt-1.5 max-w-2xl text-[14.5px] text-tinta-2">
         Fase 1 do ERP: uma cópia do Bling, atualizada sozinha. Só lê · nada daqui muda o Bling.
         Sai desta fase quando os números baterem com o Bling por duas semanas.

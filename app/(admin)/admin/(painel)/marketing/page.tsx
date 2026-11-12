@@ -20,7 +20,7 @@ export default async function Marketing() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
-      <h1 className="text-[26px] font-extrabold tracking-tight">Marketing</h1>
+      <h1 className="text-[26px] font-extrabold tracking-tight">Pixels e anúncios</h1>
       <p className="mt-1.5 max-w-2xl text-[14.5px] leading-relaxed text-tinta-2">
         As chaves de quem cuida do tráfego. O que for salvo aqui vale na loja em minutos ·
         sem precisar de programador e sem publicar nada.

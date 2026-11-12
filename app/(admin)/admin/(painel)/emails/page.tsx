@@ -41,7 +41,7 @@ export default async function Emails() {
 
   return (
     <div className="p-6">
-      <h1 className="text-xl font-extrabold tracking-tight">E-mails</h1>
+      <h1 className="text-xl font-extrabold tracking-tight">E-mails enviados</h1>
       <p className="mt-1.5 max-w-2xl text-[13.5px] leading-relaxed text-tinta-2">
         Confirmação de pedido, aviso de pagamento, aviso de envio e lembrete de carrinho parado.
         Tudo o que a loja tenta mandar fica registrado aqui.

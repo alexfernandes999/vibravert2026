@@ -27,7 +27,7 @@ export default async function Seguranca({
 
   return (
     <div className="max-w-lg">
-      <h1 className="text-xl font-extrabold tracking-tight">Segurança</h1>
+      <h1 className="text-xl font-extrabold tracking-tight">Minha conta</h1>
       <p className="mt-1.5 text-[13.5px] leading-relaxed text-tinta-2">
         Sua conta é <strong className="font-bold">{eu.login}</strong>, com acesso de{" "}
         {PAPEL[eu.papel]}. O painel pede a sua senha e um

@@ -73,7 +73,7 @@ export default async function Canais() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
-      <h1 className="text-[26px] font-extrabold tracking-tight">Canais e feeds</h1>
+      <h1 className="text-[26px] font-extrabold tracking-tight">Google e feeds</h1>
       <p className="mt-1.5 max-w-2xl text-[14.5px] leading-relaxed text-tinta-2">
         Os endereços que o Google, o Instagram e as ferramentas de busca leem. Está tudo pronto
         do lado da loja · o que falta é ligar cada um na conta certa.

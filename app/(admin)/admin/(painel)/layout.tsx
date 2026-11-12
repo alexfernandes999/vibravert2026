@@ -10,37 +10,46 @@ import { NavPainel, type ItemMenu } from "@/components/nav-painel";
 
 export const dynamic = "force-dynamic";
 
+const ASSISTENCIA = "Assistência técnica";
+
 const MENU: (Omit<ItemMenu, "badge"> & { papeis?: string[] })[] = [
   { href: "/admin", r: "Visão geral", grupo: "", icone: "painel" },
-  { href: "/admin/pedidos", r: "Pedidos", grupo: "", icone: "pedidos" },
-  { href: "/admin/clientes", r: "Clientes", grupo: "", icone: "clientes" },
-  { href: "/admin/produtos", r: "Produtos", grupo: "", icone: "produtos" },
-  { href: "/admin/estoque", r: "Estoque", grupo: "", icone: "estoque" },
-  { href: "/admin/recuperar-vendas", r: "Recuperar vendas", grupo: "", icone: "recuperar" },
-  { href: "/admin/conversas", r: "Conversas", grupo: "", icone: "conversas" },
-  { href: "/admin/revenda", r: "Revenda", grupo: "", icone: "revenda" },
-  // Assistência técnica: o técnico vê só este grupo (e a própria conta).
-  { href: "/admin/assistencia", r: "Painel do dia", grupo: "Assistência", icone: "assistencia" },
-  { href: "/admin/assistencia/fila", r: "Fila de decisão", grupo: "Assistência", icone: "fila" },
-  { href: "/admin/assistencia/chamados", r: "Chamados", grupo: "Assistência", icone: "chamados" },
-  { href: "/admin/assistencia/bancada", r: "Bancada", grupo: "Assistência", icone: "bancada" },
+
+  // Vendas: tudo o que tem cliente do outro lado.
+  { href: "/admin/pedidos", r: "Pedidos", grupo: "Vendas", icone: "pedidos" },
+  { href: "/admin/clientes", r: "Clientes", grupo: "Vendas", icone: "clientes" },
+  { href: "/admin/recuperar-vendas", r: "Recuperar vendas", grupo: "Vendas", icone: "recuperar" },
+  { href: "/admin/revenda", r: "Cadastros de revenda", grupo: "Vendas", icone: "revenda" },
+  // O registro do chat do site (Vibrinha). Não é o WhatsApp: esse fica no Conversas.
+  { href: "/admin/conversas", r: "Chat do site (Vibrinha)", grupo: "Vendas", icone: "conversas" },
+
+  { href: "/admin/produtos", r: "Produtos", grupo: "Produtos", icone: "produtos" },
+  { href: "/admin/estoque", r: "Estoque", grupo: "Produtos", icone: "estoque" },
   // ERP · fase 1: o espelho do Bling. Só lê; quem acompanha é quem responde pela conta.
-  { href: "/admin/erp", r: "Espelho do Bling", grupo: "ERP", icone: "espelho", papeis: ["MASTER", "DESENVOLVEDOR"] },
-  { href: "/admin/vitrine", r: "Vitrine da home", grupo: "Loja", icone: "vitrine" },
-  { href: "/admin/banners", r: "Banners", grupo: "Loja", icone: "banners" },
-  { href: "/admin/videos", r: "Vídeos", grupo: "Loja", icone: "videos" },
-  { href: "/admin/marketing", r: "Marketing", grupo: "Loja", icone: "marketing" },
-  { href: "/admin/canais", r: "Canais e feeds", grupo: "Loja", icone: "canais" },
-  { href: "/admin/emails", r: "E-mails", grupo: "Loja", icone: "emails" },
-  { href: "/admin/seguranca", r: "Segurança", grupo: "Conta", icone: "seguranca" },
+  { href: "/admin/erp", r: "Dados do Bling (ERP)", grupo: "Produtos", icone: "espelho", papeis: ["MASTER", "DESENVOLVEDOR"] },
+
+  // Assistência técnica: o técnico vê só este grupo (e a própria conta).
+  { href: "/admin/assistencia", r: "Resumo do dia", grupo: ASSISTENCIA, icone: "assistencia" },
+  { href: "/admin/assistencia/fila", r: "Fila de decisão", grupo: ASSISTENCIA, icone: "fila" },
+  { href: "/admin/assistencia/chamados", r: "Chamados", grupo: ASSISTENCIA, icone: "chamados" },
+  { href: "/admin/assistencia/bancada", r: "Bancada", grupo: ASSISTENCIA, icone: "bancada" },
+
+  { href: "/admin/vitrine", r: "Vitrine da home", grupo: "Site e divulgação", icone: "vitrine" },
+  { href: "/admin/banners", r: "Banners", grupo: "Site e divulgação", icone: "banners" },
+  { href: "/admin/videos", r: "Vídeos", grupo: "Site e divulgação", icone: "videos" },
+  { href: "/admin/marketing", r: "Pixels e anúncios", grupo: "Site e divulgação", icone: "marketing" },
+  { href: "/admin/canais", r: "Google e feeds", grupo: "Site e divulgação", icone: "canais" },
+  { href: "/admin/emails", r: "E-mails enviados", grupo: "Site e divulgação", icone: "emails" },
+
   // Quem dá e tira acesso é o dono e quem cuida do sistema. O operador não vê
   // esta tela: cada pessoa a mais com esse poder é uma porta a mais aberta.
-  { href: "/admin/equipe", r: "Equipe e acessos", grupo: "Conta", icone: "equipe", papeis: ["MASTER", "DESENVOLVEDOR"] },
+  { href: "/admin/equipe", r: "Equipe e acessos", grupo: "Configurações", icone: "equipe", papeis: ["MASTER", "DESENVOLVEDOR"] },
   // Quem liga serviço de fora é quem responde pela conta · o operador não
   // precisa ver token nenhum.
-  { href: "/admin/integracoes", r: "Integrações", grupo: "Conta", icone: "integracoes", papeis: ["MASTER", "DESENVOLVEDOR"] },
+  { href: "/admin/integracoes", r: "Integrações", grupo: "Configurações", icone: "integracoes", papeis: ["MASTER", "DESENVOLVEDOR"] },
+  { href: "/admin/seguranca", r: "Minha conta", grupo: "Configurações", icone: "seguranca" },
   // O manual fica no painel, não num PDF: a dúvida aparece aqui dentro.
-  { href: "/admin/manual", r: "Manual de uso", grupo: "Conta", icone: "manual" },
+  { href: "/admin/manual", r: "Manual de uso", grupo: "Configurações", icone: "manual" },
 ];
 
 const PAPEL = { OPERADOR: "Operador", MASTER: "Dono", DESENVOLVEDOR: "Desenvolvedor", TECNICO: "Técnico" } as const;
@@ -65,7 +74,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   };
   // O técnico não opera a loja: vê a assistência, a segurança e o manual.
   const doTecnico = (m: (typeof MENU)[number]) =>
-    m.grupo === "Assistência" || m.href === "/admin/seguranca" || m.href === "/admin/manual";
+    m.grupo === ASSISTENCIA || m.href === "/admin/seguranca" || m.href === "/admin/manual";
   const itens: ItemMenu[] = MENU.filter(
     (m) => (!m.papeis || m.papeis.includes(eu.papel)) && (eu.papel !== "TECNICO" || doTecnico(m)),
   ).map(

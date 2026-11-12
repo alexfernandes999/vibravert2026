@@ -39,7 +39,7 @@ export default async function Revenda() {
   return (
     <div className="p-6">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-xl font-extrabold tracking-tight">Revenda</h1>
+        <h1 className="text-xl font-extrabold tracking-tight">Cadastros de revenda</h1>
         <div className="ml-auto"><RelogioPainel /></div>
       </div>
 

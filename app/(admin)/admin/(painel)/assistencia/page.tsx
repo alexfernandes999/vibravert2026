@@ -42,7 +42,7 @@ export default async function PainelAssistencia() {
 
   return (
     <div className="p-6">
-      <h1 className="text-xl font-extrabold tracking-tight">Assistência · Painel do dia</h1>
+      <h1 className="text-xl font-extrabold tracking-tight">Assistência técnica · Resumo do dia</h1>
       <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {kpi("Abertos 24 h", abertosHoje)}
         {kpi("Na fila", n("EM_ANALISE"), "SLA 24 h úteis")}
