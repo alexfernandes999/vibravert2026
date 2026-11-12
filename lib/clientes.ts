@@ -24,6 +24,24 @@ export function telefoneE164(t: string | null | undefined): string | null {
 
 export type Identidade = { d?: string; e?: string; t?: string };
 
+/** De onde a pessoa chegou: o canal do pedido, o site ou a assistência. */
+export const ORIGENS = ["Mercado Livre", "Shopee", "Magalu", "Amazon", "Loja física", "Site", "Assistência"] as const;
+export type Origem = (typeof ORIGENS)[number];
+
+/** Etiquetas calculadas na hora, para filtrar a lista. */
+export const ETIQUETAS = ["Chamado aberto", "Recompra", "Empresa (CNPJ)", "Comprou em 30 dias"] as const;
+export type Etiqueta = (typeof ETIQUETAS)[number];
+
+const TIPO_CANAL: Record<string, Origem> = {
+  MercadoLivre: "Mercado Livre",
+  Shopee: "Shopee",
+  IntegraCommerce: "Magalu",
+  Amazon: "Amazon",
+  LojaFisica: "Loja física",
+};
+
+const CHAMADO_FECHADO = ["CONCLUIDO", "ENCERRADO", "NEGADO", "RECUSADO", "ORIENTADO_MARKETPLACE"];
+
 export type Cartao = {
   nome: string;
   documento: string | null;
@@ -32,77 +50,115 @@ export type Cartao = {
   pedidosSite: number;
   pedidosBling: number;
   chamados: number;
+  chamadoAberto: boolean;
+  origens: Origem[];
+  etiquetas: Etiqueta[];
   ultimo: Date;
 };
 
-export const linkFicha = (c: { documento?: string | null; email?: string | null; telefone?: string | null }) => {
+/** Parâmetros da pessoa selecionada (d = documento, e = e-mail, t = telefone). */
+export const paramsPessoa = (c: { documento?: string | null; email?: string | null; telefone?: string | null }) => {
   const p = new URLSearchParams();
   if (c.documento) p.set("d", so(c.documento));
   if (c.email) p.set("e", c.email.toLowerCase());
   if (c.telefone) p.set("t", telefoneE164(c.telefone) ?? so(c.telefone));
-  return `/admin/clientes/ficha?${p}`;
+  return p;
 };
+export const linkFicha = (c: { documento?: string | null; email?: string | null; telefone?: string | null }) =>
+  `/admin/clientes?${paramsPessoa(c)}`;
 
-type LinhaBling = { contato: string | null; nome: string | null; documento: string | null; pedidos: bigint; ultimo: string | null };
+/** Canais do Bling (loja id → origem), do espelho. */
+async function canaisBling() {
+  const c = await prisma.espelhoBling.findMany({ where: { entidade: "canal_venda" }, select: { blingId: true, codigo: true, resumo: true } });
+  return new Map(
+    c.map((x) => {
+      const tipo = (x.resumo as { tipo?: string } | null)?.tipo ?? "";
+      return [x.blingId, { nome: x.codigo ?? "Bling", origem: TIPO_CANAL[tipo] ?? null }] as const;
+    }),
+  );
+}
+
+type LinhaBling = { nome: string | null; documento: string | null; pedidos: bigint; ultimo: string | null; lojas: string[] | null };
 
 /** Pessoas que compraram pelo Bling (todos os canais), agrupadas pelo contato. */
-async function contatosBling(q: string | null, limite: number): Promise<LinhaBling[]> {
+async function contatosBling(q: string | null, lojas: string[] | null, limite: number, etiqueta: Etiqueta | null = null): Promise<LinhaBling[]> {
+  // Etiquetas que dá para resolver no banco: assim o filtro olha a base toda, não só os recentes.
+  const recompra = etiqueta === "Recompra";
+  const cnpj = etiqueta === "Empresa (CNPJ)";
   const digitos = q ? so(q) : "";
   const termo = q ? `%${q}%` : null;
   return prisma.$queryRaw<LinhaBling[]>`
-    SELECT resumo->'contato'->>'id' AS contato,
-           max(resumo->'contato'->>'nome') AS nome,
+    SELECT max(resumo->'contato'->>'nome') AS nome,
            max(regexp_replace(coalesce(resumo->'contato'->>'numeroDocumento', ''), '\\D', '', 'g')) AS documento,
            count(*) AS pedidos,
-           max(resumo->>'data') AS ultimo
+           max(resumo->>'data') AS ultimo,
+           array_agg(DISTINCT resumo->'loja'->>'id') AS lojas
       FROM "erp"."espelho_bling"
      WHERE entidade = 'pedido_venda'
+       AND (${lojas}::text[] IS NULL OR resumo->'loja'->>'id' = ANY(${lojas}::text[]))
        AND (${termo}::text IS NULL
             OR resumo->'contato'->>'nome' ILIKE ${termo}
             OR (${digitos.length >= 5} AND regexp_replace(coalesce(resumo->'contato'->>'numeroDocumento', ''), '\\D', '', 'g') LIKE ${digitos + "%"}))
-     GROUP BY 1
+       AND (NOT ${cnpj} OR length(regexp_replace(coalesce(resumo->'contato'->>'numeroDocumento', ''), '\\D', '', 'g')) = 14)
+     GROUP BY resumo->'contato'->>'id'
+    HAVING (NOT ${recompra} OR count(*) >= 2)
      ORDER BY max(resumo->>'data') DESC NULLS LAST
      LIMIT ${limite}`;
 }
 
-/** Lista de cartões: busca por nome, CPF/CNPJ, e-mail ou telefone; vazio mostra os mais recentes. */
-export async function buscarClientes(q: string | null): Promise<Cartao[]> {
-  const termo = q?.trim() || null;
+export type FiltroClientes = { q?: string | null; origem?: string | null; etiqueta?: string | null };
+
+/** Lista: busca por nome, CPF/CNPJ, e-mail ou telefone, com filtro de origem e etiqueta. */
+export async function buscarClientes(f: FiltroClientes = {}): Promise<Cartao[]> {
+  const termo = f.q?.trim() || null;
+  const origem = (ORIGENS as readonly string[]).includes(f.origem ?? "") ? (f.origem as Origem) : null;
+  const etiqueta = (ETIQUETAS as readonly string[]).includes(f.etiqueta ?? "") ? (f.etiqueta as Etiqueta) : null;
   const digitos = termo ? so(termo) : "";
   const tel = digitos.length >= 8 ? digitos.slice(-8) : null;
+  const canais = await canaisBling();
+
+  const querSite = !origem || origem === "Site";
+  const querChamado = !origem || origem === "Assistência";
+  const lojasDaOrigem = origem ? [...canais].filter(([, c]) => c.origem === origem).map(([id]) => id) : null;
+  const querBling = !origem || (lojasDaOrigem?.length ?? 0) > 0;
+  const limite = etiqueta ? 150 : 60;
 
   const [site, chamados, bling] = await Promise.all([
-    prisma.cliente.findMany({
-      where: termo
-        ? {
-            OR: [
-              { nome: { contains: termo, mode: "insensitive" } },
-              { email: { contains: termo, mode: "insensitive" } },
-              ...(digitos.length >= 5 ? [{ cpfCnpj: { contains: digitos } }] : []),
-              ...(tel ? [{ telefone: { contains: tel.slice(-4) } }] : []),
-            ],
-          }
-        : undefined,
-      orderBy: { criadoEm: "desc" },
-      take: 40,
-      select: { nome: true, email: true, cpfCnpj: true, telefone: true, criadoEm: true, _count: { select: { pedidos: true } } },
-    }),
-    prisma.chamado.findMany({
-      where: termo
-        ? {
-            OR: [
-              { nome: { contains: termo, mode: "insensitive" } },
-              { email: { contains: termo, mode: "insensitive" } },
-              ...(digitos.length >= 5 ? [{ documento: { startsWith: digitos } }] : []),
-              ...(tel ? [{ telefone: { endsWith: tel } }] : []),
-            ],
-          }
-        : undefined,
-      orderBy: { criadoEm: "desc" },
-      take: 40,
-      select: { nome: true, email: true, documento: true, telefone: true, criadoEm: true },
-    }),
-    contatosBling(termo, 40),
+    querSite
+      ? prisma.cliente.findMany({
+          where: termo
+            ? {
+                OR: [
+                  { nome: { contains: termo, mode: "insensitive" } },
+                  { email: { contains: termo, mode: "insensitive" } },
+                  ...(digitos.length >= 5 ? [{ cpfCnpj: { contains: digitos } }] : []),
+                  ...(tel ? [{ telefone: { contains: tel.slice(-4) } }] : []),
+                ],
+              }
+            : undefined,
+          orderBy: { criadoEm: "desc" },
+          take: limite,
+          select: { nome: true, email: true, cpfCnpj: true, telefone: true, criadoEm: true, _count: { select: { pedidos: true } } },
+        })
+      : [],
+    querChamado || etiqueta === "Chamado aberto"
+      ? prisma.chamado.findMany({
+          where: termo
+            ? {
+                OR: [
+                  { nome: { contains: termo, mode: "insensitive" } },
+                  { email: { contains: termo, mode: "insensitive" } },
+                  ...(digitos.length >= 5 ? [{ documento: { startsWith: digitos } }] : []),
+                  ...(tel ? [{ telefone: { endsWith: tel } }] : []),
+                ],
+              }
+            : undefined,
+          orderBy: { criadoEm: "desc" },
+          take: limite,
+          select: { nome: true, email: true, documento: true, telefone: true, criadoEm: true, status: true },
+        })
+      : [],
+    querBling && etiqueta !== "Chamado aberto" ? contatosBling(termo, lojasDaOrigem, limite, etiqueta) : [],
   ]);
 
   // Junta as fontes na mesma pessoa: documento, depois e-mail, depois telefone.
@@ -119,7 +175,11 @@ export async function buscarClientes(q: string | null): Promise<Cartao[]> {
     const fone = telefoneE164(x.telefone);
     const p = achar(doc, x.email ?? null, fone);
     if (!p) {
-      pessoas.push({ documento: doc, email: x.email ?? null, telefone: x.telefone ?? null, pedidosSite: 0, pedidosBling: 0, chamados: 0, ...x, nome: x.nome });
+      pessoas.push({
+        documento: doc, email: x.email ?? null, telefone: x.telefone ?? null,
+        pedidosSite: 0, pedidosBling: 0, chamados: 0, chamadoAberto: false, origens: [], etiquetas: [],
+        ...x, nome: x.nome,
+      });
       return;
     }
     p.documento ??= doc;
@@ -128,20 +188,41 @@ export async function buscarClientes(q: string | null): Promise<Cartao[]> {
     p.pedidosSite += x.pedidosSite ?? 0;
     p.pedidosBling += x.pedidosBling ?? 0;
     p.chamados += x.chamados ?? 0;
+    p.chamadoAberto ||= Boolean(x.chamadoAberto);
+    p.origens = [...new Set([...p.origens, ...(x.origens ?? [])])];
     if (x.ultimo > p.ultimo) p.ultimo = x.ultimo;
   };
 
-  for (const c of site) juntar({ nome: c.nome, email: c.email, documento: c.cpfCnpj, telefone: c.telefone, pedidosSite: c._count.pedidos, ultimo: c.criadoEm });
-  for (const c of chamados) juntar({ nome: c.nome, email: c.email, documento: c.documento, telefone: c.telefone, chamados: 1, ultimo: c.criadoEm });
+  for (const c of site)
+    juntar({ nome: c.nome, email: c.email, documento: c.cpfCnpj, telefone: c.telefone, pedidosSite: c._count.pedidos, origens: ["Site"], ultimo: c.criadoEm });
+  for (const c of chamados)
+    juntar({
+      nome: c.nome, email: c.email, documento: c.documento, telefone: c.telefone, chamados: 1,
+      chamadoAberto: !CHAMADO_FECHADO.includes(c.status), origens: ["Assistência"], ultimo: c.criadoEm,
+    });
   for (const b of bling)
     juntar({
       nome: (b.nome ?? "Sem nome").replace(/\s*\([^)]*\)\s*$/, ""), // "Nome (apelido do ML)" → "Nome"
       documento: b.documento || null,
       pedidosBling: Number(b.pedidos),
+      origens: [...new Set((b.lojas ?? []).map((l) => canais.get(l)?.origem).filter(Boolean))] as Origem[],
       ultimo: /^\d{4}-\d{2}-\d{2}$/.test(b.ultimo ?? "") ? new Date(`${b.ultimo}T12:00:00Z`) : new Date(0),
     });
 
-  return pessoas.sort((a, b) => b.ultimo.getTime() - a.ultimo.getTime()).slice(0, 60);
+  const mes = Date.now() - 30 * 86_400_000;
+  for (const p of pessoas) {
+    p.etiquetas = [
+      ...(p.chamadoAberto ? (["Chamado aberto"] as const) : []),
+      ...(p.pedidosSite + p.pedidosBling >= 2 ? (["Recompra"] as const) : []),
+      ...(so(p.documento).length === 14 ? (["Empresa (CNPJ)"] as const) : []),
+      ...(p.pedidosSite + p.pedidosBling > 0 && p.ultimo.getTime() >= mes ? (["Comprou em 30 dias"] as const) : []),
+    ];
+  }
+
+  return pessoas
+    .filter((p) => (!origem || p.origens.includes(origem)) && (!etiqueta || p.etiquetas.includes(etiqueta)))
+    .sort((a, b) => b.ultimo.getTime() - a.ultimo.getTime())
+    .slice(0, 80);
 }
 
 // ── ficha ────────────────────────────────────────────────────────────────────
@@ -256,10 +337,10 @@ export async function fichaCliente(id: Identidade) {
            ORDER BY resumo->>'data' DESC NULLS LAST
            LIMIT 50`
       : Promise.resolve([]),
-    prisma.espelhoBling.findMany({ where: { entidade: "canal_venda" }, select: { blingId: true, codigo: true } }),
+    canaisBling(),
     whatsapp(telefones),
   ]);
-  const canal = new Map(canais.map((c) => [c.blingId, c.codigo ?? "Bling"]));
+  const canal = new Map([...canais].map(([id, c]) => [id, c.nome]));
 
   const pedidos: PedidoFicha[] = [
     ...doSite.flatMap((c) =>
