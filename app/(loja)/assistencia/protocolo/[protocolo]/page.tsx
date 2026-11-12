@@ -4,11 +4,12 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { chaveValida } from "@/lib/assistencia/acesso";
 import type { ConteudoLaudo } from "@/lib/assistencia/laudo";
-import { ESPACOS_FOTO, type EspacoFoto } from "@/lib/assistencia/esquemas";
+import { CANAIS, ESPACOS_FOTO, type EspacoFoto } from "@/lib/assistencia/esquemas";
 import { RE_PROTOCOLO } from "@/lib/assistencia/protocolo";
 import { whatsappLink, WHATSAPP_BONITO, SAC_EMAIL } from "@/lib/contato";
 import {
   AtualizarEnquantoAnalisa,
+  AvisoRecebido,
   CopiarProtocolo,
   FormRastreio,
   ReenviarFotos,
@@ -19,11 +20,11 @@ export const metadata: Metadata = { title: "Seu chamado", robots: { index: false
 
 const ENDERECO = "Vibra Vert · Assistência Técnica · Rua Charles Darwin, 707 · Vila Santa Catarina · São Paulo/SP · CEP 04379-074";
 
-type Props = { params: Promise<{ protocolo: string }>; searchParams: Promise<{ k?: string }> };
+type Props = { params: Promise<{ protocolo: string }>; searchParams: Promise<{ k?: string; novo?: string }> };
 
 export default async function Protocolo({ params, searchParams }: Props) {
   const { protocolo } = await params;
-  const { k } = await searchParams;
+  const { k, novo } = await searchParams;
   if (!RE_PROTOCOLO.test(protocolo) || !chaveValida(protocolo, k)) notFound();
 
   const c = await prisma.chamado.findUnique({
@@ -54,6 +55,7 @@ export default async function Protocolo({ params, searchParams }: Props) {
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-5">
       {c.status === "ANALISANDO" && <AtualizarEnquantoAnalisa />}
+      {novo === "1" && <AvisoRecebido nome={c.nome} protocolo={protocolo} email={c.email} />}
 
       <section className="rounded-caixa bg-marca-escuro p-6 text-white">
         <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ouro">Seu protocolo</p>
@@ -69,16 +71,20 @@ export default async function Protocolo({ params, searchParams }: Props) {
       <section className="mt-6 rounded-caixa border border-linha bg-superficie p-6" aria-live="polite">
         {c.status === "ANALISANDO" && (
           <>
-            <h1 className="text-xl font-extrabold">Analisando o seu chamado</h1>
-            <p className="mt-2 text-[15px] text-tinta-2">Isso leva alguns segundos. Esta página se atualiza sozinha.</p>
+            <h1 className="text-xl font-extrabold">Recebemos o seu chamado</h1>
+            <p className="mt-2 text-[15px] text-tinta-2">
+              Estamos organizando as fotos e as respostas para a nossa equipe técnica. Você recebe a resposta em até 24 horas,
+              por e-mail e nesta página.
+            </p>
           </>
         )}
 
         {c.status === "EM_ANALISE" && (
           <>
-            <h1 className="text-xl font-extrabold">Em análise pela equipe</h1>
+            <h1 className="text-xl font-extrabold">Em análise pela equipe técnica</h1>
             <p className="mt-2 text-[15px] text-tinta-2">
-              O seu caso está com a nossa equipe. O resultado sai em até 1 dia útil e você recebe o aviso por WhatsApp e e-mail.
+              Já estamos trabalhando no seu caso. Cada chamado é revisado pessoalmente pelo nosso técnico, e você recebe a resposta
+              em até 24 horas, por e-mail e nesta página.
             </p>
           </>
         )}
@@ -170,7 +176,11 @@ export default async function Protocolo({ params, searchParams }: Props) {
         {c.status === "ORIENTADO_MARKETPLACE" && (
           <>
             <h1 className="text-xl font-extrabold">Devolução pelo marketplace</h1>
-            <p className="mt-2 text-[15px] text-tinta-2">Compras em marketplace há até 30 dias são trocadas pelo próprio marketplace. Abra a devolução no pedido.</p>
+            <p className="mt-2 text-[15px] text-tinta-2">
+              Como a sua compra foi feita pelo {CANAIS.find(([v]) => v === c.canal)?.[1] ?? "marketplace"}, a troca é feita direto
+              por lá: entre na sua compra, abra a opção de devolução ou troca e siga o passo a passo. O envio é sem custo para você.
+              Qualquer dúvida no caminho, fale com a gente pelo WhatsApp.
+            </p>
           </>
         )}
 
@@ -184,7 +194,7 @@ export default async function Protocolo({ params, searchParams }: Props) {
         {c.status === "ENCERRADO" && (
           <>
             <h1 className="text-xl font-extrabold">Chamado encerrado</h1>
-            <p className="mt-2 text-[15px] text-tinta-2">Encerrado por falta de resposta. Se ainda precisar, abra um novo chamado.</p>
+            <p className="mt-2 text-[15px] text-tinta-2">Este chamado foi encerrado. Se ainda precisar, fale com a gente pelo WhatsApp ou abra um novo chamado.</p>
           </>
         )}
       </section>

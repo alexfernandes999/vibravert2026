@@ -150,7 +150,7 @@ export default async function Ficha({ params }: { params: Promise<{ protocolo: s
                   <FormCompraManual protocolo={c.protocolo} />
                 </>
               ) : (
-                <FormDecisao protocolo={c.protocolo} sugestao={ultima?.sugestao ?? null} troca={c.faixa === "troca_expressa"} />
+                <FormDecisao protocolo={c.protocolo} sugestao={ultima?.sugestao ?? null} faixa={c.faixa} />
               )}
             </section>
           )}

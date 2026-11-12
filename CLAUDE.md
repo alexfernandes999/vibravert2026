@@ -13,7 +13,13 @@ Em conflito entre documentos, vale o Guia.
 código determinístico  →  faixa, roteamento, triagem por sinais, liberação
 Claude (API)           →  ler fotos (lista fechada) e redigir textos
 pessoa                 →  confirmar toda negativa e toda recusa
+                           e conferir toda resposta antes de chegar ao cliente
 ```
+
+Desde 12/11/2026 nenhuma resposta sai sozinha (nem aprovação, arrependimento, marketplace
+ou pedido de foto): o motor decide na hora e a decisão fica como sugestão na fila do técnico
+(`conferenciaHumana` em `lib/regras/liberacao.ts`). O cliente recebe na hora só o protocolo e
+o prazo de 24 horas; a resposta vai por e-mail quando a pessoa confirma.
 
 1. **Nenhuma negativa ou recusa sai sem uma pessoa confirmar.** Garantido na base
    (trigger em `decisoes` e papel restrito do conector), não em instrução de prompt.

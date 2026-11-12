@@ -337,10 +337,54 @@ export function protocoloAssistencia(email: string, nome: string, protocolo: str
       etiqueta: "Assistência técnica",
       titulo: `${nome.split(" ")[0]}, recebemos o seu chamado`,
       texto: [
-        `O seu protocolo é <strong>${protocolo}</strong>. Anote o número: é com ele que você acompanha o chamado e identifica a bomba se precisar enviá-la.`,
-        "O resultado da análise aparece na página do chamado. Quando houver laudo, ele fica disponível para baixar ali mesmo.",
+        `Obrigado por entrar em contato. O seu protocolo é <strong>${protocolo}</strong>. Anote o número: é com ele que você acompanha o chamado e identifica a bomba se precisar enviá-la.`,
+        "Já estamos trabalhando no seu caso. Cada chamado é revisado pela nossa equipe técnica, e você recebe a resposta <strong>em até 24 horas</strong>, por e-mail e na página do chamado.",
       ],
       botao: { rotulo: "Acompanhar o chamado", href: link },
+      assinatura: true,
+    }),
+  );
+}
+
+/** O que a pessoa liberou para o cliente, em uma frase cada. */
+export type RespostaAssistencia =
+  | { tipo: "aprovacao" | "autorizacao" | "negativa" | "recusa" | "bancada" | "arrependimento" }
+  | { tipo: "pedido_informacao"; nota: string | null }
+  | { tipo: "orientacao_marketplace"; marketplace: string };
+
+/**
+ * A resposta do chamado, depois que o técnico conferiu. O e-mail não traz o
+ * laudo: chama para a página, que é onde ficam o documento e os próximos passos.
+ */
+export function respostaAssistencia(email: string, nome: string, protocolo: string, link: string, r: RespostaAssistencia) {
+  const texto: string[] =
+    r.tipo === "pedido_informacao"
+      ? [
+          "Para seguirmos com a análise do seu chamado, precisamos de mais uma informação.",
+          ...(r.nota ? [`<strong>${escapar(r.nota)}</strong>`] : []),
+          "Você envia direto pela página do chamado, no botão abaixo.",
+        ]
+      : r.tipo === "orientacao_marketplace"
+        ? [
+            `Como a sua compra foi feita pelo ${escapar(r.marketplace)}, a troca é feita direto por lá: entre na sua compra, abra a opção de devolução ou troca e siga o passo a passo. O envio é sem custo para você.`,
+            "Qualquer dúvida no caminho, é só responder este e-mail ou falar com a gente pelo WhatsApp.",
+          ]
+        : r.tipo === "arrependimento"
+          ? [
+              "A sua devolução por arrependimento foi registrada. O frete é por nossa conta, e o estorno é integral, incluindo o frete que você pagou, assim que a bomba chegar com a embalagem e os acessórios.",
+              "Você recebe o código de postagem em até 1 dia útil.",
+            ]
+          : r.tipo === "bancada"
+            ? ["O nosso técnico concluiu a avaliação da sua bomba na bancada. O laudo está disponível na página do chamado."]
+            : ["A nossa equipe técnica concluiu a análise do seu chamado. O resultado, o laudo e os próximos passos estão na página do chamado."];
+  return enviar(
+    email,
+    `Resposta do chamado ${protocolo}`,
+    montar({
+      etiqueta: "Assistência técnica",
+      titulo: `${nome.split(" ")[0]}, a resposta do seu chamado`,
+      texto,
+      botao: { rotulo: "Ver o chamado", href: link },
       assinatura: true,
     }),
   );

@@ -192,7 +192,8 @@ export function FormularioGarantia() {
     try {
       const r = await abrirChamado(dados);
       if (r.ok) {
-        router.push(r.link);
+        // `novo=1`: a página do protocolo abre com o agradecimento e o prazo.
+        router.push(`${r.link}&novo=1`);
         return;
       }
       const [campo, msg] = Object.entries(r.erros)[0] ?? [];

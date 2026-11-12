@@ -7,7 +7,7 @@ import { calcularFaixa, decidir, triagem, REGRAS_VERSION, type Respostas } from 
 import { chamadoArrependimento, chamadoGarantia, ESPACOS_FOTO, type EspacoFoto } from "./esquemas";
 import { confirmarCompra, hojeSP } from "./compra";
 import { proximoProtocolo } from "./protocolo";
-import { processarChamado } from "./analise";
+import { conferenciaHumana, processarChamado } from "./analise";
 import { linkProtocolo } from "./acesso";
 import { novoRascunho, urlDeEnvio } from "./storage";
 import { avisarNovoNaFila } from "./alertas";
@@ -86,8 +86,8 @@ export async function abrirChamado(entrada: unknown): Promise<ResultadoAbertura>
       canalConfirmado: compra.canalConfirmado,
       usou: d.usou === "sim",
     });
-    const decisao = decidir({ faixa, envio: hoje, modelo: null, emissaoExata: null, faltando: [], sinais: [], lista: null, conferirAprovacoes: false });
-    const automatico = decisao.acao === "arrependimento";
+    const decisao = decidir({ faixa, envio: hoje, modelo: null, emissaoExata: null, faltando: [], sinais: [], lista: null, conferenciaHumana: conferenciaHumana() });
+    const automatico = decisao.rota === "automatica" && decisao.acao === "arrependimento";
 
     const c = await criar(
       {
@@ -105,7 +105,8 @@ export async function abrirChamado(entrada: unknown): Promise<ResultadoAbertura>
             detalhes: {
               regras: REGRAS_VERSION,
               acao: decisao.acao,
-              motivos: automatico ? decisao.motivos : ["Pedido de arrependimento fora da regra automática", ...decisao.motivos],
+              rota: automatico ? "automatica" : "fila_humana",
+              motivos: automatico || decisao.acao === "arrependimento" ? decisao.motivos : ["Pedido de arrependimento fora da regra automática", ...decisao.motivos],
               faixa: { ...faixa },
             },
           },

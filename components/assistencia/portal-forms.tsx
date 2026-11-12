@@ -26,11 +26,18 @@ function Retorno({ estado }: { estado: { ok: boolean; erro?: string; mensagem?: 
  * Decisão do operador. Negativa e recusa exigem "Conferi as 6 fotos";
  * decidir diferente da sugestão exige o motivo.
  */
-export function FormDecisao({ protocolo, sugestao, troca }: { protocolo: string; sugestao: string | null; troca: boolean }) {
+export function FormDecisao({ protocolo, sugestao, faixa }: { protocolo: string; sugestao: string | null; faixa: string }) {
   const [estado, acao, pendente] = useActionState(decidirChamado, null);
-  const opcoes = troca
-    ? [["autorizacao", "Autorizar Troca Expressa"], ["recusa", "Recusar"], ["pedido_informacao", "Pedir informação"], ["resolvido_fora", "Já resolvido por fora"]]
-    : [["aprovacao", "Aprovar envio"], ["negativa", "Negar"], ["pedido_informacao", "Pedir informação"], ["resolvido_fora", "Já resolvido por fora"]];
+  const fora: [string, string] = ["resolvido_fora", "Já resolvido por fora"];
+  const info: [string, string] = ["pedido_informacao", "Pedir informação"];
+  const opcoes: [string, string][] =
+    faixa === "arrependimento"
+      ? [["arrependimento", "Confirmar arrependimento"], info, fora]
+      : faixa === "marketplace_30"
+        ? [["orientacao_marketplace", "Orientar troca pelo marketplace"], info, fora]
+        : faixa === "troca_expressa"
+          ? [["autorizacao", "Autorizar Troca Expressa"], ["recusa", "Recusar"], info, fora]
+          : [["aprovacao", "Aprovar envio"], ["negativa", "Negar"], info, fora];
   const inicial = opcoes.find(([v]) => v === sugestao)?.[0] ?? "";
   const [escolha, setEscolha] = useState(inicial);
   const diferente = sugestao && sugestao !== "revisar" && escolha && escolha !== sugestao && escolha !== "resolvido_fora";
@@ -58,7 +65,9 @@ export function FormDecisao({ protocolo, sugestao, troca }: { protocolo: string;
       )}
       <label className="block text-[12.5px] font-bold">
         {escolha === "pedido_informacao"
-          ? "O que falta (vai para o cliente)"
+          ? sugestao === "pedido_informacao"
+            ? "O que falta (vai para o cliente · opcional: a página já lista as fotos que faltam)"
+            : "O que falta (vai para o cliente)"
           : escolha === "resolvido_fora"
             ? "O que foi feito (fica no histórico · encerra o chamado)"
             : "Fundamento para o laudo (opcional · reescreve o rascunho)"}

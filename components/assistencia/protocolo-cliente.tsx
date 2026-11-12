@@ -31,6 +31,52 @@ export function CopiarProtocolo({ protocolo }: { protocolo: string }) {
   );
 }
 
+/**
+ * Agradecimento logo depois de enviar o formulário. Quem escreve às 3 da manhã
+ * precisa saber, na hora, que foi recebido e quando vem a resposta.
+ * Fecha tirando o `novo=1` do endereço: atualizar a página não reabre.
+ */
+export function AvisoRecebido({ nome, protocolo, email }: { nome: string; protocolo: string; email: string }) {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    ref.current?.showModal();
+  }, []);
+  const fechar = () => {
+    ref.current?.close();
+    const u = new URL(window.location.href);
+    u.searchParams.delete("novo");
+    window.history.replaceState(null, "", u.toString());
+  };
+  return (
+    <dialog
+      ref={ref}
+      onClose={fechar}
+      aria-labelledby="aviso-recebido"
+      className="m-auto w-[calc(100%-32px)] max-w-md rounded-caixa bg-superficie p-0 text-tinta shadow-2xl backdrop:bg-black/50"
+    >
+      <div className="p-6">
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-marca">Chamado recebido</p>
+        <h2 id="aviso-recebido" className="mt-1 text-xl font-extrabold">
+          Obrigado por entrar em contato, {nome.split(" ")[0]}
+        </h2>
+        <p className="mt-3 text-[15px] text-tinta-2">
+          O seu chamado <span className="num font-mono font-bold text-tinta">{protocolo}</span> já está com a nossa equipe
+          técnica, que revisa cada caso pessoalmente.
+        </p>
+        <p className="mt-3 rounded-lg bg-marca-suave px-3 py-2.5 text-[15px] font-semibold text-marca">
+          Você recebe a resposta em até 24 horas, por e-mail e nesta página.
+        </p>
+        <p className="mt-3 text-[13.5px] text-mudo">
+          Enviamos a confirmação para <span className="font-semibold">{email}</span>. Guarde o número do protocolo.
+        </p>
+        <button type="button" onClick={fechar} autoFocus className="mt-5 w-full rounded-lg bg-marca px-5 py-3 text-[14px] font-bold text-white">
+          Entendi
+        </button>
+      </div>
+    </dialog>
+  );
+}
+
 /** Enquanto a análise roda (segundos), a página se atualiza sozinha. */
 export function AtualizarEnquantoAnalisa() {
   const router = useRouter();

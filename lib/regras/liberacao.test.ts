@@ -28,7 +28,7 @@ const e = (o: Partial<EntradaLiberacao> = {}): EntradaLiberacao => ({
   faltando: [],
   sinais: [],
   lista: limpa,
-  conferirAprovacoes: false,
+  conferenciaHumana: false,
   ...o,
 });
 
@@ -47,8 +47,25 @@ describe("liberação automática", () => {
     expect(d.acao).toBe("autorizar_troca");
     expect(d.documento?.anexos).toEqual(["termo"]);
   });
-  it("fase de conferência manda até a aprovação para a fila", () => {
-    expect(decidir(e({ conferirAprovacoes: true })).rota).toBe("fila_humana");
+  it("conferência humana: nada sai sozinho, a decisão do motor fica como sugestão", () => {
+    const casos: [Partial<EntradaLiberacao>, string, string][] = [
+      [{}, "aprovar_envio", "aprovacao"],
+      [{ faixa: faixa("troca_expressa") }, "autorizar_troca", "autorizacao"],
+      [{ faixa: faixa("arrependimento"), lista: null }, "arrependimento", "arrependimento"],
+      [{ faixa: faixa("marketplace_30"), lista: null }, "orientar_marketplace", "orientacao_marketplace"],
+      [{ faltando: ["foto do cabo e emenda"] }, "pedir_informacao", "pedido_informacao"],
+    ];
+    for (const [o, acao, sugestao] of casos) {
+      const d = decidir(e({ ...o, conferenciaHumana: true }));
+      expect(d.rota).toBe("fila_humana");
+      expect(d.acao).toBe(acao);
+      expect(d.sugestao).toBe(sugestao);
+    }
+  });
+  it("conferência humana não muda o que já ia para a fila", () => {
+    const d = decidir(e({ sinais: [VERMELHO], conferenciaHumana: true }));
+    expect(d.sugestao).toBe("negativa");
+    expect(d.motivos).toEqual(["a seco"]);
   });
   it("falta foto → pede ao cliente, automático", () => {
     const d = decidir(e({ faltando: ["foto do cabo e emenda"] }));

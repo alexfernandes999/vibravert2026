@@ -88,8 +88,11 @@ async function registrarUso(chamadoId: string, finalidade: string, u: Uso | null
   });
 }
 
-/** Conferência das aprovações automáticas ligada até a diretoria liberar. */
-const conferirAprovacoes = () => process.env.ASSISTENCIA_LIBERACAO_AUTOMATICA !== "1";
+/**
+ * Toda resposta passa pelo técnico antes de chegar ao cliente. Só a diretoria
+ * desliga (ASSISTENCIA_LIBERACAO_AUTOMATICA=1).
+ */
+export const conferenciaHumana = () => process.env.ASSISTENCIA_LIBERACAO_AUTOMATICA !== "1";
 
 /** Fotos: tira do rascunho, grava original e reduzida, devolve o que falta. */
 async function arquivarFotos(c: Chamado) {
@@ -176,7 +179,7 @@ export async function processarChamado(chamadoId: string) {
     faltando,
     sinais,
     lista,
-    conferirAprovacoes: conferirAprovacoes(),
+    conferenciaHumana: conferenciaHumana(),
   });
 
   let status = STATUS[decisao.acao];

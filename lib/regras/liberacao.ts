@@ -37,10 +37,12 @@ export type EntradaLiberacao = {
   /** Lista fechada vinda das fotos. `null` quando a análise não rodou ou falhou. */
   lista: ResumoLista | null;
   /**
-   * Fase de conferência: o operador revisa também as aprovações automáticas
-   * antes de liberar a automação total (recomendação do briefing).
+   * Conferência humana de tudo: nenhuma resposta sai para o cliente sem o
+   * técnico revisar · nem aprovação, nem arrependimento, nem orientação de
+   * marketplace, nem pedido de foto (decisão da diretoria, 12/11/2026). O motor
+   * continua decidindo na hora; a decisão fica como sugestão na fila.
    */
-  conferirAprovacoes: boolean;
+  conferenciaHumana: boolean;
 };
 
 export type Decisao = {
@@ -71,6 +73,12 @@ export function precisaAnaliseDeFotos(faixa: ResultadoFaixa, faltando: string[])
 }
 
 export function decidir(e: EntradaLiberacao): Decisao {
+  const d = motor(e);
+  if (!e.conferenciaHumana || d.rota === "fila_humana") return d;
+  return { ...d, rota: "fila_humana", motivos: [...d.motivos, "Conferência humana: o técnico revisa antes de sair para o cliente"] };
+}
+
+function motor(e: EntradaLiberacao): Decisao {
   const f = e.faixa;
 
   // ── desvio cedo: o código resolve sozinho ──────────────────────
@@ -120,10 +128,10 @@ export function decidir(e: EntradaLiberacao): Decisao {
 
   const pontos = troca ? [...red, ...amarelos(e.sinais)] : amarelos(e.sinais);
   return {
-    rota: e.conferirAprovacoes ? "fila_humana" : "automatica",
+    rota: "automatica",
     acao: troca ? "autorizar_troca" : "aprovar_envio",
     sugestao: troca ? "autorizacao" : "aprovacao",
-    motivos: e.conferirAprovacoes ? ["Fase de conferência: aprovação revisada pelo operador"] : [],
+    motivos: [],
     pontosAVerificar: pontos,
     documento: documentoPara(f.faixa, "favoravel"),
   };

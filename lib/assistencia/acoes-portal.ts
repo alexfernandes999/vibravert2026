@@ -13,6 +13,16 @@ import { processarChamado } from "./analise";
 import { redigir, FalhaIA } from "./claude";
 import { montarLaudo, type ConteudoLaudo } from "./laudo";
 import { hojeSP } from "./compra";
+import { linkProtocolo } from "./acesso";
+import { CANAIS } from "./esquemas";
+import { respostaAssistencia, type RespostaAssistencia } from "@/lib/email";
+
+const SITE = process.env.NEXT_PUBLIC_URL || "https://www.vibravert.com.br";
+
+/** Avisa o cliente por e-mail que a resposta foi liberada. Falha não desfaz a decisão. */
+function avisarCliente(c: { email: string; nome: string; protocolo: string }, r: RespostaAssistencia) {
+  after(() => respostaAssistencia(c.email, c.nome, c.protocolo, `${SITE}${linkProtocolo(c.protocolo)}`, r).then(() => {}, () => {}));
+}
 
 /**
  * Ações do portal interno. Toda ação confere a pessoa de novo no servidor:
@@ -32,7 +42,11 @@ type Resultado = { ok: true; mensagem?: string } | { ok: false; erro: string };
  * balcão, desistência). Encerra sem laudo e sem a Claude · a nota diz o que foi
  * feito. Não é negativa: o status final é ENCERRADO.
  */
-const DECISOES = ["aprovacao", "autorizacao", "negativa", "recusa", "pedido_informacao", "resolvido_fora"] as const;
+const DECISOES = [
+  "aprovacao", "autorizacao", "negativa", "recusa", "pedido_informacao", "resolvido_fora",
+  // Saíam sozinhos; desde 12/11/2026 também passam pelo técnico.
+  "arrependimento", "orientacao_marketplace",
+] as const;
 type DecisaoHumana = (typeof DECISOES)[number];
 
 const iso = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
@@ -90,9 +104,12 @@ export async function decidirChamado(_: unknown, dados: FormData): Promise<Resul
   if (desfavoravel && !conferiuFotos) return { ok: false, erro: 'Marque "Conferi as 6 fotos e as respostas" para confirmar.' };
   if (decisao === "recusa" && c.faixa !== "troca_expressa") return { ok: false, erro: "Recusa é da Troca Expressa. Fora dela, é negativa." };
   if (decisao === "autorizacao" && c.faixa !== "troca_expressa") return { ok: false, erro: "Autorização é da Troca Expressa. Fora dela, é aprovação." };
-  if (decisao === "pedido_informacao" && !nota) return { ok: false, erro: "Diga ao cliente o que falta." };
+  if (decisao === "arrependimento" && c.faixa !== "arrependimento") return { ok: false, erro: "Arrependimento é só até 7 dias do recebimento, sem uso." };
+  if (decisao === "orientacao_marketplace" && c.faixa !== "marketplace_30") return { ok: false, erro: "Orientação de marketplace é só para compra em marketplace há até 30 dias." };
+  // Foto ilegível: a página do cliente já lista o que falta; a nota é opcional.
+  if (decisao === "pedido_informacao" && !nota && c.decisoes[0]?.sugestao !== "pedido_informacao") return { ok: false, erro: "Diga ao cliente o que falta." };
   if (decisao === "resolvido_fora" && !nota) return { ok: false, erro: "Escreva o que foi feito com o cliente." };
-  const semLaudo = decisao === "pedido_informacao" || decisao === "resolvido_fora";
+  const semLaudo = ["pedido_informacao", "resolvido_fora", "arrependimento", "orientacao_marketplace"].includes(decisao);
 
   const ultima = c.decisoes[0];
   const sugestao = ultima?.sugestao ?? null;
@@ -119,7 +136,8 @@ export async function decidirChamado(_: unknown, dados: FormData): Promise<Resul
 
   const status: StatusChamado =
     decisao === "negativa" ? "NEGADO" : decisao === "recusa" ? "RECUSADO" : decisao === "pedido_informacao" ? "PENDENTE_INFORMACAO"
-    : decisao === "resolvido_fora" ? "ENCERRADO" : "AGUARDANDO_ENVIO";
+    : decisao === "resolvido_fora" ? "ENCERRADO" : decisao === "arrependimento" ? "ARREPENDIMENTO"
+    : decisao === "orientacao_marketplace" ? "ORIENTADO_MARKETPLACE" : "AGUARDANDO_ENVIO";
 
   // Ordem importa: a decisão humana entra antes do status e do laudo, que os
   // triggers só aceitam com ela registrada.
@@ -144,8 +162,14 @@ export async function decidirChamado(_: unknown, dados: FormData): Promise<Resul
     await tx.chamado.update({ where: { id: c.id }, data: { status } });
   });
   await registrarAcao(`assistência: ${decisao}`, protocolo, motivo ?? undefined);
+  // A resposta só chega ao cliente agora, depois da pessoa. Resolvido por fora
+  // já foi tratado com ele por outro caminho: não manda nada.
+  if (decisao === "pedido_informacao") avisarCliente(c, { tipo: decisao, nota });
+  else if (decisao === "orientacao_marketplace")
+    avisarCliente(c, { tipo: decisao, marketplace: CANAIS.find(([v]) => v === c.canal)?.[1] ?? "marketplace" });
+  else if (decisao !== "resolvido_fora") avisarCliente(c, { tipo: decisao });
   revalidatePath("/admin/assistencia", "layout");
-  return { ok: true, mensagem: "Decisão registrada." };
+  return { ok: true, mensagem: decisao === "resolvido_fora" ? "Decisão registrada." : "Decisão registrada. O cliente recebe a resposta por e-mail." };
 }
 
 /** Operador informa a data de emissão e o canal (NF de revenda ou sem Bling). */
@@ -295,6 +319,7 @@ export async function assinarBancada(_: unknown, dados: FormData): Promise<Resul
     await tx.chamado.update({ where: { id: c.id }, data: { status: "CONCLUIDO" } });
   });
   await registrarAcao("assistência: assinou laudo de bancada", protocolo, b.conclusaoFinal);
+  avisarCliente(c, { tipo: "bancada" });
   revalidatePath("/admin/assistencia", "layout");
   return { ok: true, mensagem: "Laudo assinado e liberado ao cliente." };
 }

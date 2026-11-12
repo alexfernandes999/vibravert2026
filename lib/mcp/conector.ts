@@ -79,7 +79,7 @@ async function decisaoDoMotor(c: LinhaChamado) {
     faltando,
     sinais,
     lista,
-    conferirAprovacoes: process.env.ASSISTENCIA_LIBERACAO_AUTOMATICA !== "1",
+    conferenciaHumana: process.env.ASSISTENCIA_LIBERACAO_AUTOMATICA !== "1",
   });
   return { faixa, decisao, faltando };
 }
