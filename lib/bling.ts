@@ -105,10 +105,17 @@ export async function token(): Promise<string> {
 
   if (c.expiraEm.getTime() - FOLGA > Date.now()) return c.accessToken;
 
-  // Uma renovação por vez, para o sistema inteiro. Pedido pago chega com vários
-  // avisos do Mercado Pago no mesmo segundo; dois renovando juntos usam o mesmo
-  // refresh_token, o Bling lê isso como roubo e invalida a autorização inteira ·
-  // foi o que derrubou a conexão em 04/11 (pedido #36) e 12/11 (pedido #39).
+  // Só o servidor renova. O refresh_token fica preso às credenciais de quem
+  // autorizou (as da Vercel); uma renovação tentada de um computador, com outras
+  // credenciais, é recusada e o Bling derruba a autorização inteira · foi o que
+  // aconteceu em 04/11 e 12/11. Fora da Vercel, token vencido é erro, não renovação.
+  if (!process.env.VERCEL && process.env.BLING_RENOVAR_LOCAL !== "1") {
+    throw new Error("Token do Bling vencido. A renovação só acontece no servidor (vibravert.com.br); aguarde o site renovar.");
+  }
+
+  // Uma renovação por vez, para o sistema inteiro: pedido pago chega com vários
+  // avisos do Mercado Pago no mesmo segundo, e dois renovando juntos usariam o
+  // mesmo refresh_token.
   // Quem chega depois espera a trava e já encontra o token novo. Dentro da
   // transação só se usa `tx`: com uma conexão só no pool, qualquer outra
   // consulta aqui dentro esperaria a própria transação terminar.
