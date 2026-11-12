@@ -107,7 +107,11 @@ export async function painelVendas(f: FiltroVendas) {
        GROUP BY 1
        ORDER BY 3 DESC
        LIMIT 12`,
-    prisma.fonteBling.findUnique({ where: { entidade: "pedido_venda" }, select: { completaEm: true, atualizadoEm: true } }),
+    // Último registro de pedido gravado (pelo cron ou por aviso ao vivo) e último aviso recebido.
+    Promise.all([
+      prisma.espelhoBling.aggregate({ where: { entidade: "pedido_venda" }, _max: { lidoEm: true } }),
+      prisma.fonteBling.findUnique({ where: { entidade: "__webhook" }, select: { erroEm: true, registros: true } }),
+    ]),
   ]);
 
   // Série diária, um ponto por dia do período (dia sem venda = zero), por canal.
@@ -135,7 +139,8 @@ export async function painelVendas(f: FiltroVendas) {
       return { nome: info?.nome ?? "Sem canal", canal: info?.canal ?? ("Outros" as CanalPainel), pedidos: Number(l.pedidos), valor: l.valor ?? 0 };
     }),
     produtos: produtos.map((p) => ({ codigo: p.codigo, descricao: p.descricao ?? p.codigo ?? "—", pecas: p.pecas, valor: p.valor, pedidos: Number(p.pedidos) })),
-    lidoEm: fonte?.completaEm ?? fonte?.atualizadoEm ?? null,
+    lidoEm: fonte[0]._max.lidoEm ?? null,
+    ultimoAviso: fonte[1]?.erroEm ?? null,
   };
 }
 

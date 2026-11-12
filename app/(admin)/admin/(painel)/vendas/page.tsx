@@ -3,6 +3,7 @@ import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { CANAIS_PAINEL, painelVendas, SITUACOES, SITUACOES_PADRAO, type CanalPainel } from "@/lib/erp/vendas";
 import { COR_CANAL, GraficoVendas } from "@/components/admin/grafico-vendas";
 import { brl } from "@/lib/formato";
+import { AtualizarSozinho } from "@/components/admin/atualizar-sozinho";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Painel de vendas" };
@@ -99,9 +100,19 @@ export default async function Vendas({ searchParams }: { searchParams: Promise<P
             Todos os canais do Bling · {br(de)} a {br(ate)} · comparado com {br(p.periodo.anterior.de)} a {br(p.periodo.anterior.ate)}
           </p>
         </div>
-        <p className="text-[12px] text-mudo">
-          {p.lidoEm ? `Bling lido em ${p.lidoEm.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : "Bling ainda não lido"}
-        </p>
+        <div className="text-right text-[12px] text-mudo">
+          {p.ultimoAviso && Date.now() - p.ultimoAviso.getTime() < 3 * 3600_000 ? (
+            <p className="font-bold text-bom">
+              <span className="mr-1 inline-block h-2 w-2 animate-pulse rounded-full bg-bom align-middle" aria-hidden />
+              Ao vivo com o Bling
+            </p>
+          ) : null}
+          <p>
+            {p.lidoEm ? `Último pedido lido às ${p.lidoEm.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : "Bling ainda não lido"}
+            {" · "}atualiza sozinho a cada minuto
+          </p>
+          <AtualizarSozinho segundos={60} />
+        </div>
       </div>
 
       {/* ── filtros, numa linha só ─────────────────────────────── */}

@@ -405,3 +405,41 @@ export async function situacao() {
     pendentes: pend.get(f.entidade) ?? 0,
   }));
 }
+
+// ── ao vivo: avisos (webhooks) do Bling ──────────────────────────────────────
+
+/** Campos do resumo de pedido de venda, como vêm na listagem. */
+const CAMPOS_RESUMO_PEDIDO = ["id", "numero", "numeroLoja", "data", "dataSaida", "dataPrevista", "totalProdutos", "total", "contato", "situacao", "loja"];
+
+/**
+ * Atualiza um registro só, na hora em que o Bling avisa que ele mudou. O aviso
+ * traz só o id: o registro é sempre relido da API (o conteúdo do aviso não é
+ * usado para nada além disso). Apagado no Bling → sai do espelho.
+ */
+export async function atualizarUm(entidade: "pedido_venda" | "produto" | "saldo", blingId: string, apagado = false) {
+  if (!/^\d+$/.test(blingId)) return { ok: false as const, motivo: "id inválido" };
+  if (apagado) {
+    await prisma.espelhoBling.deleteMany({ where: { entidade, blingId } });
+    return { ok: true as const, apagado: true };
+  }
+  if (entidade === "saldo") {
+    const d = await chamar<{ data?: (Item & { produto?: { id?: number } })[] }>(`/estoques/saldos?idsProdutos[]=${blingId}`);
+    const itens = (d.data ?? []).filter((x) => x.produto?.id !== undefined).map((x) => ({ ...x, id: x.produto!.id }));
+    const prod = await prisma.espelhoBling.findFirst({ where: { entidade: "produto", blingId }, select: { codigo: true } });
+    const fonte: Fonte = { entidade: "saldo", rotulo: SALDO.rotulo, lista: () => "", intervaloMin: SALDO.intervaloMin, codigo: () => prod?.codigo ?? null };
+    return { ok: true as const, mudaram: itens.length ? await gravar(fonte, itens) : 0 };
+  }
+  const f = FONTES.find((x) => x.entidade === entidade)!;
+  const d = await chamar<{ data?: Item }>(f.detalhe!(blingId));
+  const det = d.data;
+  if (!det?.id) return { ok: false as const, motivo: "não encontrado no Bling" };
+  // O resumo segue o formato da listagem; o detalhe inteiro vai em `dados`.
+  const resumo: Item =
+    entidade === "pedido_venda" ? Object.fromEntries(CAMPOS_RESUMO_PEDIDO.filter((k) => k in det).map((k) => [k, det[k]])) : det;
+  const mudaram = await gravar(f, [resumo]);
+  await prisma.espelhoBling.update({
+    where: { entidade_blingId: { entidade, blingId: String(det.id) } },
+    data: { dados: det as Prisma.InputJsonValue, pendente: false },
+  });
+  return { ok: true as const, mudaram };
+}
