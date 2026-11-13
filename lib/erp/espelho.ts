@@ -359,14 +359,22 @@ export async function sincronizar({ orcamentoMs = 45_000, entidades }: { orcamen
   if (!(await travar())) return { ok: false as const, motivo: "outra leitura em andamento" };
   const relatorio: Relatorio[] = [];
   try {
-    const fontes = FONTES.filter((f) => !entidades || entidades.includes(f.entidade));
-    // Listagens: rápidas e o que mantém o espelho em dia.
+    // Pedidos de venda primeiro: é o que o painel de vendas mostra ao vivo. A
+    // releitura dos 52 mil produtos e dos saldos é longa e, na frente, deixava
+    // os pedidos horas sem ler (13/11).
+    const fontes = FONTES.filter((f) => !entidades || entidades.includes(f.entidade)).sort(
+      (a, b) => Number(b.entidade === "pedido_venda") - Number(a.entidade === "pedido_venda"),
+    );
+    // Listagens: o que mantém o espelho em dia. Cada fonte tem a sua parte do
+    // tempo (a varredura longa continua na rodada seguinte).
+    const comSaldo = !entidades || entidades.includes(SALDO.entidade);
+    const etapas = fontes.length + (comSaldo && fontes.some((f) => f.entidade === "produto") ? 1 : 0);
+    let feitas = 0;
+    const parte = () => Date.now() + (prazo - Date.now()) / Math.max(1, etapas - feitas++);
     for (const f of fontes) {
       if (Date.now() >= prazo) break;
-      relatorio.push(await lerFonte(f, prazo, "lista"));
-      if (f.entidade === "produto" && (!entidades || entidades.includes(SALDO.entidade))) {
-        relatorio.push(await lerSaldos(prazo));
-      }
+      relatorio.push(await lerFonte(f, parte(), "lista"));
+      if (f.entidade === "produto" && comSaldo) relatorio.push(await lerSaldos(parte()));
     }
     // Detalhes: o tempo que sobrou, dividido entre as fontes com detalhe, para
     // nenhuma ficar parada atrás de outra.
